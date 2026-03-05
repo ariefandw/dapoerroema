@@ -1,0 +1,87 @@
+"use client";
+
+import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { upsertOutlet } from "@/app/actions/master";
+import { Loader2 } from "lucide-react";
+
+interface OutletDialogProps {
+    outlet?: { id: number; name: string; contact_info: string | null };
+    children: React.ReactNode;
+}
+
+export function OutletDialog({ outlet, children }: OutletDialogProps) {
+    const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [name, setName] = useState(outlet?.name || "");
+    const [contact, setContact] = useState(outlet?.contact_info || "");
+
+    async function handleSave() {
+        setLoading(true);
+        try {
+            await upsertOutlet({
+                id: outlet?.id,
+                name,
+                contact_info: contact || undefined
+            });
+            setOpen(false);
+        } catch (error) {
+            console.error("Failed to save outlet", error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>{outlet ? "Edit Outlet" : "Add New Outlet"}</DialogTitle>
+                    <DialogDescription>
+                        {outlet ? "Make changes to your outlet here." : "Enter the details for the new outlet location."}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right text-xs">
+                            Name
+                        </Label>
+                        <Input
+                            id="name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="col-span-3 h-8"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="contact" className="text-right text-xs">
+                            Contact
+                        </Label>
+                        <Input
+                            id="contact"
+                            value={contact}
+                            onChange={(e) => setContact(e.target.value)}
+                            className="col-span-3 h-8"
+                            placeholder="Optional"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={loading}>
+                        Cancel
+                    </Button>
+                    <Button size="sm" onClick={handleSave} disabled={loading}>
+                        {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {outlet ? "Save Changes" : "Record Outlet"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
