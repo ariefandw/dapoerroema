@@ -25,7 +25,7 @@ const masterDataItems = [
 export default function MasterDataHub() {
     return (
         <PageContainer>
-            <div className="space-y-6 max-w-2xl mx-auto py-6">
+            <div className="space-y-6 max-w-7xl mx-auto py-6">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight mb-2 flex items-center gap-2">
                         <Database className="h-6 w-6 text-primary" />
@@ -46,11 +46,9 @@ export default function MasterDataHub() {
                                     </div>
                                     <div className="flex-1">
                                         <CardTitle className="text-lg">{item.title}</CardTitle>
+                                        <CardDescription>{item.description}</CardDescription>
                                     </div>
                                 </CardHeader>
-                                <CardContent>
-                                    <CardDescription>{item.description}</CardDescription>
-                                </CardContent>
                             </Card>
                         </Link>
                     ))}

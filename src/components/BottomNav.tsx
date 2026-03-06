@@ -6,13 +6,7 @@ import { LayoutDashboard, ClipboardList, CookingPot, Truck, Database } from "luc
 import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 
-const links = [
-    { href: "/dashboard", label: "Beranda", roles: ["admin", "owner"], icon: LayoutDashboard },
-    { href: "/admin", label: "Order", roles: ["admin"], icon: ClipboardList },
-    { href: "/baker", label: "Produksi", roles: ["admin", "baker"], icon: CookingPot },
-    { href: "/driver", label: "Pengiriman", roles: ["admin", "driver"], icon: Truck },
-    { href: "/admin/master", label: "Data Induk", roles: ["admin"], icon: Database },
-];
+import { getNavigationLinks } from "@/config/navigation";
 
 interface BottomNavProps {
     userRole: string;
@@ -21,12 +15,7 @@ interface BottomNavProps {
 export function BottomNav({ userRole }: BottomNavProps) {
     const pathname = usePathname();
 
-    // Show all links for admin, or filter by role
-    const filteredLinks = links.filter(l =>
-        !l.roles ||
-        (userRole && l.roles.includes(userRole)) ||
-        userRole === "admin"
-    );
+    const filteredLinks = getNavigationLinks(userRole);
 
     if (filteredLinks.length === 0) return null;
 

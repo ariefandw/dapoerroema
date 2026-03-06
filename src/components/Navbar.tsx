@@ -9,15 +9,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ChefHat, LayoutDashboard, ClipboardList, CookingPot, Truck, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "@/components/UserMenu";
-import { MasterDataMenu } from "@/components/MasterDataMenu";
 
-const links = [
-    { href: "/dashboard", label: "Dashboard", roles: ["admin", "owner"], icon: LayoutDashboard },
-    { href: "/admin", label: "Order", roles: ["admin"], icon: ClipboardList },
-    { href: "/baker", label: "Produksi", roles: ["admin", "baker"], icon: CookingPot },
-    { href: "/driver", label: "Pengiriman", roles: ["admin", "driver"], icon: Truck },
-];
-
+import { getNavigationLinks } from "@/config/navigation";
 
 interface NavbarProps {
     session: any;
@@ -28,11 +21,7 @@ export function Navbar({ session, userRole }: NavbarProps) {
     const router = useRouter();
     const pathname = usePathname();
 
-    const filteredLinks = links.filter(l =>
-        !l.roles ||
-        (userRole && l.roles.includes(userRole)) ||
-        userRole === "admin"
-    );
+    const filteredLinks = getNavigationLinks(userRole);
 
     return (
         <nav className="border-b bg-background sticky top-0 z-50">
@@ -51,7 +40,7 @@ export function Navbar({ session, userRole }: NavbarProps) {
                             href={href}
                             className={cn(
                                 "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
-                                pathname.startsWith(href) && !href.includes("/master")
+                                pathname.startsWith(href) && !href.includes("/master") && href !== "/"
                                     ? "bg-muted text-foreground font-medium"
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                             )}
@@ -63,13 +52,6 @@ export function Navbar({ session, userRole }: NavbarProps) {
                 </div>
 
                 <div className="flex items-center gap-2 ml-auto">
-                    {/* Master Data for Admin (Desktop) */}
-                    {userRole === "admin" && (
-                        <div className="hidden md:flex items-center border-r pr-2 mr-2">
-                            <MasterDataMenu />
-                        </div>
-                    )}
-
                     <ThemeToggle />
 
                     {/* User Menu */}

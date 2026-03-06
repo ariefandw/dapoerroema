@@ -11,13 +11,8 @@ export async function requireRole(allowedRoles: string[]) {
 
     const role = (session.user as any).role ?? "admin";
     if (!allowedRoles.includes(role)) {
-        // Redirect to their correct home
-        const fallback =
-            role === "baker" ? "/baker"
-                : role === "driver" ? "/driver"
-                    : role === "owner" ? "/dashboard"
-                        : "/admin";
-        redirect(fallback);
+        // Everyone goes to the unified dashboard now.
+        redirect("/dashboard");
     }
 
     return session;

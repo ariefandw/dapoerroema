@@ -9,22 +9,11 @@ export default async function BakerPage() {
     await requireRole(["baker", "admin"]);
     const orders = await getBakerItems();
 
-    // Aggregate items by product name, so baker sees total quantities needed.
-    // E.g., 30x Soft Sourdough Keju, 15x Garlic Bread
-    const aggregatedItems: Record<string, number> = {};
-
-    orders.forEach((order) => {
-        order.items.forEach((item: any) => {
-            const productName = item.product.name;
-            aggregatedItems[productName] = (aggregatedItems[productName] || 0) + item.quantity;
-        });
-    });
-
     return (
         <PageContainer>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard Produksi</h1>
-                <p className="text-muted-foreground">Daftar produksi dan antrean pembuatan roti.</p>
+                <h1 className="text-3xl font-bold tracking-tight">Antrean Produksi</h1>
+                <p className="text-muted-foreground">Daftar pesanan yang menunggu untuk dibuat.</p>
             </div>
 
             {orders.length === 0 ? (
@@ -35,52 +24,45 @@ export default async function BakerPage() {
                 </Card>
             ) : (
                 <div className="space-y-8">
-                    {/* Top summary card summarizing exactly what needs to be baked in total */}
-                    <Card className="bg-primary/5 border-primary/20">
-                        <CardHeader>
-                            <CardTitle>Daftar Produksi Utama</CardTitle>
-                            <CardDescription>Total jumlah yang harus dibuat untuk semua pesanan aktif saat ini.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {Object.entries(aggregatedItems).map(([productName, quantity]) => (
-                                    <div key={productName} className="p-4 bg-background rounded-lg shadow-sm border">
-                                        <div className="text-3xl font-black mb-1">{quantity}x</div>
-                                        <div className="text-sm font-medium text-muted-foreground">{productName}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-
                     {/* Individual order breakdown to mark as ready */}
                     <div className="space-y-4">
-                        <h2 className="text-xl font-semibold tracking-tight">Rincian Order</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {orders.map((order) => (
-                                <Card key={order.id} className="flex flex-col">
-                                    <CardHeader className="pb-3">
-                                        <CardTitle className="text-lg">{order.outlet.name}</CardTitle>
-                                        <CardDescription>Order #{order.id}</CardDescription>
+                                <Card key={order.id} className="flex flex-col relative overflow-hidden">
+                                    <CardHeader>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <CardTitle className="text-base leading-tight">{order.outlet.name}</CardTitle>
+                                                <CardDescription className="text-xs mt-0.5">Order #{order.id}</CardDescription>
+                                            </div>
+                                            <span className="inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-secondary text-secondary-foreground whitespace-nowrap">
+                                                {order.status}
+                                            </span>
+                                        </div>
                                     </CardHeader>
-                                    <CardContent className="flex-1">
-                                        <ul className="space-y-2 mb-6">
-                                            {order.items.map((item: any) => (
-                                                <li key={item.id} className="flex justify-between items-center bg-muted/50 p-2 rounded-md">
-                                                    <span className="font-medium">{item.product.name}</span>
-                                                    <span className="font-bold text-lg">{item.quantity}x</span>
-                                                </li>
-                                            ))}
-                                        </ul>
 
-                                        <form action={async () => {
-                                            "use server";
-                                            await updateOrderStatus(order.id, order.status, "Production Ready", "/baker");
-                                        }} className="mt-auto">
-                                            <Button type="submit" className="w-full" size="lg">
-                                                Tandai Siap Produksi
-                                            </Button>
-                                        </form>
+                                    <CardContent className="flex-1 flex flex-col">
+                                        <div className="mb-3">
+                                            <ul className="space-y-1">
+                                                {order.items.map((item: any) => (
+                                                    <li key={item.id} className="text-sm flex justify-between items-center border-b border-border/50 last:border-0">
+                                                        <span className="text-muted-foreground">{item.product.name}</span>
+                                                        <span className="font-bold">{item.quantity}x</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+
+                                        <div className="mt-auto">
+                                            <form action={async () => {
+                                                "use server";
+                                                await updateOrderStatus(order.id, order.status, "Production Ready", "/baker");
+                                            }} className="w-full">
+                                                <Button type="submit" size="sm" className="w-full bg-secondary hover:bg-secondary/90 text-white mt-1">
+                                                    Tandai Siap Produksi
+                                                </Button>
+                                            </form>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             ))}
