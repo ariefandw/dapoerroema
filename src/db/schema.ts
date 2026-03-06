@@ -15,6 +15,7 @@ export const products = pgTable("products", {
   name: text("name").notNull(),
   category: text("category").notNull(),
   base_price: integer("base_price").default(0).notNull(),
+  image_url: text("image_url"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -25,6 +26,11 @@ export const orders = pgTable("orders", {
     .notNull(),
   status: text("status").default("pending").notNull(),
   payment_status: text("payment_status"),
+  payment_method: text("payment_method"), // 'cash', 'qris', 'transfer'
+  discount_type: text("discount_type"), // 'percentage', 'fixed'
+  discount_amount: integer("discount_amount").default(0), // discount value
+  subtotal: integer("subtotal"), // before discount
+  total_amount: integer("total_amount"), // final amount after discount
   order_date: timestamp("order_date").notNull(),
   sent_to_baker_at: timestamp("sent_to_baker_at"),
   production_ready_at: timestamp("production_ready_at"),

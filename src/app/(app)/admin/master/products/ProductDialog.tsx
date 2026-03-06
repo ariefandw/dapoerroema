@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ProductImageUpload } from "@/components/ProductImageUpload";
 import { upsertProduct } from "@/app/actions/master";
 import { Loader2 } from "lucide-react";
 
 const CATEGORIES = ["Sourdough", "Cookies", "Bread", "Pastry", "Beverage", "Cake", "Savory"];
 
 interface ProductDialogProps {
-    product?: { id: number; name: string; category: string; base_price: number };
+    product?: { id: number; name: string; category: string; base_price: number; image_url?: string | null };
     children: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
     const [name, setName] = useState(product?.name || "");
     const [category, setCategory] = useState(product?.category || "Bread");
     const [price, setPrice] = useState(product?.base_price?.toString() || "0");
+    const [imageUrl, setImageUrl] = useState(product?.image_url || null);
 
     async function handleSave() {
         setLoading(true);
@@ -30,7 +32,8 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                 id: product?.id,
                 name,
                 category,
-                base_price: parseInt(price) || 0
+                base_price: parseInt(price) || 0,
+                image_url: imageUrl
             });
             setOpen(false);
         } catch (error) {
@@ -45,7 +48,7 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>{product ? "Edit Produk" : "Tambah Produk Baru"}</DialogTitle>
                     <DialogDescription>
@@ -53,6 +56,13 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                    <div className="col-span-4">
+                        <Label className="text-xs mb-2 block">Gambar Produk</Label>
+                        <ProductImageUpload
+                            currentImage={imageUrl}
+                            onImageChange={setImageUrl}
+                        />
+                    </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right text-xs">
                             Nama

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, CookingPot, Truck, Database } from "lucide-react";
+import { LayoutDashboard, ClipboardList, CookingPot, Truck, Database, Calculator } from "lucide-react";
 
 export type NavLink = {
     href: string;
@@ -9,6 +9,7 @@ export type NavLink = {
 
 export const NAVIGATION_LINKS: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, // Everyone gets the dashboard
+    { href: "/cashier", label: "Kasir", roles: ["admin", "cashier"], icon: Calculator },
     { href: "/admin", label: "Pesanan", roles: ["admin"], icon: ClipboardList },
     { href: "/baker", label: "Produksi", roles: ["admin", "baker"], icon: CookingPot },
     { href: "/driver", label: "Pengiriman", roles: ["admin", "driver"], icon: Truck },

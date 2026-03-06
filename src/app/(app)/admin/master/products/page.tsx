@@ -3,7 +3,7 @@ import { products } from "@/db/schema";
 import { requireRole } from "@/lib/auth-guard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Tag, Utensils } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, Utensils, Image as ImageIcon } from "lucide-react";
 import { ProductDialog } from "./ProductDialog";
 import { deleteProduct } from "@/app/actions/master";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +35,7 @@ export default async function ProductsPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
+                            <TableHead className="w-[60px]">Gambar</TableHead>
                             <TableHead>Kategori</TableHead>
                             <TableHead>Nama Produk</TableHead>
                             <TableHead className="text-right">Harga Dasar</TableHead>
@@ -44,6 +45,21 @@ export default async function ProductsPage() {
                     <TableBody>
                         {allProducts.map((product) => (
                             <TableRow key={product.id}>
+                                <TableCell>
+                                    {product.image_url ? (
+                                        <div className="w-10 h-10 rounded overflow-hidden bg-muted">
+                                            <img
+                                                src={product.image_url}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
+                                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                    )}
+                                </TableCell>
                                 <TableCell>
                                     <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold">
                                         {product.category}

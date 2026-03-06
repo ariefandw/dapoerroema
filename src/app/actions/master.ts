@@ -33,16 +33,17 @@ export async function deleteOutlet(id: number) {
 
 // ─── Product Actions ─────────────────────────────────────────────────────────
 
-export async function upsertProduct(data: { id?: number; name: string; category: string; base_price: number }) {
+export async function upsertProduct(data: { id?: number; name: string; category: string; base_price: number; image_url?: string | null }) {
     if (data.id) {
         await db.update(products)
-            .set({ name: data.name, category: data.category, base_price: data.base_price })
+            .set({ name: data.name, category: data.category, base_price: data.base_price, image_url: data.image_url })
             .where(eq(products.id, data.id));
     } else {
         await db.insert(products).values({
             name: data.name,
             category: data.category,
-            base_price: data.base_price
+            base_price: data.base_price,
+            image_url: data.image_url
         });
     }
     revalidatePath("/admin/master/products");
