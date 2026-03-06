@@ -11,14 +11,14 @@ export default async function DriverPage() {
     return (
         <PageContainer>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Driver Dashboard</h1>
-                <p className="text-muted-foreground">Active delivery routes and order handoffs.</p>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard Pengiriman</h1>
+                <p className="text-muted-foreground">Rute pengiriman aktif dan serah terima order.</p>
             </div>
 
             {orders.length === 0 ? (
                 <Card>
                     <CardContent className="py-12 text-center text-muted-foreground">
-                        No orders are currently ready for delivery or out for shipping.
+                        Tidak ada order yang siap dikirim atau sedang dalam pengiriman.
                     </CardContent>
                 </Card>
             ) : (
@@ -46,7 +46,7 @@ export default async function DriverPage() {
 
                             <CardContent className="flex-1 flex flex-col">
                                 <div className="mb-4">
-                                    <h3 className="font-medium text-sm text-muted-foreground mb-2">Delivery Payload:</h3>
+                                    <h3 className="font-medium text-sm text-muted-foreground mb-2">Muatan Pengiriman:</h3>
                                     <ul className="space-y-1">
                                         {order.items.map((item: any) => (
                                             <li key={item.id} className="text-sm">
@@ -64,7 +64,7 @@ export default async function DriverPage() {
                                             await updateOrderStatus(order.id, order.status, "Shipped", "/driver");
                                         }} className="w-full">
                                             <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
-                                                Mark Out For Delivery
+                                                Tandai Siap Dikirim
                                             </Button>
                                         </form>
                                     ) : order.status === "Shipped" ? (
@@ -73,7 +73,7 @@ export default async function DriverPage() {
                                             await updateOrderStatus(order.id, order.status, "Delivered", "/driver");
                                         }} className="w-full">
                                             <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">
-                                                Confirm Delivery
+                                                Konfirmasi Pengiriman
                                             </Button>
                                         </form>
                                     ) : null}

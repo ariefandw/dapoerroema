@@ -31,8 +31,8 @@ export default async function DashboardPage() {
     return (
         <PageContainer>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Business Dashboard</h1>
-                <p className="text-muted-foreground">Performance overview across all outlets and products.</p>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard Bisnis</h1>
+                <p className="text-muted-foreground">Ringkasan kinerja semua outlet dan produk.</p>
             </div>
 
             {/* KPI Summary */}
@@ -40,25 +40,25 @@ export default async function DashboardPage() {
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-4xl font-black">{totalOrders}</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Total Orders</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Total Order</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-4xl font-black">{totalDelivered}</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Delivered</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Terkirim</div>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardContent className="pt-6">
                         <div className="text-4xl font-black">{deliveryRate}%</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Delivery Rate</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Tingkat Pengiriman</div>
                     </CardContent>
                 </Card>
                 <Card className="bg-primary text-primary-foreground">
                     <CardContent className="pt-6">
                         <div className="text-2xl font-black">{formatRupiah(totalRevenue)}</div>
-                        <div className="text-sm font-medium mt-1 opacity-80">Total Revenue</div>
+                        <div className="text-sm font-medium mt-1 opacity-80">Total Pendapatan</div>
                     </CardContent>
                 </Card>
             </div>
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
             {/* Status distribution */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Order Status Breakdown</CardTitle>
+                    <CardTitle>Rincian Status Order</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-wrap gap-3">
@@ -87,8 +87,8 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Top Products</CardTitle>
-                        <CardDescription>Units sold per product, all time.</CardDescription>
+                        <CardTitle>Produk Teratas</CardTitle>
+                        <CardDescription>Unit terjual per produk, sepanjang waktu.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <TopProductsChart data={topProducts} />
@@ -97,8 +97,8 @@ export default async function DashboardPage() {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Orders by Outlet</CardTitle>
-                        <CardDescription>Share of orders per outlet.</CardDescription>
+                        <CardTitle>Order per Outlet</CardTitle>
+                        <CardDescription>Bagian order per outlet.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <OutletPieChart data={ordersByOutlet} />
@@ -109,8 +109,8 @@ export default async function DashboardPage() {
             {/* Charts row 2 */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Order Volume — Last 30 Days</CardTitle>
-                    <CardDescription>Number of orders placed per day.</CardDescription>
+                    <CardTitle>Volume Order — 30 Hari Terakhir</CardTitle>
+                    <CardDescription>Jumlah order per hari.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <VolumeLineChart data={volumeByDay} />

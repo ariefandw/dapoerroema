@@ -42,15 +42,15 @@ export function OutletDialog({ outlet, children }: OutletDialogProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{outlet ? "Edit Outlet" : "Add New Outlet"}</DialogTitle>
+                    <DialogTitle>{outlet ? "Edit Outlet" : "Tambah Outlet Baru"}</DialogTitle>
                     <DialogDescription>
-                        {outlet ? "Make changes to your outlet here." : "Enter the details for the new outlet location."}
+                        {outlet ? "Lakukan perubahan pada outlet Anda di sini." : "Masukkan detail untuk lokasi outlet baru."}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right text-xs">
-                            Name
+                            Nama
                         </Label>
                         <Input
                             id="name"
@@ -61,24 +61,24 @@ export function OutletDialog({ outlet, children }: OutletDialogProps) {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="contact" className="text-right text-xs">
-                            Contact
+                            Kontak
                         </Label>
                         <Input
                             id="contact"
                             value={contact}
                             onChange={(e) => setContact(e.target.value)}
                             className="col-span-3 h-8"
-                            placeholder="Optional"
+                            placeholder="Opsional"
                         />
                     </div>
                 </div>
                 <DialogFooter>
                     <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={loading}>
-                        Cancel
+                        Batal
                     </Button>
                     <Button size="sm" onClick={handleSave} disabled={loading}>
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {outlet ? "Save Changes" : "Record Outlet"}
+                        {outlet ? "Simpan Perubahan" : "Catat Outlet"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

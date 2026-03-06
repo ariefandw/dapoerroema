@@ -61,7 +61,7 @@ export function UserMenu({ user }: UserMenuProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
+                    <span>Keluar</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

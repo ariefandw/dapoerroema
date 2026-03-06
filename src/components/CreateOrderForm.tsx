@@ -27,15 +27,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { createOrder } from "@/app/actions";
 
 const formSchema = z.object({
-    outlet_id: z.coerce.number().min(1, { message: "Please select an outlet" }),
+    outlet_id: z.coerce.number().min(1, { message: "Silakan pilih outlet" }),
     items: z
         .array(
             z.object({
-                product_id: z.coerce.number().min(1, { message: "Required" }),
-                quantity: z.coerce.number().min(1, { message: "Min 1" }),
+                product_id: z.coerce.number().min(1, { message: "Wajib diisi" }),
+                quantity: z.coerce.number().min(1, { message: "Minimal 1" }),
             })
         )
-        .min(1, { message: "Add at least one product to the order" }),
+        .min(1, { message: "Tambahkan minimal satu produk ke order" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,9 +64,9 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                     outlet_id: 0,
                     items: [{ product_id: 0, quantity: 1 }],
                 });
-                alert("Order created successfully!");
+                alert("Order berhasil dibuat!");
             } else {
-                alert("Failed to create order");
+                alert("Gagal membuat order");
             }
         });
     }
@@ -74,8 +74,8 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
     return (
         <Card className="w-full max-w-2xl">
             <CardHeader>
-                <CardTitle>New Order Intake</CardTitle>
-                <CardDescription>Manually enter a new order for an outlet.</CardDescription>
+                <CardTitle>Penerimaan Order Baru</CardTitle>
+                <CardDescription>Masukkan order baru untuk outlet secara manual.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Form {...form}>
@@ -92,7 +92,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                                     >
                                         <FormControl>
                                             <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Select an outlet" />
+                                                <SelectValue placeholder="Pilih outlet" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
@@ -109,7 +109,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                         />
 
                         <div className="space-y-2">
-                            <FormLabel>Order Items</FormLabel>
+                            <FormLabel>Item Order</FormLabel>
                             {fields.map((field, index) => (
                                 <div key={field.id} className="flex gap-4 items-end">
                                     <FormField
@@ -123,7 +123,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                                                 >
                                                     <FormControl>
                                                         <SelectTrigger className="w-full">
-                                                            <SelectValue placeholder="Select product" />
+                                                            <SelectValue placeholder="Pilih produk" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
@@ -172,12 +172,12 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                                 onClick={() => append({ product_id: 0, quantity: 1 })}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add Another Item
+                                Tambah Item Lain
                             </Button>
                         </div>
 
                         <Button type="submit" disabled={isPending} className="w-full">
-                            {isPending ? "Submitting..." : "Create Order"}
+                            {isPending ? "Mengirim..." : "Buat Order"}
                         </Button>
                     </form>
                 </Form>

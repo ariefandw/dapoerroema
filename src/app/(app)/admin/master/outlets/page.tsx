@@ -19,12 +19,12 @@ export default async function OutletsPage() {
         <PageContainer className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Outlets</h1>
-                    <p className="text-muted-foreground text-sm">Manage bakery delivery destinations</p>
+                    <h1 className="text-2xl font-bold tracking-tight">Outlet</h1>
+                    <p className="text-muted-foreground text-sm">Kelola tujuan pengiriman roti</p>
                 </div>
                 <OutletDialog>
                     <Button size="sm" className="gap-2">
-                        <Plus className="h-4 w-4" /> Add Outlet
+                        <Plus className="h-4 w-4" /> Tambah Outlet
                     </Button>
                 </OutletDialog>
             </div>
@@ -33,9 +33,9 @@ export default async function OutletsPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Outlet Name</TableHead>
-                            <TableHead>Contact Info</TableHead>
-                            <TableHead className="w-[100px] text-right">Actions</TableHead>
+                            <TableHead>Nama Outlet</TableHead>
+                            <TableHead>Info Kontak</TableHead>
+                            <TableHead className="w-[100px] text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -48,7 +48,7 @@ export default async function OutletsPage() {
                                             <Phone className="h-3 w-3" /> {outlet.contact_info}
                                         </div>
                                     ) : (
-                                        <span className="text-xs text-muted-foreground italic">No contact info</span>
+                                        <span className="text-xs text-muted-foreground italic">Tidak ada info kontak</span>
                                     )}
                                 </TableCell>
                                 <TableCell className="text-right">

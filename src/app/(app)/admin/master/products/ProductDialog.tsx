@@ -47,15 +47,15 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{product ? "Edit Product" : "Add New Product"}</DialogTitle>
+                    <DialogTitle>{product ? "Edit Produk" : "Tambah Produk Baru"}</DialogTitle>
                     <DialogDescription>
-                        {product ? "Update product details here." : "Enter the specifications for the new bakery item."}
+                        {product ? "Perbarui detail produk di sini." : "Masukkan spesifikasi untuk item roti baru."}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name" className="text-right text-xs">
-                            Name
+                            Nama
                         </Label>
                         <Input
                             id="name"
@@ -67,12 +67,12 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="category" className="text-right text-xs">
-                            Category
+                            Kategori
                         </Label>
                         <div className="col-span-3">
                             <Select value={category} onValueChange={setCategory}>
                                 <SelectTrigger className="h-8">
-                                    <SelectValue placeholder="Select category" />
+                                    <SelectValue placeholder="Pilih kategori" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {CATEGORIES.map(cat => (
@@ -84,7 +84,7 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="price" className="text-right text-xs">
-                            Base Price
+                            Harga Dasar
                         </Label>
                         <Input
                             id="price"
@@ -97,11 +97,11 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                 </div>
                 <DialogFooter>
                     <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={loading}>
-                        Cancel
+                        Batal
                     </Button>
                     <Button size="sm" onClick={handleSave} disabled={loading}>
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {product ? "Update Product" : "Add to Catalog"}
+                        {product ? "Perbarui Produk" : "Tambah ke Katalog"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

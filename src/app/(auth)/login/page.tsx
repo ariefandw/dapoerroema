@@ -37,7 +37,7 @@ export default function OrberyLoginPage() {
         try {
             const res = await signIn.email({ email, password });
             if (res.error) {
-                setError(res.error.message ?? "Invalid credentials.");
+                setError(res.error.message ?? "Kredensial tidak valid.");
                 setLoading(false);
                 return;
             }
@@ -49,7 +49,7 @@ export default function OrberyLoginPage() {
             router.push(dest);
             router.refresh();
         } catch {
-            setError("Something went wrong. Try again.");
+            setError("Terjadi kesalahan. Silakan coba lagi.");
             setLoading(false);
         }
     }
@@ -78,7 +78,7 @@ export default function OrberyLoginPage() {
                         <ChefHat className="size-12 text-primary" strokeWidth={1.5} />
                     </div>
                     <CardTitle className="text-2xl font-bold tracking-tight">Orbery</CardTitle>
-                    <CardDescription className="text-muted-foreground/80 mt-1">Bakery management system</CardDescription>
+                    <CardDescription className="text-muted-foreground/80 mt-1">Sistem manajemen roti</CardDescription>
                 </div>
 
                 <CardContent>
@@ -97,7 +97,7 @@ export default function OrberyLoginPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">Kata Sandi</Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -117,8 +117,8 @@ export default function OrberyLoginPage() {
 
                         <Button type="submit" className="w-full font-bold mt-2" disabled={loading}>
                             {loading
-                                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Signing in…</>
-                                : "Sign In"}
+                                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Sedang masuk…</>
+                                : "Masuk"}
                         </Button>
                     </form>
 
@@ -129,7 +129,7 @@ export default function OrberyLoginPage() {
                                 <Separator className="bg-white/5" />
                             </div>
                             <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
-                                <span className="bg-card px-2 text-muted-foreground">Demo Accounts</span>
+                                <span className="bg-card px-2 text-muted-foreground">Akun Demo</span>
                             </div>
                         </div>
 

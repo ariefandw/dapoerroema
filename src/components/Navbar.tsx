@@ -13,9 +13,9 @@ import { MasterDataMenu } from "@/components/MasterDataMenu";
 
 const links = [
     { href: "/dashboard", label: "Dashboard", roles: ["admin", "owner"], icon: LayoutDashboard },
-    { href: "/admin", label: "Product Order", roles: ["admin"], icon: ClipboardList },
-    { href: "/baker", label: "Cutter & Baker", roles: ["admin", "baker"], icon: CookingPot },
-    { href: "/driver", label: "Shipping/Driver", roles: ["admin", "driver"], icon: Truck },
+    { href: "/admin", label: "Order", roles: ["admin"], icon: ClipboardList },
+    { href: "/baker", label: "Produksi", roles: ["admin", "baker"], icon: CookingPot },
+    { href: "/driver", label: "Pengiriman", roles: ["admin", "driver"], icon: Truck },
 ];
 
 
@@ -77,7 +77,7 @@ export function Navbar({ session, userRole }: NavbarProps) {
                         <UserMenu user={{ name: session.user.name, email: session.user.email, role: userRole }} />
                     ) : (
                         <Link href="/login">
-                            <Button variant="outline" size="sm" className="h-8 text-xs">Sign in</Button>
+                            <Button variant="outline" size="sm" className="h-8 text-xs">Masuk</Button>
                         </Link>
                     )}
                 </div>

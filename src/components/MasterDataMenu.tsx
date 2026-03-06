@@ -13,8 +13,8 @@ import { Database, ChevronDown, MapPin, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminLinks = [
-    { href: "/admin/master/outlets", label: "Outlets", icon: MapPin },
-    { href: "/admin/master/products", label: "Products", icon: Package },
+    { href: "/admin/master/outlets", label: "Outlet", icon: MapPin },
+    { href: "/admin/master/products", label: "Produk", icon: Package },
 ];
 
 export function MasterDataMenu() {
@@ -35,7 +35,7 @@ export function MasterDataMenu() {
                     )}
                 >
                     <Database className="h-3.5 w-3.5" />
-                    <span>Master Data</span>
+                    <span>Data Induk</span>
                     <ChevronDown className="h-3 w-3 opacity-50" />
                 </Button>
             </DropdownMenuTrigger>

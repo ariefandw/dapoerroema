@@ -14,7 +14,7 @@ export function OrdersTable({ orders }: { orders: any[] }) {
         return (
             <Card>
                 <CardContent className="py-6 text-center text-muted-foreground">
-                    No orders found.
+                    Tidak ada order ditemukan.
                 </CardContent>
             </Card>
         );
@@ -23,17 +23,17 @@ export function OrdersTable({ orders }: { orders: any[] }) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Active Orders</CardTitle>
-                <CardDescription>Track the status of your current orders.</CardDescription>
+                <CardTitle>Order Aktif</CardTitle>
+                <CardDescription>Lacak status order Anda saat ini.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Order Date</TableHead>
+                                <TableHead>Tanggal Order</TableHead>
                                 <TableHead>Outlet</TableHead>
-                                <TableHead>Items</TableHead>
+                                <TableHead>Item</TableHead>
                                 <TableHead>Status</TableHead>
                             </TableRow>
                         </TableHeader>

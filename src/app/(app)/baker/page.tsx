@@ -23,14 +23,14 @@ export default async function BakerPage() {
     return (
         <PageContainer>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Baker Dashboard</h1>
-                <p className="text-muted-foreground">Production list and active baking queue.</p>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard Produksi</h1>
+                <p className="text-muted-foreground">Daftar produksi dan antrean pembuatan roti.</p>
             </div>
 
             {orders.length === 0 ? (
                 <Card>
                     <CardContent className="py-12 text-center text-muted-foreground">
-                        No orders are currently waiting for production.
+                        Tidak ada order yang menunggu produksi.
                     </CardContent>
                 </Card>
             ) : (
@@ -38,8 +38,8 @@ export default async function BakerPage() {
                     {/* Top summary card summarizing exactly what needs to be baked in total */}
                     <Card className="bg-primary/5 border-primary/20">
                         <CardHeader>
-                            <CardTitle>Master Production List</CardTitle>
-                            <CardDescription>Total quantities to bake across all active orders right now.</CardDescription>
+                            <CardTitle>Daftar Produksi Utama</CardTitle>
+                            <CardDescription>Total jumlah yang harus dibuat untuk semua pesanan aktif saat ini.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -55,7 +55,7 @@ export default async function BakerPage() {
 
                     {/* Individual order breakdown to mark as ready */}
                     <div className="space-y-4">
-                        <h2 className="text-xl font-semibold tracking-tight">Order Breakdown</h2>
+                        <h2 className="text-xl font-semibold tracking-tight">Rincian Order</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {orders.map((order) => (
                                 <Card key={order.id} className="flex flex-col">
@@ -78,7 +78,7 @@ export default async function BakerPage() {
                                             await updateOrderStatus(order.id, order.status, "Production Ready", "/baker");
                                         }} className="mt-auto">
                                             <Button type="submit" className="w-full" size="lg">
-                                                Mark Production Ready
+                                                Tandai Siap Produksi
                                             </Button>
                                         </form>
                                     </CardContent>

@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/lib/auth-client";
 
 const links = [
-    { href: "/dashboard", label: "Home", roles: ["admin", "owner"], icon: LayoutDashboard },
-    { href: "/admin", label: "Product Order", roles: ["admin"], icon: ClipboardList },
-    { href: "/baker", label: "Baker", roles: ["admin", "baker"], icon: CookingPot },
-    { href: "/driver", label: "Delivery", roles: ["admin", "driver"], icon: Truck },
-    { href: "/admin/master", label: "Master", roles: ["admin"], icon: Database },
+    { href: "/dashboard", label: "Beranda", roles: ["admin", "owner"], icon: LayoutDashboard },
+    { href: "/admin", label: "Order", roles: ["admin"], icon: ClipboardList },
+    { href: "/baker", label: "Produksi", roles: ["admin", "baker"], icon: CookingPot },
+    { href: "/driver", label: "Pengiriman", roles: ["admin", "driver"], icon: Truck },
+    { href: "/admin/master", label: "Data Induk", roles: ["admin"], icon: Database },
 ];
 
 interface BottomNavProps {

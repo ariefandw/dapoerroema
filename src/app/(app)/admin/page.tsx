@@ -15,8 +15,8 @@ export default async function AdminPage() {
     return (
         <PageContainer className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-                <p className="text-muted-foreground">Manage bakery intake and track active orders.</p>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard Admin</h1>
+                <p className="text-muted-foreground">Kelola penerimaan roti dan lacak order aktif.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

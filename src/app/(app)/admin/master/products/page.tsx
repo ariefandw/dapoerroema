@@ -20,12 +20,12 @@ export default async function ProductsPage() {
         <PageContainer className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Products</h1>
-                    <p className="text-muted-foreground text-sm">Manage your bakery catalog</p>
+                    <h1 className="text-2xl font-bold tracking-tight">Produk</h1>
+                    <p className="text-muted-foreground text-sm">Kelola katalog roti Anda</p>
                 </div>
                 <ProductDialog>
                     <Button size="sm" className="gap-2">
-                        <Plus className="h-4 w-4" /> Add Product
+                        <Plus className="h-4 w-4" /> Tambah Produk
                     </Button>
                 </ProductDialog>
             </div>
@@ -34,10 +34,10 @@ export default async function ProductsPage() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Category</TableHead>
-                            <TableHead>Product Name</TableHead>
-                            <TableHead className="text-right">Base Price</TableHead>
-                            <TableHead className="w-[100px] text-right">Actions</TableHead>
+                            <TableHead>Kategori</TableHead>
+                            <TableHead>Nama Produk</TableHead>
+                            <TableHead className="text-right">Harga Dasar</TableHead>
+                            <TableHead className="w-[100px] text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

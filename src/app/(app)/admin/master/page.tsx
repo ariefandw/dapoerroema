@@ -5,16 +5,16 @@ import Link from "next/link";
 
 const masterDataItems = [
     {
-        title: "Products",
-        description: "Manage product catalog, prices, and variants.",
+        title: "Produk",
+        description: "Kelola katalog produk, harga, dan varian.",
         href: "/admin/master/products",
         icon: Package,
         color: "text-blue-500",
         bgColor: "bg-blue-500/10",
     },
     {
-        title: "Outlets",
-        description: "Manage store locations and contact details.",
+        title: "Outlet",
+        description: "Kelola lokasi toko dan detail kontak.",
         href: "/admin/master/outlets",
         icon: Store,
         color: "text-green-500",
@@ -29,10 +29,10 @@ export default function MasterDataHub() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight mb-2 flex items-center gap-2">
                         <Database className="h-6 w-6 text-primary" />
-                        Master Data
+                        Data Induk
                     </h1>
                     <p className="text-muted-foreground">
-                        Select a category below to manage your core business entities.
+                        Pilih kategori di bawah untuk mengelola entitas bisnis utama Anda.
                     </p>
                 </div>
 
