@@ -10,7 +10,7 @@ export type NavLink = {
 export const NAVIGATION_LINKS: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard }, // Everyone gets the dashboard
     { href: "/cashier", label: "Kasir", roles: ["admin", "cashier"], icon: Calculator },
-    { href: "/admin", label: "Pesanan", roles: ["admin"], icon: ClipboardList },
+    { href: "/order", label: "Pesanan", roles: ["admin"], icon: ClipboardList },
     { href: "/baker", label: "Produksi", roles: ["admin", "baker"], icon: CookingPot },
     { href: "/driver", label: "Pengiriman", roles: ["admin", "driver"], icon: Truck },
     { href: "/admin/master", label: "Master Data", roles: ["admin"], icon: Database },

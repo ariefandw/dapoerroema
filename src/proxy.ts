@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
 // All routes that require a logged-in session
-const PROTECTED_ROUTES = ["/admin", "/baker", "/driver", "/dashboard"];
+const PROTECTED_ROUTES = ["/admin", "/order", "/baker", "/driver", "/dashboard"];
 
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -25,5 +25,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/baker/:path*", "/driver/:path*", "/dashboard/:path*"],
+    matcher: ["/admin/:path*", "/order/:path*", "/baker/:path*", "/driver/:path*", "/dashboard/:path*"],
 };

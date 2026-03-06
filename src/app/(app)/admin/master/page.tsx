@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/PageContainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Store, Package, Database } from "lucide-react";
+import { Store, Package, Database, Warehouse, Truck } from "lucide-react";
 import Link from "next/link";
 
 const masterDataItems = [
@@ -19,6 +19,22 @@ const masterDataItems = [
         icon: Store,
         color: "text-green-500",
         bgColor: "bg-green-500/10",
+    },
+    {
+        title: "Stok",
+        description: "Kelola stok di gudang dan setiap outlet.",
+        href: "/admin/master/stock",
+        icon: Warehouse,
+        color: "text-purple-500",
+        bgColor: "bg-purple-500/10",
+    },
+    {
+        title: "Penerimaan Barang",
+        description: "Catat barang masuk dari supplier ke gudang.",
+        href: "/admin/receiving",
+        icon: Truck,
+        color: "text-cyan-500",
+        bgColor: "bg-cyan-500/10",
     },
     {
         title: "User",

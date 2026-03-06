@@ -259,7 +259,7 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                             <DialogDescription className="pt-2">
                                 {isBanned
                                     ? `Apakah Anda yakin ingin mengaktifkan kembali akses untuk ${user.name}? User ini akan segera bisa login kembali.`
-                                    : `Apakah Anda yakin ingin menonaktifkan ${user.name}? User ini tidak akan bisa mengakses sistem Orbery sampai diaktifkan kembali.`}
+                                    : `Apakah Anda yakin ingin menonaktifkan ${user.name}? User ini tidak akan bisa mengakses sistem Dapoer Roema sampai diaktifkan kembali.`}
                             </DialogDescription>
                         </DialogHeader>
                         <DialogFooter className="gap-2 sm:gap-0 mt-6 pt-4 border-t">

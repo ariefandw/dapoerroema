@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Orbery – Bakery Dashboard",
+  title: "Dapoer Roema – Bakery Dashboard",
   description: "Order management and production tracking for the bakery.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Orbery",
+    title: "Dapoer Roema",
   },
   formatDetection: { telephone: false },
   icons: {

@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: "Orbery – Bakery Dashboard",
-        short_name: "Orbery",
+        name: "Dapoer Roema – Bakery Dashboard",
+        short_name: "Dapoer Roema",
         description: "Order management and production tracking for the bakery.",
         start_url: "/",
         display: "standalone",

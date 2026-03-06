@@ -31,6 +31,7 @@ export type Session = typeof auth.$Infer.Session & {
     user: {
         role: string;
         currentOutletId?: number | null;
+        image?: string | null;
         banned?: boolean | null;
         banReason?: string | null;
         banExpires?: Date | null;

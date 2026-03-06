@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, Trash2, Package, ShoppingCart } from "lucide-react";
+import { Plus, Trash2, Package, ShoppingCart, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +46,12 @@ type FormValues = z.infer<typeof formSchema>;
 type Outlet = InferSelectModel<typeof outletsSchema>;
 type Product = InferSelectModel<typeof productsSchema>;
 
+interface CreateOrderResult {
+    success: boolean;
+    error?: string;
+    stockIssues?: Array<{ product_id: number; requested: number; available: number }>;
+}
+
 export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; products: Product[] }) {
     const [isPending, startTransition] = useTransition();
 
@@ -64,7 +70,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
 
     function onSubmit(data: FormValues) {
         startTransition(async () => {
-            const result = await createOrder(data);
+            const result = await createOrder(data) as CreateOrderResult;
             if (result.success) {
                 form.reset({
                     outlet_id: 0,
@@ -72,7 +78,17 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                 });
                 toast.success("Pesanan berhasil dibuat!");
             } else {
-                toast.error("Gagal membuat order");
+                // Handle stock issues
+                if (result.stockIssues && result.stockIssues.length > 0) {
+                    const issueMessages = result.stockIssues.map(issue => {
+                        const product = products.find(p => p.id === issue.product_id);
+                        const productName = product?.name || `Product ${issue.product_id}`;
+                        return `- ${productName}: butuh ${issue.requested}, tersedia ${issue.available}`;
+                    }).join("\n");
+                    toast.error(`Stok tidak mencukupi:\n${issueMessages}`);
+                } else {
+                    toast.error(result.error || "Gagal membuat order");
+                }
             }
         });
     }

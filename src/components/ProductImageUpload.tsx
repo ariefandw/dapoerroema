@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 interface ProductImageUploadProps {
     currentImage?: string | null;
@@ -10,73 +10,10 @@ interface ProductImageUploadProps {
 }
 
 export function ProductImageUpload({ currentImage, onImageChange }: ProductImageUploadProps) {
-    const [preview, setPreview] = useState<string | null>(currentImage || null);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        // Validate file type
-        if (!file.type.startsWith("image/")) {
-            alert("Please select an image file");
-            return;
-        }
-
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert("Image size must be less than 5MB");
-            return;
-        }
-
-        // Show local preview
-        const localPreview = URL.createObjectURL(file);
-        setPreview(localPreview);
-        setUploading(true);
-
-        try {
-            // Upload to ImageBB
-            const formData = new FormData();
-            formData.append("image", file);
-
-            const response = await fetch(
-                `https://api.imgbb.com/1/upload?key=f66dae6de74b7a9a0d9dfed5990b7844`,
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
-
-            const data = await response.json();
-
-            if (data.success) {
-                onImageChange(data.data.url);
-                setPreview(data.data.url);
-            } else {
-                throw new Error("Upload failed");
-            }
-        } catch (error) {
-            console.error("Failed to upload image:", error);
-            alert("Failed to upload image. Please try again.");
-            // Revert to previous state
-            setPreview(currentImage || null);
-        } finally {
-            setUploading(false);
-            // Reset file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
-        }
-    };
-
-    const handleRemove = () => {
-        setPreview(null);
-        onImageChange(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    };
+    const { preview, uploading, fileInputRef, handleFileSelect, handleRemove } = useImageUpload(
+        currentImage,
+        onImageChange
+    );
 
     return (
         <div className="space-y-2">
@@ -95,7 +32,11 @@ export function ProductImageUpload({ currentImage, onImageChange }: ProductImage
                         onClick={handleRemove}
                         disabled={uploading}
                     >
-                        <X className="h-4 w-4" />
+                        {uploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <X className="h-4 w-4" />
+                        )}
                     </Button>
                 </div>
             ) : (
@@ -121,7 +62,10 @@ export function ProductImageUpload({ currentImage, onImageChange }: ProductImage
                     disabled={uploading}
                 >
                     {uploading ? (
-                        "Uploading..."
+                        <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                        </>
                     ) : (
                         <>
                             <Upload className="h-4 w-4 mr-2" />

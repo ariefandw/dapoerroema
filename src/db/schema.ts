@@ -51,6 +51,34 @@ export const orderItems = pgTable("order_items", {
   quantity: integer("quantity").notNull(),
 });
 
+// ─── Stock Management Tables ───────────────────────────────────────────────────
+
+export const stock = pgTable("stock", {
+  id: serial("id").primaryKey(),
+  product_id: integer("product_id")
+    .references(() => products.id)
+    .notNull(),
+  outlet_id: integer("outlet_id").references(() => outlets.id), // NULL = central warehouse
+  quantity: integer("quantity").default(0).notNull(),
+  min_stock: integer("min_stock").default(5), // low stock threshold
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const stockTransactions = pgTable("stock_transactions", {
+  id: serial("id").primaryKey(),
+  product_id: integer("product_id")
+    .references(() => products.id)
+    .notNull(),
+  outlet_id: integer("outlet_id").references(() => outlets.id), // NULL = central warehouse
+  transaction_type: text("transaction_type").notNull(), // 'add', 'deduct', 'transfer_out', 'transfer_in'
+  quantity: integer("quantity").notNull(),
+  reference_outlet_id: integer("reference_outlet_id").references(() => outlets.id), // for transfers
+  notes: text("notes"),
+  created_by: text("created_by"), // user id
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
 // ─── Better Auth Tables ──────────────────────────────────────────────────────
 
 export const user = pgTable("user", {
@@ -142,6 +170,32 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 export const userRelations = relations(user, ({ one }) => ({
   currentOutlet: one(outlets, {
     fields: [user.currentOutletId],
+    references: [outlets.id],
+  }),
+}));
+
+export const stockRelations = relations(stock, ({ one }) => ({
+  product: one(products, {
+    fields: [stock.product_id],
+    references: [products.id],
+  }),
+  outlet: one(outlets, {
+    fields: [stock.outlet_id],
+    references: [outlets.id],
+  }),
+}));
+
+export const stockTransactionsRelations = relations(stockTransactions, ({ one }) => ({
+  product: one(products, {
+    fields: [stockTransactions.product_id],
+    references: [products.id],
+  }),
+  outlet: one(outlets, {
+    fields: [stockTransactions.outlet_id],
+    references: [outlets.id],
+  }),
+  referenceOutlet: one(outlets, {
+    fields: [stockTransactions.reference_outlet_id],
     references: [outlets.id],
   }),
 }));

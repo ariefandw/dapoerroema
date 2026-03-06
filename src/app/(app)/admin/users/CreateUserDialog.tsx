@@ -92,7 +92,7 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
                         Tambah Pengguna Baru
                     </DialogTitle>
                     <DialogDescription>
-                        Buat akun baru untuk karyawan Orbery. Password default adalah "Password123!" jika dikosongkan.
+                        Buat akun baru untuk karyawan Dapoer Roema. Password default adalah "Password123!" jika dikosongkan.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -122,7 +122,7 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
                                         <Mail className="h-3.5 w-3.5 text-muted-foreground" /> Email
                                     </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="arief@orbery.com" {...field} />
+                                        <Input placeholder="arief@test.app" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

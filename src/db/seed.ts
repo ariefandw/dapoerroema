@@ -3,8 +3,63 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
 
+// Product catalog with categories and prices
+const PRODUCTS = [
+    // Sourdough
+    { name: "Soft Sourdough Coklat", category: "Sourdough", price: 25000 },
+    { name: "Soft Sourdough Keju", category: "Sourdough", price: 26000 },
+    { name: "Soft Sourdough Kacang", category: "Sourdough", price: 26000 },
+    { name: "Soft Sourdough Blueberry Creamcheese", category: "Sourdough", price: 30000 },
+    { name: "Sourdough Plain", category: "Sourdough", price: 35000 },
+    { name: "Sourdough Garlic", category: "Sourdough", price: 32000 },
+    { name: "Sourdough Rosemary", category: "Sourdough", price: 32000 },
+
+    // Cookies
+    { name: "Soft Cookies Choco", category: "Cookies", price: 15000 },
+    { name: "Soft Cookies Red Velvet", category: "Cookies", price: 16000 },
+    { name: "Brownies Cookies", category: "Cookies", price: 15000 },
+    { name: "Choco Chip Cookies", category: "Cookies", price: 14000 },
+    { name: "Almond Cookies", category: "Cookies", price: 18000 },
+
+    // Bread
+    { name: "Garlic Bread", category: "Bread", price: 20000 },
+    { name: "Roti Sosis Cartepillar", category: "Bread", price: 22000 },
+    { name: "Roti Sisir Keju", category: "Bread", price: 15000 },
+    { name: "Roti Sisir Coklat Kacang", category: "Bread", price: 15000 },
+    { name: "Roti Sisir Biscoff", category: "Bread", price: 18000 },
+    { name: "Roti Sisir Coklat Keju", category: "Bread", price: 15000 },
+    { name: "Roti Tawar Premium", category: "Bread", price: 12000 },
+    { name: "Croissant Butter", category: "Bread", price: 25000 },
+    { name: "Croissant Almond", category: "Bread", price: 28000 },
+
+    // Pastry
+    { name: "Choco Roll", category: "Pastry", price: 12000 },
+    { name: "Bolo Bun", category: "Pastry", price: 12000 },
+    { name: "Cinnamon Roll", category: "Pastry", price: 18000 },
+    { name: "Danish Chocolate", category: "Pastry", price: 20000 },
+    { name: "Danish Cheese", category: "Pastry", price: 20000 },
+    { name: "Muffin Coklat", category: "Pastry", price: 18000 },
+    { name: "Muffin Keju", category: "Pastry", price: 18000 },
+    { name: "Muffin Blueberry", category: "Pastry", price: 19000 },
+
+    // Beverages
+    { name: "Iced Americano", category: "Beverage", price: 15000 },
+    { name: "Hot Latte", category: "Beverage", price: 22000 },
+    { name: "Iced Latte", category: "Beverage", price: 22000 },
+    { name: "Cappuccino", category: "Beverage", price: 24000 },
+    { name: "Matcha Latte", category: "Beverage", price: 25000 },
+    { name: "Choco Latte", category: "Beverage", price: 23000 },
+    { name: "Caramel Macchiato", category: "Beverage", price: 28000 },
+    { name: "Earl Grey Tea", category: "Beverage", price: 18000 },
+];
+
+// Generate Picsum image URLs
+function getImageUrl(seed: string) {
+    return `https://picsum.photos/seed/${seed}/400/400`;
+}
+
 async function seed() {
-    console.log("Seeding database with enriched and diverse data...");
+    console.log("🌱 Seeding database with comprehensive data...");
 
     const pool = new Pool({
         connectionString: process.env.DATABASE_URL
@@ -13,114 +68,253 @@ async function seed() {
     try {
         await pool.query("BEGIN");
 
-        // Cleanup existing data to avoid conflicts on re-seed
-        await pool.query("TRUNCATE TABLE order_items, orders, products, outlets CASCADE");
+        // Cleanup existing data
+        console.log("🧹 Cleaning up existing data...");
+        await pool.query("TRUNCATE TABLE stock_transactions, stock, order_items, orders, products, outlets CASCADE");
+        await pool.query('TRUNCATE TABLE "session", "account", "verification", "user" CASCADE');
 
-        // 1. Outlets (9 from spreadsheet + 3 extra)
+        // 1. Outlets - Only 3 as requested
+        console.log("🏪 Creating outlets...");
         const outletsRes = await pool.query(`
-            INSERT INTO outlets (name, contact_info) VALUES 
+            INSERT INTO outlets (name, contact_info) VALUES
             ('YAP Cafe', '0812-1111-2222'),
-            ('Seken', '0812-3333-4444'),
-            ('Soragan', '0812-5555-6666'),
-            ('Kusumanegara', '0812-7777-8888'),
-            ('Batikan', '0812-9999-0000'),
-            ('Kael', '0813-1111-2222'),
-            ('UNY', '0813-3333-4444'),
-            ('Emma', '0813-5555-6666'),
-            ('Nusantara', '0813-7777-8888'),
-            ('Malioboro', '0814-1111-2222'),
-            ('Jakal', '0814-3333-4444'),
-            ('Godean', '0814-5555-6666')
+            ('Kael - Sender', '0812-3333-4444'),
+            ('Seken', '0812-5555-6666')
             RETURNING id, name;
         `);
         const outletMap = new Map(outletsRes.rows.map(o => [o.name, o.id]));
+        const outletsList = outletsRes.rows;
 
-        // 2. Products (16 from spreadsheet + extras)
+        console.log(`   ✓ Created ${outletsList.length} outlets`);
+
+        // 2. Products with images
+        console.log("🍞 Creating products...");
+        const productValues = PRODUCTS.map((p, i) => {
+            const imageUrl = getImageUrl(`dapoer-roema-${p.name.toLowerCase().replace(/\s+/g, '-')}`);
+            return `('${p.name}', '${p.category}', ${p.price}, '${imageUrl}')`;
+        }).join(", ");
+
         const productsRes = await pool.query(`
-            INSERT INTO products (name, category, base_price) VALUES 
-            ('Soft Sourdough Coklat', 'Sourdough', 25000),
-            ('Soft Sourdough Keju', 'Sourdough', 26000),
-            ('Soft Sourdough Kacang', 'Sourdough', 26000),
-            ('Soft Sourdough Blueberry Creamcheese', 'Sourdough', 30000),
-            ('Soft Cookies Choco', 'Cookies', 15000),
-            ('Soft Cookies Red Velvet', 'Cookies', 16000),
-            ('Garlic Bread', 'Bread', 20000),
-            ('Brownies Cookies', 'Cookies', 15000),
-            ('Roti Sosis Cartepillar', 'Bread', 22000),
-            ('Muffin Coklat', 'Pastry', 18000),
-            ('Roti Sisir Keju', 'Bread', 15000),
-            ('Roti Sisir Coklat Kacang', 'Bread', 15000),
-            ('Roti Sisir Biscoff', 'Bread', 18000),
-            ('Roti Sisir Coklat Keju', 'Bread', 15000),
-            ('Choco Roll', 'Pastry', 12000),
-            ('Bolo Bun', 'Pastry', 12000),
-            ('Sourdough Plain', 'Sourdough', 35000),
-            ('Cinnamon Roll', 'Pastry', 18000),
-            ('Iced Americano', 'Beverage', 15000),
-            ('Hot Latte', 'Beverage', 22000)
-            RETURNING id, name;
+            INSERT INTO products (name, category, base_price, image_url) VALUES
+            ${productValues}
+            RETURNING id, name, category;
         `);
         const productMap = new Map(productsRes.rows.map(p => [p.name, p.id]));
+        const productsList = productsRes.rows;
 
-        // 3. Orders with Diverse Statuses
-        const statuses = ['pending', 'accepted', 'in_production', 'ready', 'shipping', 'delivered'];
-        const outletsList = ['YAP Cafe', 'Seken', 'Soragan', 'Kusumanegara', 'Batikan', 'Kael', 'UNY', 'Emma', 'Nusantara', 'Malioboro', 'Jakal', 'Godean'];
+        console.log(`   ✓ Created ${productsList.length} products`);
+
+        // 3. Stock levels for Central Kitchen and all outlets
+        console.log("📦 Creating stock levels...");
+        const stockInserts = [];
+
+        // Central Kitchen stock (outlet_id = NULL)
+        productsList.forEach((p) => {
+            const qty = 20 + Math.floor(Math.random() * 50); // 20-70 units
+            const minStock = 10 + Math.floor(Math.random() * 10); // 10-20 min stock
+            stockInserts.push(`(${p.id}, NULL, ${qty}, ${minStock})`);
+        });
+
+        // Stock for each outlet
+        outletsList.forEach((outlet) => {
+            productsList.forEach((p) => {
+                // Some products may not be available at all outlets
+                if (Math.random() > 0.1) { // 90% chance of availability
+                    const qty = 5 + Math.floor(Math.random() * 30); // 5-35 units
+                    const minStock = 5 + Math.floor(Math.random() * 10); // 5-15 min stock
+                    stockInserts.push(`(${p.id}, ${outlet.id}, ${qty}, ${minStock})`);
+                }
+            });
+        });
+
+        await pool.query(`
+            INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES
+            ${stockInserts.join(", ")}
+        `);
+        console.log(`   ✓ Created ${stockInserts.length} stock entries`);
+
+        // 4. Stock transactions (history)
+        console.log("📝 Creating stock transactions...");
+        const transactionTypes = ["add", "deduct", "transfer_out", "transfer_in"];
+        const transactionNotes = [
+            "Initial stock",
+            "Received from supplier",
+            "Stock adjustment",
+            "Transfer to outlet",
+            "Transfer from warehouse",
+            "Returned from order",
+            "Damaged goods",
+            "Expired items"
+        ];
+
+        const transactionsToInsert = [];
+        const stockRes = await pool.query("SELECT id, product_id, outlet_id FROM stock");
+
+        stockRes.rows.forEach((stock) => {
+            // Add 1-5 transactions per stock entry
+            const numTransactions = 1 + Math.floor(Math.random() * 5);
+            for (let i = 0; i < numTransactions; i++) {
+                const type = transactionTypes[Math.floor(Math.random() * transactionTypes.length)];
+                const qty = 5 + Math.floor(Math.random() * 25);
+                const notes = transactionNotes[Math.floor(Math.random() * transactionNotes.length)];
+                const createdAt = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000); // Last 30 days
+
+                transactionsToInsert.push(`(${stock.product_id}, ${stock.outlet_id}, '${type}', ${qty}, '${notes}', NULL, '${createdAt.toISOString()}')`);
+            }
+        });
+
+        await pool.query(`
+            INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, reference_outlet_id, created_at) VALUES
+            ${transactionsToInsert.slice(0, 100).join(", ")}
+        `);
+        console.log(`   ✓ Created ${Math.min(transactionsToInsert.length, 100)} stock transactions`);
+
+        // 5. Orders with diverse statuses
+        console.log("📋 Creating orders...");
+        const statuses = ['pending', 'accepted', 'in_production', 'ready', 'shipping', 'delivered', 'cancelled'];
+        const paymentMethods = ['cash', 'qris', 'transfer'];
+        const paymentStatuses = ['paid', 'pending', 'failed'];
 
         const now = new Date();
+        const orderCount = 25;
 
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < orderCount; i++) {
             const status = statuses[i % statuses.length];
-            const outletName = outletsList[Math.floor(Math.random() * outletsList.length)];
-            const outletId = outletMap.get(outletName);
+            const outlet = outletsList[Math.floor(Math.random() * outletsList.length)];
 
-            const orderDate = new Date(now.getTime() - (Math.random() * 7 * 24 * 60 * 60 * 1000)); // Within last 7 days
+            const orderDate = new Date(now.getTime() - (Math.random() * 7 * 24 * 60 * 60 * 1000));
 
             let sentAt = null, readyAt = null, shippedAt = null, deliveredAt = null;
 
-            if (status !== 'pending') {
-                sentAt = new Date(orderDate.getTime() + 60 * 60 * 1000).toISOString();
+            // Set timestamps based on status
+            if (status !== 'pending' && status !== 'cancelled') {
+                sentAt = new Date(orderDate.getTime() + 30 * 60 * 1000);
             }
-            if (['ready', 'shipping', 'delivered'].includes(status)) {
-                readyAt = new Date(new Date(sentAt!).getTime() + 4 * 60 * 60 * 1000).toISOString();
+            if (['in_production', 'ready', 'shipping', 'delivered'].includes(status)) {
+                readyAt = new Date(sentAt!.getTime() + 2 * 60 * 60 * 1000);
             }
             if (['shipping', 'delivered'].includes(status)) {
-                shippedAt = new Date(new Date(readyAt!).getTime() + 1 * 60 * 60 * 1000).toISOString();
+                shippedAt = new Date(readyAt!.getTime() + 1 * 60 * 60 * 1000);
             }
             if (status === 'delivered') {
-                deliveredAt = new Date(new Date(shippedAt!).getTime() + 30 * 60 * 1000).toISOString();
+                deliveredAt = new Date(shippedAt!.getTime() + 30 * 60 * 1000);
             }
 
+            // Calculate amounts
+            const itemCount = 1 + Math.floor(Math.random() * 4);
+            let subtotal = 0;
+            const items = [];
+
+            for (let j = 0; j < itemCount; j++) {
+                const product = productsList[Math.floor(Math.random() * productsList.length)];
+                const qty = 2 + Math.floor(Math.random() * 15);
+                subtotal += product.category === 'Sourdough' ? 35000 :
+                           product.category === 'Bread' ? 15000 :
+                           product.category === 'Cookies' ? 15000 :
+                           product.category === 'Pastry' ? 18000 : 22000;
+                subtotal *= qty;
+                items.push({ product_id: product.id, quantity: qty });
+            }
+
+            const hasDiscount = Math.random() > 0.7;
+            const discountType = hasDiscount ? (Math.random() > 0.5 ? 'percentage' : 'fixed') : null;
+            const discountAmount = hasDiscount ? (discountType === 'percentage' ? 10 : 15000) : 0;
+            const totalAmount = Math.max(0, subtotal - (discountType === 'percentage' ? subtotal * discountAmount / 100 : discountAmount));
+
+            const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
+            const paymentStatus = status === 'cancelled' ? 'failed' : paymentStatuses[Math.floor(Math.random() * paymentStatuses.length)];
+
             const orderRes = await pool.query(`
-                INSERT INTO orders (outlet_id, order_date, status, sent_to_baker_at, production_ready_at, shipped_at, delivered_at)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO orders (
+                    outlet_id, status, payment_status, payment_method,
+                    discount_type, discount_amount, subtotal, total_amount,
+                    order_date, sent_to_baker_at, production_ready_at, shipped_at, delivered_at,
+                    created_at, updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                 RETURNING id;
-            `, [outletId, orderDate.toISOString(), status, sentAt, readyAt, shippedAt, deliveredAt]);
+            `, [
+                outlet.id, status, paymentStatus, paymentMethod,
+                discountType, discountAmount, subtotal, totalAmount,
+                orderDate.toISOString(),
+                sentAt?.toISOString() || null,
+                readyAt?.toISOString() || null,
+                shippedAt?.toISOString() || null,
+                deliveredAt?.toISOString() || null,
+                orderDate.toISOString(),
+                orderDate.toISOString()
+            ]);
 
             const orderId = orderRes.rows[0].id;
 
-            // Add 1-3 random items to each order
-            const itemCount = 1 + Math.floor(Math.random() * 3);
-            const productNames = Array.from(productMap.keys());
-            for (let j = 0; j < itemCount; j++) {
-                const prodName = productNames[Math.floor(Math.random() * productNames.length)];
-                const prodId = productMap.get(prodName);
-                const qty = 5 + Math.floor(Math.random() * 20);
-
+            // Insert order items
+            for (const item of items) {
                 await pool.query(`
                     INSERT INTO order_items (order_id, product_id, quantity) VALUES ($1, $2, $3);
-                `, [orderId, prodId, qty]);
+                `, [orderId, item.product_id, item.quantity]);
             }
         }
 
+        console.log(`   ✓ Created ${orderCount} orders with diverse statuses`);
+
+        // Commit the transaction first so outlets are visible for foreign key constraints
         await pool.query("COMMIT");
-        console.log("Enriched seed complete.");
+
+        // 6. Users with roles (separate transaction after outlets are committed)
+        console.log("👥 Creating users...");
+        const { auth } = await import("../lib/auth");
+
+        const USERS = [
+            { name: "Admin", email: "admin@test.app", password: "Password123!", role: "admin", outlet: "YAP Cafe" },
+            { name: "Cashier YAP", email: "cashier-yap@test.app", password: "Password123!", role: "cashier", outlet: "YAP Cafe" },
+            { name: "Cashier Kael", email: "cashier-kael@test.app", password: "Password123!", role: "cashier", outlet: "Kael - Sender" },
+            { name: "Cashier Seken", email: "cashier-seken@test.app", password: "Password123!", role: "cashier", outlet: "Seken" },
+            { name: "Baker", email: "baker@test.app", password: "Password123!", role: "baker", outlet: null },
+            { name: "Driver", email: "driver@test.app", password: "Password123!", role: "driver", outlet: null },
+            { name: "User", email: "user@test.app", password: "Password123!", role: "user", outlet: "YAP Cafe" },
+        ];
+
+        for (const u of USERS) {
+            try {
+                const result = await auth.api.signUpEmail({
+                    body: {
+                        name: u.name,
+                        email: u.email,
+                        password: u.password,
+                    },
+                });
+
+                if (result?.user) {
+                    const outletId = u.outlet ? outletMap.get(u.outlet) : null;
+                    await pool.query(
+                        `UPDATE "user" SET role = $1, "current_outlet_id" = $2 WHERE id = $3`,
+                        [u.role, outletId, result.user.id]
+                    );
+                    console.log(`   ✓ Created ${u.email} (${u.role})`);
+                }
+            } catch (e: any) {
+                console.error(`   ✗ Failed to create ${u.email}:`, e?.message || e);
+            }
+        }
+        console.log("\n✅ Seed complete successfully!");
+        console.log("\n📊 Summary:");
+        console.log(`   - Outlets: ${outletsList.length}`);
+        console.log(`   - Products: ${productsList.length}`);
+        console.log(`   - Stock entries: ${stockInserts.length}`);
+        console.log(`   - Orders: ${orderCount}`);
+        console.log(`   - Users: ${USERS.length}`);
+        console.log("\n🔐 Login credentials:");
+        console.log(`   Email: admin@test.app | Password: Password123!`);
+
     } catch (e) {
         await pool.query("ROLLBACK");
-        console.error("Seed failed:", e);
+        console.error("❌ Seed failed:", e);
         process.exit(1);
     } finally {
         await pool.end();
     }
 }
 
-seed();
+seed().catch((e) => {
+    console.error("Seed script fatal error:", e);
+    process.exit(1);
+});

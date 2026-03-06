@@ -37,21 +37,31 @@ export function Navbar({ session, userRole, outlets }: NavbarProps) {
 
                 {/* Desktop links */}
                 <div className="hidden md:flex gap-1 flex-1">
-                    {filteredLinks.map(({ href, label, icon: Icon }) => (
-                        <Link
-                            key={href}
-                            href={href}
-                            className={cn(
-                                "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
-                                pathname.startsWith(href) && !href.includes("/master") && href !== "/"
-                                    ? "bg-muted text-foreground font-medium"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                            )}
-                        >
-                            <Icon className="h-3.5 w-3.5" />
-                            {label}
-                        </Link>
-                    ))}
+                    {filteredLinks.map(({ href, label, icon: Icon }) => {
+                        const isActive = href === "/dashboard"
+                            ? pathname === "/dashboard"
+                            : href === "/order"
+                                ? pathname.startsWith("/order")
+                                : href === "/admin/master"
+                                    ? pathname.startsWith("/admin/master") || pathname.startsWith("/admin/users")
+                                    : pathname.startsWith(href);
+
+                        return (
+                            <Link
+                                key={href}
+                                href={href}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors",
+                                    isActive
+                                        ? "bg-muted text-foreground font-medium"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                                )}
+                            >
+                                <Icon className="h-3.5 w-3.5" />
+                                {label}
+                            </Link>
+                        );
+                    })}
                 </div>
 
                 <div className="flex items-center gap-2 ml-auto">
@@ -61,9 +71,11 @@ export function Navbar({ session, userRole, outlets }: NavbarProps) {
                     {session ? (
                         <UserMenu
                             user={{
+                                id: session.user.id,
                                 name: session.user.name,
                                 email: session.user.email,
                                 role: userRole,
+                                image: session.user.image,
                             }}
                         />
                     ) : (

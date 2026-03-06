@@ -25,7 +25,11 @@ export function BottomNav({ userRole }: BottomNavProps) {
                 {filteredLinks.map(({ href, label, icon: Icon }) => {
                     const isActive = href === "/dashboard"
                         ? pathname === "/dashboard"
-                        : pathname.startsWith(href);
+                        : href === "/order"
+                            ? pathname.startsWith("/order")
+                            : href === "/admin/master"
+                                ? pathname.startsWith("/admin/master") || pathname.startsWith("/admin/users")
+                                : pathname.startsWith(href);
 
                     return (
                         <Link

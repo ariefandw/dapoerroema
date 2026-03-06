@@ -7,6 +7,7 @@ import { eq, inArray, and, sql, gte, lte } from "drizzle-orm";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { checkStockAvailability, deductStock, addStock, getProductStock } from "./actions/stock";
 
 export async function getOutlets() {
     return await db.select().from(outlets).orderBy(outlets.name);
@@ -81,6 +82,37 @@ export async function updateUser(userId: string, data: { role?: string; currentO
     }
 }
 
+export async function updateProfile(data: { id: string; name: string; image: string | null }) {
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        if (!session?.user) {
+            return { success: false, error: "Not authenticated" };
+        }
+
+        // Users can only update their own profile
+        if (session.user.id !== data.id) {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        await db.update(user)
+            .set({
+                name: data.name,
+                image: data.image,
+                updatedAt: new Date(),
+            })
+            .where(eq(user.id, data.id));
+
+        revalidatePath("/");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update profile:", error);
+        return { success: false, error: "Failed to update profile" };
+    }
+}
+
 export async function updateCurrentOutlet(outletId: number | null) {
     try {
         const session = await auth.api.getSession({
@@ -112,6 +144,31 @@ export async function createOrder(data: NewOrderParams) {
     try {
         const orderDate = new Date();
 
+        // Check stock availability for all items at the outlet
+        const stockIssues: Array<{ product_id: number; requested: number; available: number }> = [];
+        for (const item of data.items) {
+            const available = await getProductStock(item.product_id, data.outlet_id);
+            if (available < item.quantity) {
+                stockIssues.push({
+                    product_id: item.product_id,
+                    requested: item.quantity,
+                    available,
+                });
+            }
+        }
+
+        // If there are stock issues, return error details
+        if (stockIssues.length > 0) {
+            const issueDetails = stockIssues.map(
+                i => `Product ${i.product_id}: requested ${i.requested}, available ${i.available}`
+            ).join("; ");
+            return {
+                success: false,
+                error: `Insufficient stock: ${issueDetails}`,
+                stockIssues
+            };
+        }
+
         // Create the order using transaction
         await db.transaction(async (tx) => {
             const [newOrder] = await tx
@@ -134,7 +191,22 @@ export async function createOrder(data: NewOrderParams) {
             }
         });
 
-        revalidatePath("/admin");
+        // Deduct stock for each item after order is created
+        for (const item of data.items) {
+            try {
+                await deductStock({
+                    product_id: item.product_id,
+                    outlet_id: data.outlet_id,
+                    quantity: item.quantity,
+                    notes: `Order #${data.outlet_id}`,
+                });
+            } catch (error) {
+                console.error(`Failed to deduct stock for product ${item.product_id}:`, error);
+            }
+        }
+
+        revalidatePath("/order");
+        revalidatePath("/admin/master/stock");
         return { success: true };
     } catch (error) {
         console.error("Failed to create order:", error);
@@ -248,11 +320,103 @@ export async function updateOrderStatus(orderId: number, currentStatus: string, 
                 eq(orders.id, orderId)
             );
 
+        // When production is ready, add stock to warehouse (make-to-stock model)
+        // This assumes the bakery produces goods that go into central warehouse inventory
+        if (newStatus === "ready") {
+            // Get the order with items
+            const order = await db.query.orders.findFirst({
+                where: eq(orders.id, orderId),
+                with: {
+                    items: true,
+                },
+            });
+
+            if (order) {
+                // Add each product to warehouse stock (outlet_id = null)
+                for (const item of order.items) {
+                    try {
+                        await addStock({
+                            product_id: item.product_id,
+                            outlet_id: null, // null = central warehouse
+                            quantity: item.quantity,
+                            notes: `Production completed for order #${orderId}`,
+                        });
+                    } catch (error) {
+                        console.error(`Failed to add warehouse stock for product ${item.product_id}:`, error);
+                    }
+                }
+            }
+        }
+
         revalidatePath(pathname);
+        revalidatePath("/admin/master/stock");
         return { success: true };
     } catch (error) {
         console.error("Failed to update status:", error);
         return { success: false, error: "Failed to update status" };
+    }
+}
+
+/**
+ * Cancel an order and return stock to the outlet
+ * Can only be cancelled if not yet delivered
+ */
+export async function cancelOrder(orderId: number, reason?: string) {
+    try {
+        // Get the order with items
+        const order = await db.query.orders.findFirst({
+            where: eq(orders.id, orderId),
+            with: {
+                items: {
+                    with: {
+                        product: true,
+                    },
+                },
+            },
+        });
+
+        if (!order) {
+            return { success: false, error: "Order not found" };
+        }
+
+        // Check if order can be cancelled (not delivered)
+        if (order.status === "delivered") {
+            return { success: false, error: "Cannot cancel a delivered order" };
+        }
+
+        // Check if already cancelled
+        if (order.status === "cancelled") {
+            return { success: false, error: "Order is already cancelled" };
+        }
+
+        // Update order status to cancelled
+        await db.update(orders)
+            .set({
+                status: "cancelled",
+                updated_at: new Date(),
+            })
+            .where(eq(orders.id, orderId));
+
+        // Return stock for each item
+        for (const item of order.items) {
+            try {
+                await addStock({
+                    product_id: item.product_id,
+                    outlet_id: order.outlet_id,
+                    quantity: item.quantity,
+                    notes: reason || `Returned from cancelled order #${orderId}`,
+                });
+            } catch (error) {
+                console.error(`Failed to return stock for product ${item.product_id}:`, error);
+            }
+        }
+
+        revalidatePath("/order");
+        revalidatePath("/admin/master/stock");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to cancel order:", error);
+        return { success: false, error: "Failed to cancel order" };
     }
 }
 

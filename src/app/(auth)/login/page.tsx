@@ -11,13 +11,16 @@ import { Separator } from "@/components/ui/separator";
 import { ChefHat, Loader2 } from "lucide-react";
 
 const DEMO_ACCOUNTS = [
-    { label: "Admin", email: "admin@orbery.com", password: "Password123!" },
-    { label: "Baker", email: "baker@orbery.com", password: "Password123!" },
-    { label: "Driver", email: "driver@orbery.com", password: "Password123!" },
-    { label: "User", email: "user@orbery.com", password: "Password123!" },
+    { label: "Admin", email: "admin@test.app", password: "Password123!" },
+    { label: "Baker", email: "baker@test.app", password: "Password123!" },
+    { label: "Driver", email: "driver@test.app", password: "Password123!" },
+    { label: "User", email: "user@test.app", password: "Password123!" },
+    { label: "Cashier YAP", email: "cashier-yap@test.app", password: "Password123!" },
+    { label: "Cashier Kael", email: "cashier-kael@test.app", password: "Password123!" },
+    { label: "Cashier Seken", email: "cashier-seken@test.app", password: "Password123!" },
 ];
 
-export default function OrberyLoginPage() {
+export default function LoginPage() {
     console.log("LOGIN PAGE MOUNTED - V2");
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -45,7 +48,7 @@ export default function OrberyLoginPage() {
             const dest = role === "baker" ? "/baker"
                 : role === "driver" ? "/driver"
                     : role === "owner" ? "/dashboard"
-                        : "/admin";
+                        : "/order";
             router.push(dest);
             router.refresh();
         } catch {
@@ -72,13 +75,14 @@ export default function OrberyLoginPage() {
 
             {/* Standard Shadcn Card with custom centering and padding */}
             <Card className="relative z-10 w-full max-w-sm shadow-2xl border-white/10 bg-card/95 backdrop-blur-sm overflow-hidden" id="login-card">
-                {/* Custom Header Area - Direct Flexbox to guarantee centering */}
+                {/* Custom Header Area - Logo Image */}
                 <div className="flex flex-col items-center justify-center text-center">
-                    <div className="flex justify-center w-full">
-                        <ChefHat className="size-12 text-primary" strokeWidth={1.5} />
-                    </div>
-                    <CardTitle className="text-2xl font-bold tracking-tight">Orbery</CardTitle>
-                    <CardDescription className="text-muted-foreground/80 mt-1">Sistem manajemen roti</CardDescription>
+                    <img
+                        src="/logo.png"
+                        alt="Dapoer Roema"
+                        className="h-24 w-auto object-contain mb-2"
+                    />
+                    <CardDescription className="text-muted-foreground/80">Sistem manajemen central kitchen</CardDescription>
                 </div>
 
                 <CardContent>
@@ -88,7 +92,7 @@ export default function OrberyLoginPage() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="you@orbery.local"
+                                placeholder="you@test.app"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -122,25 +126,25 @@ export default function OrberyLoginPage() {
                         </Button>
                     </form>
 
-                    {/* Demo section - Explicit 2-column grid */}
-                    <div className="space-y-4 pt-6">
+                    {/* Demo section - Compact grid for 7 buttons */}
+                    <div className="space-y-3 pt-6">
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
                                 <Separator className="bg-white/5" />
                             </div>
                             <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
-                                <span className="bg-card px-2 text-muted-foreground">Akun Demo</span>
+                                <span className="bg-card px-2 text-muted-foreground">Demo Login</span>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-4 gap-1.5">
                             {DEMO_ACCOUNTS.map((acct) => (
                                 <Button
                                     key={acct.label}
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="text-xs border-muted/50 hover:bg-primary/5 hover:text-primary transition-all font-semibold"
+                                    className="h-7 text-[10px] px-2 border-muted/50 hover:bg-primary/5 hover:text-primary transition-all"
                                     onClick={() => {
                                         setEmail(acct.email);
                                         setPassword(acct.password);

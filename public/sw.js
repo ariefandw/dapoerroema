@@ -1,5 +1,5 @@
-// Orbery Service Worker — basic cache-first strategy for offline support
-const CACHE_NAME = "orbery-v1";
+// Dapoer Roema Service Worker — basic cache-first strategy for offline support
+const CACHE_NAME = "dapoer-roema-v1";
 
 // Static assets to pre-cache on install
 const PRECACHE_URLS = [

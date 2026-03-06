@@ -16,7 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { createCashierOrder } from "@/app/actions/cashier";
+import { createCashierOrder, getCashierStockLevels } from "@/app/actions/cashier";
 import { QRISPaymentModal } from "@/components/QRISPaymentModal";
 import {
     ShoppingCart,
@@ -29,7 +29,8 @@ import {
     QrCode,
     Image as ImageIcon,
     Utensils,
-    X
+    X,
+    AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { eq } from "drizzle-orm";
@@ -42,6 +43,7 @@ interface Product {
     category: string;
     base_price: number;
     image_url?: string | null;
+    stock?: number; // Current stock at outlet
 }
 
 interface CartItem extends Product {
@@ -85,11 +87,9 @@ export default function CashierPage() {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch("/api/products");
-            if (response.ok) {
-                const data = await response.json();
-                setAllProducts(data);
-            }
+            // Fetch products with stock levels
+            const data = await getCashierStockLevels();
+            setAllProducts(data);
         } catch (error) {
             console.error("Failed to fetch products:", error);
         }
@@ -99,10 +99,25 @@ export default function CashierPage() {
     const addToCart = (product: Product) => {
         setCart(prev => {
             const existing = prev.find(item => item.id === product.id);
+            const currentQuantity = existing?.quantity || 0;
+            const newQuantity = currentQuantity + 1;
+            const availableStock = product.stock ?? 0;
+
+            // Check if adding would exceed stock
+            if (newQuantity > availableStock && availableStock > 0) {
+                toast.error(
+                    `Stok ${product.name} tersisa ${availableStock}. Anda memesan ${newQuantity}.`,
+                    { duration: 3000 }
+                );
+            } else if (availableStock === 0) {
+                toast.error(`${product.name} sedang habis stok.`);
+                return prev;
+            }
+
             if (existing) {
                 return prev.map(item =>
                     item.id === product.id
-                        ? { ...item, quantity: item.quantity + 1 }
+                        ? { ...item, quantity: newQuantity }
                         : item
                 );
             }
@@ -179,9 +194,11 @@ export default function CashierPage() {
 
             toast.success("Pesanan berhasil dibuat!");
             clearCart();
+            // Refresh products to update stock levels
+            fetchProducts();
         } catch (error) {
             console.error("Failed to create order:", error);
-            toast.error("Gagal membuat pesanan");
+            toast.error(error instanceof Error ? error.message : "Gagal membuat pesanan");
         } finally {
             setLoading(false);
             setShowQRISModal(false);
@@ -217,37 +234,69 @@ export default function CashierPage() {
                 </div>
 
                 {/* Product Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {filteredProducts.map((product) => (
-                        <Card
-                            key={product.id}
-                            className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow group"
-                            onClick={() => addToCart(product)}
-                        >
-                            <div className="aspect-square bg-muted relative">
-                                {product.image_url ? (
-                                    <img
-                                        src={product.image_url}
-                                        alt={product.name}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
-                                    </div>
-                                )}
-                                <Badge className="absolute top-2 left-2 text-[10px]">
-                                    {product.category}
-                                </Badge>
-                            </div>
-                            <div className="p-3">
-                                <h3 className="font-medium text-sm truncate">{product.name}</h3>
-                                <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                                    Rp {product.base_price.toLocaleString("id-ID")}
-                                </p>
-                            </div>
-                        </Card>
-                    ))}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    {filteredProducts.map((product) => {
+                        const stock = product.stock ?? 0;
+                        const isLowStock = stock <= 5;
+                        const isOutOfStock = stock === 0;
+
+                        return (
+                            <Card
+                                key={product.id}
+                                className={`overflow-hidden cursor-pointer hover:shadow-md transition-shadow group ${isOutOfStock ? "opacity-60" : ""
+                                    }`}
+                                onClick={() => !isOutOfStock && addToCart(product)}
+                            >
+                                <div className="aspect-square bg-muted relative">
+                                    {product.image_url ? (
+                                        <img
+                                            src={product.image_url}
+                                            alt={product.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                            <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
+                                        </div>
+                                    )}
+                                    <Badge className="absolute top-2 left-2 text-[10px]">
+                                        {product.category}
+                                    </Badge>
+                                    {/* Stock Badge */}
+                                    <Badge
+                                        variant={isOutOfStock ? "destructive" : isLowStock ? "default" : "secondary"}
+                                        className={`absolute top-2 right-2 text-[10px] flex items-center gap-1 ${isLowStock && !isOutOfStock ? "bg-amber-500 text-white" : ""
+                                            }`}
+                                    >
+                                        {isOutOfStock ? (
+                                            <>
+                                                <X className="h-3 w-3" />
+                                                Habis
+                                            </>
+                                        ) : isLowStock ? (
+                                            <>
+                                                <AlertTriangle className="h-3 w-3" />
+                                                {stock}
+                                            </>
+                                        ) : (
+                                            stock
+                                        )}
+                                    </Badge>
+                                </div>
+                                <div className="p-3">
+                                    <h3 className="font-medium text-sm truncate">{product.name}</h3>
+                                    <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                                        Rp {product.base_price.toLocaleString("id-ID")}
+                                    </p>
+                                    {isLowStock && !isOutOfStock && (
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                            Stok menipis
+                                        </p>
+                                    )}
+                                </div>
+                            </Card>
+                        );
+                    })}
                 </div>
 
                 {filteredProducts.length === 0 && (
@@ -280,52 +329,73 @@ export default function CashierPage() {
                                 <p className="text-sm">Keranjang kosong</p>
                             </div>
                         ) : (
-                            cart.map((item) => (
-                                <div key={item.id} className="flex items-center gap-3 bg-muted/50 rounded-lg p-2">
-                                    {item.image_url && (
-                                        <img
-                                            src={item.image_url}
-                                            alt={item.name}
-                                            className="w-12 h-12 rounded object-cover"
-                                        />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-sm truncate">{item.name}</p>
-                                        <p className="text-xs text-muted-foreground">
-                                            Rp {item.base_price.toLocaleString("id-ID")}
-                                        </p>
+                            cart.map((item) => {
+                                const availableStock = item.stock ?? 0;
+                                const hasStockIssue = item.quantity > availableStock && availableStock > 0;
+                                const isOutOfStock = availableStock === 0;
+
+                                return (
+                                    <div key={item.id} className={`flex items-center gap-3 bg-muted/50 rounded-lg p-2 ${isOutOfStock ? "opacity-60" : ""}`}>
+                                        {item.image_url && (
+                                            <img
+                                                src={item.image_url}
+                                                alt={item.name}
+                                                className="w-12 h-12 rounded object-cover"
+                                            />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-sm truncate">{item.name}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Rp {item.base_price.toLocaleString("id-ID")}
+                                            </p>
+                                            {isOutOfStock ? (
+                                                <p className="text-xs text-destructive font-medium">
+                                                    <X className="h-3 w-3 inline mr-1" />
+                                                    Stok habis
+                                                </p>
+                                            ) : hasStockIssue ? (
+                                                <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                                                    <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                                    Stok: {availableStock}
+                                                </p>
+                                            ) : (
+                                                <p className="text-xs text-muted-foreground">
+                                                    Stok: {availableStock}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                                onClick={() => updateQuantity(item.id, -1)}
+                                            >
+                                                <Minus className="h-3 w-3" />
+                                            </Button>
+                                            <span className="w-8 text-center text-sm font-medium">
+                                                {item.quantity}
+                                            </span>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                                onClick={() => updateQuantity(item.id, 1)}
+                                            >
+                                                <Plus className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7 text-destructive"
+                                                onClick={() => removeFromCart(item.id)}
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                            onClick={() => updateQuantity(item.id, -1)}
-                                        >
-                                            <Minus className="h-3 w-3" />
-                                        </Button>
-                                        <span className="w-8 text-center text-sm font-medium">
-                                            {item.quantity}
-                                        </span>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7"
-                                            onClick={() => updateQuantity(item.id, 1)}
-                                        >
-                                            <Plus className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-7 w-7 text-destructive"
-                                            onClick={() => removeFromCart(item.id)}
-                                        >
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
 
