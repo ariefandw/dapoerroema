@@ -9,7 +9,7 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ name, image, size = "md", className }: UserAvatarProps) {
-    const getInitials = (name: string | null) => {
+    const getInitials = (name: string | null | undefined) => {
         if (!name) return null;
         return name
             .split(" ")

@@ -11,7 +11,7 @@ interface UseImageUploadOptions {
 interface UseImageUploadResult {
     preview: string | null;
     uploading: boolean;
-    fileInputRef: React.RefObject<HTMLInputElement>;
+    fileInputRef: React.RefObject<HTMLInputElement | null>;
     handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleRemove: () => void;
     setPreview: (preview: string | null) => void;

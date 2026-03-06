@@ -106,7 +106,7 @@ async function seed() {
 
         // 3. Stock levels for Central Kitchen and all outlets
         console.log("📦 Creating stock levels...");
-        const stockInserts = [];
+        const stockInserts: string[] = [];
 
         // Central Kitchen stock (outlet_id = NULL)
         productsList.forEach((p) => {
@@ -147,7 +147,7 @@ async function seed() {
             "Expired items"
         ];
 
-        const transactionsToInsert = [];
+        const transactionsToInsert: string[] = [];
         const stockRes = await pool.query("SELECT id, product_id, outlet_id FROM stock");
 
         stockRes.rows.forEach((stock) => {
@@ -203,15 +203,15 @@ async function seed() {
             // Calculate amounts
             const itemCount = 1 + Math.floor(Math.random() * 4);
             let subtotal = 0;
-            const items = [];
+            const items: { product_id: number; quantity: number }[] = [];
 
             for (let j = 0; j < itemCount; j++) {
                 const product = productsList[Math.floor(Math.random() * productsList.length)];
                 const qty = 2 + Math.floor(Math.random() * 15);
                 subtotal += product.category === 'Sourdough' ? 35000 :
-                           product.category === 'Bread' ? 15000 :
-                           product.category === 'Cookies' ? 15000 :
-                           product.category === 'Pastry' ? 18000 : 22000;
+                    product.category === 'Bread' ? 15000 :
+                        product.category === 'Cookies' ? 15000 :
+                            product.category === 'Pastry' ? 18000 : 22000;
                 subtotal *= qty;
                 items.push({ product_id: product.id, quantity: qty });
             }
