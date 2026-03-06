@@ -178,8 +178,9 @@ async function runSeed(pool: any) {
         ["Iced Americano", "Beverage", 15000],
     ];
 
-    for (const [name, category, price] of products) {
-        const imageUrl = `https://picsum.photos/seed/${name.toLowerCase().replace(/\s+/g, '-')}/400/400`;
+    for (const product of products) {
+        const [name, category, price] = product;
+        const imageUrl = `https://picsum.photos/seed/${String(name).toLowerCase().replace(/\s+/g, '-')}/400/400`;
         await pool.query(
             "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4)",
             [name, category, price, imageUrl]
