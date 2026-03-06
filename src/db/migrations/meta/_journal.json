@@ -8,6 +8,13 @@
       "when": 1772730225954,
       "tag": "0000_spicy_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772776285344,
+      "tag": "0001_serious_husk",
+      "breakpoints": true
     }
   ]
 }

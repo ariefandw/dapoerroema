@@ -56,6 +56,10 @@ export const user = pgTable("user", {
   // Custom field for role-based access
   role: text("role").notNull().default("admin"),
   currentOutletId: integer("current_outlet_id").references(() => outlets.id),
+  // Better Auth Admin Plugin fields
+  banned: boolean("banned"),
+  banReason: text("banReason"),
+  banExpires: timestamp("banExpires"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });

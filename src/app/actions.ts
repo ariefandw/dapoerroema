@@ -3,7 +3,8 @@
 import { db } from "@/db";
 import { outlets, products, orders, orderItems, user } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { eq, inArray, and, sql } from "drizzle-orm";
+import { eq, inArray, and, sql, gte, lte } from "drizzle-orm";
+import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
@@ -22,6 +23,49 @@ export async function getUsers() {
         },
         orderBy: (user, { asc }) => [asc(user.name)],
     });
+}
+
+export async function adminCreateUser(data: { email: string; name: string; role: "admin" | "baker" | "driver" | "user"; currentOutletId?: number | null; password?: string }) {
+    try {
+        await auth.api.createUser({
+            headers: await headers(),
+            body: {
+                email: data.email,
+                name: data.name,
+                password: data.password || "Password123!",
+                role: data.role as any,
+                data: {
+                    currentOutletId: data.currentOutletId
+                }
+            }
+        });
+        revalidatePath("/admin/users");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to create user:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Failed to create user" };
+    }
+}
+
+export async function toggleUserStatus(userId: string, isBanned: boolean) {
+    try {
+        if (isBanned) {
+            await auth.api.unbanUser({
+                headers: await headers(),
+                body: { userId }
+            });
+        } else {
+            await auth.api.banUser({
+                headers: await headers(),
+                body: { userId }
+            });
+        }
+        revalidatePath("/admin/users");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to toggle user status:", error);
+        return { success: false, error: "Failed to toggle user status" };
+    }
 }
 
 export async function updateUser(userId: string, data: { role?: string; currentOutletId?: number | null }) {
@@ -98,9 +142,36 @@ export async function createOrder(data: NewOrderParams) {
     }
 }
 
-export async function getActiveOrders(outletId?: number | null) {
+export async function getActiveOrders(outletId?: number | null, dateStr?: string) {
+    let start: Date;
+    let end: Date;
+
+    if (dateStr) {
+        // Parse the YYYY-MM-DD string in the server's local timezone
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const targetDate = new Date(year, month - 1, day);
+        start = startOfDay(targetDate);
+        end = endOfDay(targetDate);
+    } else {
+        // Default to today in server local time
+        const now = new Date();
+        start = startOfDay(now);
+        end = endOfDay(now);
+    }
+
+    console.log(`[getActiveOrders] Filtering: ${start.toISOString()} to ${end.toISOString()} (outletId: ${outletId})`);
+
+    const conditions = [
+        gte(orders.order_date, start),
+        lte(orders.order_date, end)
+    ];
+
+    if (outletId) {
+        conditions.push(eq(orders.outlet_id, outletId));
+    }
+
     return await db.query.orders.findMany({
-        where: outletId ? eq(orders.outlet_id, outletId) : undefined,
+        where: and(...conditions),
         with: {
             outlet: true,
             items: {

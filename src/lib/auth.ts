@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin } from "better-auth/plugins";
 import { db } from "@/db";
 import { user, session, account, verification } from "@/db/schema";
 
@@ -11,13 +12,11 @@ export const auth = betterAuth({
     emailAndPassword: {
         enabled: true,
     },
+    plugins: [
+        admin(),
+    ],
     user: {
         additionalFields: {
-            role: {
-                type: "string",
-                defaultValue: "admin",
-                input: true,
-            },
             currentOutletId: {
                 type: "number",
                 required: false,
@@ -32,5 +31,8 @@ export type Session = typeof auth.$Infer.Session & {
     user: {
         role: string;
         currentOutletId?: number | null;
+        banned?: boolean | null;
+        banReason?: string | null;
+        banExpires?: Date | null;
     }
 };

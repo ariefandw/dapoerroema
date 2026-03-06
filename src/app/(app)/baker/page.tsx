@@ -62,7 +62,7 @@ export default async function BakerPage() {
                                                         "use server";
                                                         await updateOrderStatus(order.id, order.status, "accepted", "/baker");
                                                     }} className="w-full">
-                                                        <Button type="submit" size="sm" className="w-full bg-slate-500 hover:bg-slate-600 text-white mt-1 font-bold">
+                                                        <Button type="submit" size="sm" className="w-full bg-amber-600 hover:bg-amber-700 text-white mt-1 font-bold">
                                                             Terima Pesanan
                                                         </Button>
                                                     </form>
@@ -72,7 +72,7 @@ export default async function BakerPage() {
                                                         "use server";
                                                         await updateOrderStatus(order.id, order.status, "in_production", "/baker");
                                                     }} className="w-full">
-                                                        <Button type="submit" size="sm" className="w-full bg-yellow-500 hover:bg-yellow-600 text-yellow-950 mt-1 font-bold">
+                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1 font-bold">
                                                             Mulai Produksi
                                                         </Button>
                                                     </form>
@@ -82,7 +82,7 @@ export default async function BakerPage() {
                                                         "use server";
                                                         await updateOrderStatus(order.id, order.status, "ready", "/baker");
                                                     }} className="w-full">
-                                                        <Button type="submit" size="sm" className="w-full bg-blue-500 hover:bg-blue-600 text-white mt-1 font-bold">
+                                                        <Button type="submit" size="sm" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white mt-1 font-bold">
                                                             Selesai (Ready)
                                                         </Button>
                                                     </form>

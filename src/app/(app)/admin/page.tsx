@@ -6,8 +6,9 @@ import { PageContainer } from "@/components/PageContainer";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
     await requireRole(["admin"]);
+    const { date } = await searchParams;
     const session = await auth.api.getSession({
         headers: await headers(),
     });
@@ -17,7 +18,7 @@ export default async function AdminPage() {
     const [outlets, products, orders] = await Promise.all([
         getOutlets(),
         getProducts(),
-        getActiveOrders(outletId),
+        getActiveOrders(outletId, date),
     ]);
 
     return (
@@ -35,7 +36,7 @@ export default async function AdminPage() {
 
                 {/* Right Side: Active Orders */}
                 <div className="lg:col-span-2">
-                    <OrdersTable orders={orders} />
+                    <OrdersTable orders={orders} currentDate={date} />
                 </div>
             </div>
         </PageContainer>

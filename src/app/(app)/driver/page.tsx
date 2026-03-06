@@ -58,7 +58,7 @@ export default async function DriverPage() {
                                                 "use server";
                                                 await updateOrderStatus(order.id, order.status, "shipping", "/driver");
                                             }} className="w-full">
-                                                <Button type="submit" size="sm" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white mt-1">
+                                                <Button type="submit" size="sm" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white mt-1 font-bold">
                                                     Mulai Pengiriman
                                                 </Button>
                                             </form>
@@ -67,7 +67,7 @@ export default async function DriverPage() {
                                                 "use server";
                                                 await updateOrderStatus(order.id, order.status, "delivered", "/driver");
                                             }} className="w-full">
-                                                <Button type="submit" size="sm" className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950 mt-1 font-bold">
+                                                <Button type="submit" size="sm" className="w-full bg-green-600 hover:bg-green-700 text-white mt-1 font-bold">
                                                     Konfirmasi Terkirim
                                                 </Button>
                                             </form>

@@ -11,10 +11,10 @@ import { Separator } from "@/components/ui/separator";
 import { ChefHat, Loader2 } from "lucide-react";
 
 const DEMO_ACCOUNTS = [
-    { label: "Admin", email: "admin@orbery.local", password: "admin123" },
-    { label: "Baker", email: "baker@orbery.local", password: "baker123" },
-    { label: "Driver", email: "driver@orbery.local", password: "driver123" },
-    { label: "Owner", email: "owner@orbery.local", password: "owner123" },
+    { label: "Admin", email: "admin@orbery.com", password: "Password123!" },
+    { label: "Baker", email: "baker@orbery.com", password: "Password123!" },
+    { label: "Driver", email: "driver@orbery.com", password: "Password123!" },
+    { label: "User", email: "user@orbery.com", password: "Password123!" },
 ];
 
 export default function OrberyLoginPage() {
