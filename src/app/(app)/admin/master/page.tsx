@@ -20,6 +20,14 @@ const masterDataItems = [
         color: "text-green-500",
         bgColor: "bg-green-500/10",
     },
+    {
+        title: "User",
+        description: "Kelola peran user dan outlet default.",
+        href: "/admin/users",
+        icon: Database,
+        color: "text-orange-500",
+        bgColor: "bg-orange-500/10",
+    },
 ];
 
 export default function MasterDataHub() {

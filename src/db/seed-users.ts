@@ -27,9 +27,15 @@ async function seedUsers() {
             });
             if (result) {
                 console.log(`✓ Created: ${u.email} (${u.role})`);
-                // Update role field directly since better-auth may not apply additionalFields on signUp
+                // Update role and currentOutletId field directly
                 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-                await pool.query(`UPDATE "user" SET role = $1 WHERE email = $2`, [u.role, u.email]);
+                const outletsRes = await pool.query(`SELECT id FROM outlets LIMIT 1`);
+                const defaultOutletId = outletsRes.rows[0]?.id;
+
+                await pool.query(
+                    `UPDATE "user" SET role = $1, "current_outlet_id" = $2 WHERE email = $3`,
+                    [u.role, defaultOutletId, u.email]
+                );
                 await pool.end();
             }
         } catch (e: any) {

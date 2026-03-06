@@ -23,11 +23,11 @@ export default async function DashboardPage() {
             </div>
 
             {role === "admin" || role === "owner" ? (
-                <AdminDashboard />
+                <AdminDashboard session={session} />
             ) : role === "baker" ? (
-                <BakerDashboard />
+                <BakerDashboard session={session} />
             ) : role === "driver" ? (
-                <DriverDashboard />
+                <DriverDashboard session={session} />
             ) : (
                 <div className="p-8 text-center text-muted-foreground">
                     Peran tidak dikenali. Silakan hubungi administrator.

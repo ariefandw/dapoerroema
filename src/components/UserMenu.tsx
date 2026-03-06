@@ -1,5 +1,3 @@
-"use client";
-
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth-client";
 import {
@@ -40,9 +38,9 @@ export function UserMenu({ user }: UserMenuProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full bg-muted border p-0 hover:bg-muted/80">
-                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold">
-                        {initials || <User className="h-4 w-4" />}
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full bg-muted/50 border border-border/50 hover:bg-muted transition-all flex items-center justify-center p-0">
+                    <div className="flex h-7 w-7 rounded-full bg-primary/20 text-primary items-center justify-center text-[10px] font-bold border border-primary/20">
+                        {initials || <User className="h-3 w-3" />}
                     </div>
                 </Button>
             </DropdownMenuTrigger>
@@ -53,7 +51,7 @@ export function UserMenu({ user }: UserMenuProps) {
                         <p className="text-[10px] leading-none text-muted-foreground uppercase font-black tracking-widest mt-0.5">
                             {user.role}
                         </p>
-                        <p className="text-xs leading-none text-muted-foreground pt-1">
+                        <p className="text-xs leading-none text-muted-foreground pt-1 truncate">
                             {user.email}
                         </p>
                     </div>

@@ -34,7 +34,7 @@ export default async function DriverPage() {
                                             <CardTitle className="text-base leading-tight">{order.outlet.name}</CardTitle>
                                             <CardDescription className="text-xs mt-0.5">Pesanan #{order.id}</CardDescription>
                                         </div>
-                                        <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider whitespace-nowrap ${ui?.colorClass ?? "bg-blue-100 text-blue-800"}`}>
+                                        <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider whitespace-nowrap ${ui?.colorClass ?? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700"}`}>
                                             {ui?.label ?? order.status}
                                         </span>
                                     </div>
@@ -46,7 +46,7 @@ export default async function DriverPage() {
                                             {order.items.map((item: any) => (
                                                 <li key={item.id} className="text-sm flex justify-between items-center border-b border-border/50 last:border-0">
                                                     <span className="text-muted-foreground">{item.product.name}</span>
-                                                    <span className="font-bold">{item.quantity}x</span>
+                                                    <span className="font-bold">{item.quantity}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -67,7 +67,7 @@ export default async function DriverPage() {
                                                 "use server";
                                                 await updateOrderStatus(order.id, order.status, "delivered", "/driver");
                                             }} className="w-full">
-                                                <Button type="submit" size="sm" className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950 mt-1">
+                                                <Button type="submit" size="sm" className="w-full bg-amber-500 hover:bg-amber-600 text-amber-950 mt-1 font-bold">
                                                     Konfirmasi Terkirim
                                                 </Button>
                                             </form>

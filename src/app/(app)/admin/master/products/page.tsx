@@ -8,6 +8,7 @@ import { ProductDialog } from "./ProductDialog";
 import { deleteProduct } from "@/app/actions/master";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/PageContainer";
+import { DeleteActionButton } from "@/components/DeleteActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -64,11 +65,11 @@ export default async function ProductsPage() {
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
                                         </ProductDialog>
-                                        <form action={deleteProduct.bind(null, product.id)}>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </form>
+                                        <DeleteActionButton
+                                            action={deleteProduct.bind(null, product.id)}
+                                            title={`Hapus Produk ${product.name}?`}
+                                            description="Menghapus produk akan berdampak pada sejarah pesanan yang terkait. Lanjutkan?"
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

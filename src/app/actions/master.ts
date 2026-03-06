@@ -21,8 +21,14 @@ export async function upsertOutlet(data: { id?: number; name: string; contact_in
 }
 
 export async function deleteOutlet(id: number) {
-    await db.delete(outlets).where(eq(outlets.id, id));
-    revalidatePath("/admin/master/outlets");
+    try {
+        await db.delete(outlets).where(eq(outlets.id, id));
+        revalidatePath("/admin/master/outlets");
+        return { success: true, message: "Outlet berhasil dihapus" };
+    } catch (error) {
+        console.error("Failed to delete outlet:", error);
+        return { success: false, message: "Gagal menghapus outlet. Pastikan tidak ada data yang terkait." };
+    }
 }
 
 // ─── Product Actions ─────────────────────────────────────────────────────────
@@ -43,6 +49,12 @@ export async function upsertProduct(data: { id?: number; name: string; category:
 }
 
 export async function deleteProduct(id: number) {
-    await db.delete(products).where(eq(products.id, id));
-    revalidatePath("/admin/master/products");
+    try {
+        await db.delete(products).where(eq(products.id, id));
+        revalidatePath("/admin/master/products");
+        return { success: true, message: "Produk berhasil dihapus" };
+    } catch (error) {
+        console.error("Failed to delete product:", error);
+        return { success: false, message: "Gagal menghapus produk. Pastikan tidak ada data yang terkait." };
+    }
 }

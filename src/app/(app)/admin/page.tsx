@@ -3,13 +3,21 @@ import { CreateOrderForm } from "@/components/CreateOrderForm";
 import { OrdersTable } from "@/components/OrdersTable";
 import { requireRole } from "@/lib/auth-guard";
 import { PageContainer } from "@/components/PageContainer";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function AdminPage() {
     await requireRole(["admin"]);
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    const outletId = (session?.user as any)?.currentOutletId;
+
     const [outlets, products, orders] = await Promise.all([
         getOutlets(),
         getProducts(),
-        getActiveOrders(),
+        getActiveOrders(outletId),
     ]);
 
     return (

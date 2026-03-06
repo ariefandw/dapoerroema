@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { TopProductsChart, OutletPieChart, VolumeLineChart } from "@/components/Charts";
 import { getAnalytics } from "@/app/actions";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
+import { TrendingUp, ShoppingBag, CheckCircle2, DollarSign } from "lucide-react";
 
 function formatRupiah(amount: number) {
     return new Intl.NumberFormat("id-ID", {
@@ -11,38 +12,55 @@ function formatRupiah(amount: number) {
     }).format(amount);
 }
 
-export async function AdminDashboard() {
+export async function AdminDashboard({ session }: { session: any }) {
+    const outletId = (session?.user as any)?.currentOutletId;
     const { totalOrders, totalDelivered, totalRevenue, topProducts, ordersByOutlet, volumeByDay, statusDist } =
-        await getAnalytics();
+        await getAnalytics(outletId);
 
     const deliveryRate = totalOrders > 0 ? ((totalDelivered / totalOrders) * 100).toFixed(0) : 0;
 
     return (
         <div className="space-y-6">
             {/* KPI Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card>
-                    <CardContent>
-                        <div className="text-4xl font-black">{totalOrders}</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Total Pesanan</div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <ShoppingBag className="h-4 w-4 text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Orders</span>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-black tracking-tighter">{totalOrders}</div>
+                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Total Pesanan</div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent>
-                        <div className="text-4xl font-black">{totalDelivered}</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Terkirim</div>
+                <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Success</span>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-black tracking-tighter">{totalDelivered}</div>
+                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Terkirim</div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent>
-                        <div className="text-4xl font-black">{deliveryRate}%</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Tingkat Pengiriman</div>
+                <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <TrendingUp className="h-4 w-4 text-amber-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rate</span>
+                        </div>
+                        <div className="text-3xl md:text-4xl font-black tracking-tighter">{deliveryRate}%</div>
+                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Efisiensi</div>
                     </CardContent>
                 </Card>
-                <Card>
-                    <CardContent>
-                        <div className="text-2xl font-black">{formatRupiah(totalRevenue)}</div>
-                        <div className="text-sm text-muted-foreground font-medium mt-1">Total Pendapatan</div>
+                <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-2">
+                            <DollarSign className="h-4 w-4 text-blue-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Revenue</span>
+                        </div>
+                        <div className="text-xl md:text-2xl lg:text-3xl font-black tracking-tighter truncate">{formatRupiah(totalRevenue).replace("Rp", "Rp ")}</div>
+                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Pendapatan</div>
                     </CardContent>
                 </Card>
             </div>

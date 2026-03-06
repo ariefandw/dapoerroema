@@ -55,6 +55,7 @@ export const user = pgTable("user", {
   image: text("image"),
   // Custom field for role-based access
   role: text("role").notNull().default("admin"),
+  currentOutletId: integer("current_outlet_id").references(() => outlets.id),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
@@ -125,5 +126,12 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   product: one(products, {
     fields: [orderItems.product_id],
     references: [products.id],
+  }),
+}));
+
+export const userRelations = relations(user, ({ one }) => ({
+  currentOutlet: one(outlets, {
+    fields: [user.currentOutletId],
+    references: [outlets.id],
   }),
 }));

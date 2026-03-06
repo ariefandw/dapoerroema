@@ -18,8 +18,19 @@ export const auth = betterAuth({
                 defaultValue: "admin",
                 input: true,
             },
+            currentOutletId: {
+                type: "number",
+                required: false,
+                defaultValue: null,
+                input: true,
+            },
         },
     },
 });
 
-export type Session = typeof auth.$Infer.Session;
+export type Session = typeof auth.$Infer.Session & {
+    user: {
+        role: string;
+        currentOutletId?: number | null;
+    }
+};

@@ -4,8 +4,9 @@ import { CookingPot } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export async function BakerDashboard() {
-    const orders = await getBakerItems();
+export async function BakerDashboard({ session }: { session: any }) {
+    const outletId = (session?.user as any)?.currentOutletId;
+    const orders = await getBakerItems(outletId);
 
     // Aggregate items by product name
     const aggregatedItems: Record<string, number> = {};

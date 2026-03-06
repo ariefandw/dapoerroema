@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Phone } from "lucide-react";
 import { OutletDialog } from "./OutletDialog";
 import { deleteOutlet } from "@/app/actions/master";
 import { PageContainer } from "@/components/PageContainer";
+import { DeleteActionButton } from "@/components/DeleteActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -58,11 +59,11 @@ export default async function OutletsPage() {
                                                 <Pencil className="h-4 w-4" />
                                             </Button>
                                         </OutletDialog>
-                                        <form action={deleteOutlet.bind(null, outlet.id)}>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </form>
+                                        <DeleteActionButton
+                                            action={deleteOutlet.bind(null, outlet.id)}
+                                            title={`Hapus Outlet ${outlet.name}?`}
+                                            description="Menghapus outlet akan berdampak pada sejarah pesanan yang terkait. Lanjutkan?"
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

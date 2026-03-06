@@ -4,8 +4,9 @@ import { Truck } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export async function DriverDashboard() {
-    const orders = await getDriverOrders();
+export async function DriverDashboard({ session }: { session: any }) {
+    const outletId = (session?.user as any)?.currentOutletId;
+    const orders = await getDriverOrders(outletId);
     const pendingDeliveries = orders.filter(o => o.status === "Shipped" || o.status === "Production Ready").length;
 
     return (
