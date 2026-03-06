@@ -64,7 +64,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                     outlet_id: 0,
                     items: [{ product_id: 0, quantity: 1 }],
                 });
-                alert("Order berhasil dibuat!");
+                alert("Pesanan berhasil dibuat!");
             } else {
                 alert("Gagal membuat order");
             }
@@ -74,7 +74,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
     return (
         <Card className="w-full max-w-2xl">
             <CardHeader>
-                <CardTitle>Penerimaan Order Baru</CardTitle>
+                <CardTitle>Penerimaan Pesanan Baru</CardTitle>
                 <CardDescription>Masukkan order baru untuk outlet secara manual.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -109,7 +109,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                         />
 
                         <div className="space-y-2">
-                            <FormLabel>Item Order</FormLabel>
+                            <FormLabel>Item Pesanan</FormLabel>
                             {fields.map((field, index) => (
                                 <div key={field.id} className="flex gap-4 items-end">
                                     <FormField
@@ -177,7 +177,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: any[]; product
                         </div>
 
                         <Button type="submit" disabled={isPending} className="w-full">
-                            {isPending ? "Mengirim..." : "Buat Order"}
+                            {isPending ? "Mengirim..." : "Buat Pesanan"}
                         </Button>
                     </form>
                 </Form>

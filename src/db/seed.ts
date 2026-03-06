@@ -63,7 +63,7 @@ async function seed() {
         const productMap = new Map(productsRes.rows.map(p => [p.name, p.id]));
 
         // 3. Orders with Diverse Statuses
-        const statuses = ['Draft', 'Sent to Baker', 'Production Ready', 'Shipped', 'Delivered'];
+        const statuses = ['pending', 'accepted', 'in_production', 'ready', 'shipping', 'delivered'];
         const outletsList = ['YAP Cafe', 'Seken', 'Soragan', 'Kusumanegara', 'Batikan', 'Kael', 'UNY', 'Emma', 'Nusantara', 'Malioboro', 'Jakal', 'Godean'];
 
         const now = new Date();
@@ -77,16 +77,16 @@ async function seed() {
 
             let sentAt = null, readyAt = null, shippedAt = null, deliveredAt = null;
 
-            if (status !== 'Draft') {
+            if (status !== 'pending') {
                 sentAt = new Date(orderDate.getTime() + 60 * 60 * 1000).toISOString();
             }
-            if (['Production Ready', 'Shipped', 'Delivered'].includes(status)) {
+            if (['ready', 'shipping', 'delivered'].includes(status)) {
                 readyAt = new Date(new Date(sentAt!).getTime() + 4 * 60 * 60 * 1000).toISOString();
             }
-            if (['Shipped', 'Delivered'].includes(status)) {
+            if (['shipping', 'delivered'].includes(status)) {
                 shippedAt = new Date(new Date(readyAt!).getTime() + 1 * 60 * 60 * 1000).toISOString();
             }
-            if (status === 'Delivered') {
+            if (status === 'delivered') {
                 deliveredAt = new Date(new Date(shippedAt!).getTime() + 30 * 60 * 1000).toISOString();
             }
 

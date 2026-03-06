@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { updateOrderStatus } from "@/app/actions";
 import { requireRole } from "@/lib/auth-guard";
 import { PageContainer } from "@/components/PageContainer";
+import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 
 export default async function BakerPage() {
     await requireRole(["baker", "admin"]);
@@ -19,7 +20,7 @@ export default async function BakerPage() {
             {orders.length === 0 ? (
                 <Card>
                     <CardContent className="py-12 text-center text-muted-foreground">
-                        Tidak ada order yang menunggu produksi.
+                        Tidak ada pesanan yang menunggu produksi.
                     </CardContent>
                 </Card>
             ) : (
@@ -27,45 +28,72 @@ export default async function BakerPage() {
                     {/* Individual order breakdown to mark as ready */}
                     <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {orders.map((order) => (
-                                <Card key={order.id} className="flex flex-col relative overflow-hidden">
-                                    <CardHeader>
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <CardTitle className="text-base leading-tight">{order.outlet.name}</CardTitle>
-                                                <CardDescription className="text-xs mt-0.5">Order #{order.id}</CardDescription>
+                            {orders.map((order) => {
+                                const ui = STATUS_UI_MAP[order.status as OrderStatus];
+                                return (
+                                    <Card key={order.id} className="flex flex-col relative overflow-hidden">
+                                        {/* Status indicator strip at top */}
+                                        <div className={`h-2 w-full absolute top-0 left-0 ${ui?.bgClass ?? "bg-secondary"}`} />
+                                        <CardHeader>
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <CardTitle className="text-base leading-tight">{order.outlet.name}</CardTitle>
+                                                    <CardDescription className="text-xs mt-0.5">Pesanan #{order.id}</CardDescription>
+                                                </div>
+                                                <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider whitespace-nowrap ${ui?.colorClass ?? "bg-secondary text-secondary-foreground"}`}>
+                                                    {ui?.label ?? order.status}
+                                                </span>
                                             </div>
-                                            <span className="inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-secondary text-secondary-foreground whitespace-nowrap">
-                                                {order.status}
-                                            </span>
-                                        </div>
-                                    </CardHeader>
+                                        </CardHeader>
 
-                                    <CardContent className="flex-1 flex flex-col">
-                                        <div className="mb-3">
-                                            <ul className="space-y-1">
-                                                {order.items.map((item: any) => (
-                                                    <li key={item.id} className="text-sm flex justify-between items-center border-b border-border/50 last:border-0">
-                                                        <span className="text-muted-foreground">{item.product.name}</span>
-                                                        <span className="font-bold">{item.quantity}x</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
+                                        <CardContent className="flex-1 flex flex-col">
+                                            <div className="mb-3">
+                                                <ul className="space-y-1">
+                                                    {order.items.map((item: any) => (
+                                                        <li key={item.id} className="text-sm flex justify-between items-center border-b border-border/50 last:border-0">
+                                                            <span className="text-muted-foreground">{item.product.name}</span>
+                                                            <span className="font-bold">{item.quantity}x</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
 
-                                        <div className="mt-auto">
-                                            <form action={async () => {
-                                                "use server";
-                                                await updateOrderStatus(order.id, order.status, "Production Ready", "/baker");
-                                            }} className="w-full">
-                                                <Button type="submit" size="sm" className="w-full bg-secondary hover:bg-secondary/90 text-white mt-1">
-                                                    Tandai Siap Produksi
-                                                </Button>
-                                            </form>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                            <div className="mt-auto">
+                                                {order.status === "pending" && (
+                                                    <form action={async () => {
+                                                        "use server";
+                                                        await updateOrderStatus(order.id, order.status, "accepted", "/baker");
+                                                    }} className="w-full">
+                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                                                            Terima Pesanan
+                                                        </Button>
+                                                    </form>
+                                                )}
+                                                {order.status === "accepted" && (
+                                                    <form action={async () => {
+                                                        "use server";
+                                                        await updateOrderStatus(order.id, order.status, "in_production", "/baker");
+                                                    }} className="w-full">
+                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                                                            Mulai Produksi
+                                                        </Button>
+                                                    </form>
+                                                )}
+                                                {order.status === "in_production" && (
+                                                    <form action={async () => {
+                                                        "use server";
+                                                        await updateOrderStatus(order.id, order.status, "ready", "/baker");
+                                                    }} className="w-full">
+                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                                                            Selesai (Siap Kirim)
+                                                        </Button>
+                                                    </form>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>

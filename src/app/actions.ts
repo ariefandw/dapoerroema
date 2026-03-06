@@ -29,7 +29,7 @@ export async function createOrder(data: NewOrderParams) {
                 .values({
                     outlet_id: data.outlet_id,
                     order_date: orderDate,
-                    status: "Draft",
+                    status: "pending",
                 })
                 .returning();
 
@@ -67,9 +67,9 @@ export async function getActiveOrders() {
 }
 
 export async function getBakerItems() {
-    // We want order items where the order status is "Sent to Baker"
+    // We want order items where the order status is pending, accepted, or in_production
     const relevantOrders = await db.query.orders.findMany({
-        where: (orders, { eq }) => eq(orders.status, "Sent to Baker"),
+        where: (orders, { inArray }) => inArray(orders.status, ["pending", "accepted", "in_production"]),
         with: {
             items: {
                 with: {
@@ -85,9 +85,9 @@ export async function getBakerItems() {
 }
 
 export async function getDriverOrders() {
-    // Deliveries that are Production Ready or Shipped
+    // Deliveries that are ready or shipping
     const relevantOrders = await db.query.orders.findMany({
-        where: (orders, { inArray }) => inArray(orders.status, ["Production Ready", "Shipped"]),
+        where: (orders, { inArray }) => inArray(orders.status, ["ready", "shipping"]),
         with: {
             outlet: true,
             items: {
@@ -105,10 +105,10 @@ export async function getDriverOrders() {
 export async function updateOrderStatus(orderId: number, currentStatus: string, newStatus: string, pathname: string) {
     try {
         const timestampMap: Record<string, string> = {
-            "Sent to Baker": "sent_to_baker_at",
-            "Production Ready": "production_ready_at",
-            "Shipped": "shipped_at",
-            "Delivered": "delivered_at",
+            "accepted": "sent_to_baker_at",
+            "ready": "production_ready_at",
+            "shipping": "shipped_at",
+            "delivered": "delivered_at",
         };
 
         const updateData: any = { status: newStatus };
@@ -138,7 +138,7 @@ export async function getAnalytics() {
     const totalOrdersRes = await pool.query(`SELECT COUNT(*) AS total FROM orders`);
     const totalOrders = parseInt(totalOrdersRes.rows[0].total);
 
-    const totalDeliveredRes = await pool.query(`SELECT COUNT(*) AS total FROM orders WHERE status = 'Delivered'`);
+    const totalDeliveredRes = await pool.query(`SELECT COUNT(*) AS total FROM orders WHERE status = 'delivered'`);
     const totalDelivered = parseInt(totalDeliveredRes.rows[0].total);
 
     const revenueRes = await pool.query(`
@@ -146,7 +146,7 @@ export async function getAnalytics() {
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
         JOIN orders o ON oi.order_id = o.id
-        WHERE o.status = 'Delivered'
+        WHERE o.status = 'delivered'
     `);
     const totalRevenue = parseInt(revenueRes.rows[0].total);
 

@@ -23,7 +23,7 @@ export const orders = pgTable("orders", {
   outlet_id: integer("outlet_id")
     .references(() => outlets.id)
     .notNull(),
-  status: text("status").default("Draft").notNull(),
+  status: text("status").default("pending").notNull(),
   payment_status: text("payment_status"),
   order_date: timestamp("order_date").notNull(),
   sent_to_baker_at: timestamp("sent_to_baker_at"),
