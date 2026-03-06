@@ -1,7 +1,10 @@
 import { Pool } from "pg";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: ".env.local" });
+// Load from .env.local in development, or use environment variables in production
+if (process.env.NODE_ENV !== "production") {
+    dotenv.config({ path: ".env.local" });
+}
 
 // Product catalog with categories and prices
 const PRODUCTS = [
