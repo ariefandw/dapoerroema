@@ -14,7 +14,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(__NEW_LINE_515be710db8999df__ curl -s -X POST -H \"x-api-key: ufWytQueaInHoLBkitizRaDaIvIxoLjHMwgwLnJiwPjntQVSISESbfdlelbowFOd\" -H \"Content-Type: application/json\" -d '{\"\"applicationId\"\":\"\"0Uu2skUlbvhuP9SD6ChkI\"\"}' http://194.31.53.215:3000/api/application.deploy)"
+      "Bash(__NEW_LINE_515be710db8999df__ curl -s -X POST -H \"x-api-key: ufWytQueaInHoLBkitizRaDaIvIxoLjHMwgwLnJiwPjntQVSISESbfdlelbowFOd\" -H \"Content-Type: application/json\" -d '{\"\"applicationId\"\":\"\"0Uu2skUlbvhuP9SD6ChkI\"\"}' http://194.31.53.215:3000/api/application.deploy)",
+      "Bash(ssh:*)"
     ]
   }
 }
