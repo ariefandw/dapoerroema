@@ -8,10 +8,10 @@ export type OrderStatus =
 
 export const STATUS_UI_MAP: Record<OrderStatus, { label: string; colorClass: string; bgClass: string; textClass: string }> = {
     pending: {
-        label: 'Pesanan Masuk',
-        colorClass: 'bg-muted text-muted-foreground dark:bg-muted/50 dark:text-muted-foreground',
-        bgClass: 'bg-muted',
-        textClass: 'text-muted-foreground',
+        label: 'Order',
+        colorClass: 'bg-slate-100 text-slate-800 dark:bg-slate-900/40 dark:text-slate-400',
+        bgClass: 'bg-slate-500',
+        textClass: 'text-slate-800',
     },
     accepted: {
         label: 'Diterima Baker',
@@ -26,7 +26,7 @@ export const STATUS_UI_MAP: Record<OrderStatus, { label: string; colorClass: str
         textClass: 'text-blue-800',
     },
     ready: {
-        label: 'Siap Kirim',
+        label: 'Ready',
         colorClass: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400',
         bgClass: 'bg-emerald-500',
         textClass: 'text-emerald-800',

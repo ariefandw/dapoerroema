@@ -32,8 +32,6 @@ export default async function BakerPage() {
                                 const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                 return (
                                     <Card key={order.id} className="flex flex-col relative overflow-hidden">
-                                        {/* Status indicator strip at top */}
-                                        <div className={`h-2 w-full absolute top-0 left-0 ${ui?.bgClass ?? "bg-secondary"}`} />
                                         <CardHeader>
                                             <div className="flex justify-between items-start">
                                                 <div>
@@ -64,7 +62,7 @@ export default async function BakerPage() {
                                                         "use server";
                                                         await updateOrderStatus(order.id, order.status, "accepted", "/baker");
                                                     }} className="w-full">
-                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                                                        <Button type="submit" size="sm" className="w-full bg-slate-500 hover:bg-slate-600 text-white mt-1">
                                                             Terima Pesanan
                                                         </Button>
                                                     </form>
@@ -74,7 +72,7 @@ export default async function BakerPage() {
                                                         "use server";
                                                         await updateOrderStatus(order.id, order.status, "in_production", "/baker");
                                                     }} className="w-full">
-                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1">
+                                                        <Button type="submit" size="sm" className="w-full bg-yellow-500 hover:bg-yellow-600 text-yellow-950 mt-1">
                                                             Mulai Produksi
                                                         </Button>
                                                     </form>
@@ -84,8 +82,8 @@ export default async function BakerPage() {
                                                         "use server";
                                                         await updateOrderStatus(order.id, order.status, "ready", "/baker");
                                                     }} className="w-full">
-                                                        <Button type="submit" size="sm" className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-1">
-                                                            Selesai (Siap Kirim)
+                                                        <Button type="submit" size="sm" className="w-full bg-blue-500 hover:bg-blue-600 text-white mt-1">
+                                                            Selesai (Ready)
                                                         </Button>
                                                     </form>
                                                 )}

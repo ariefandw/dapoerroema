@@ -22,27 +22,27 @@ export async function AdminDashboard() {
             {/* KPI Summary */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
-                    <CardContent className="pt-6">
+                    <CardContent>
                         <div className="text-4xl font-black">{totalOrders}</div>
                         <div className="text-sm text-muted-foreground font-medium mt-1">Total Pesanan</div>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent className="pt-6">
+                    <CardContent>
                         <div className="text-4xl font-black">{totalDelivered}</div>
                         <div className="text-sm text-muted-foreground font-medium mt-1">Terkirim</div>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent className="pt-6">
+                    <CardContent>
                         <div className="text-4xl font-black">{deliveryRate}%</div>
                         <div className="text-sm text-muted-foreground font-medium mt-1">Tingkat Pengiriman</div>
                     </CardContent>
                 </Card>
-                <Card className="bg-primary text-primary-foreground">
-                    <CardContent className="pt-6">
+                <Card>
+                    <CardContent>
                         <div className="text-2xl font-black">{formatRupiah(totalRevenue)}</div>
-                        <div className="text-sm font-medium mt-1 opacity-80">Total Pendapatan</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Total Pendapatan</div>
                     </CardContent>
                 </Card>
             </div>
