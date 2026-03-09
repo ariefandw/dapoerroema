@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { getOrderWithDetails } from "@/app/actions";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Truck } from "lucide-react";
+import { Store, Truck } from "lucide-react";
 
 // Custom Leaflet DivIcons to match app style
 const createCustomIcon = (iconSvg: string, colorClass: string, bgColorClass: string, isBig = false) => {

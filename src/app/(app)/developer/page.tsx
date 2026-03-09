@@ -1,5 +1,6 @@
 "use server";
 
+import { PageContainer } from "@/components/PageContainer";
 import { requireRole } from "@/lib/auth-guard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ export default async function DeveloperPage() {
     };
 
     return (
-        <div className="container max-w-7xl py-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <PageContainer className="py-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
                 <div className="flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-widest bg-primary/10 w-fit px-2 py-1 rounded">
                     <TerminalIcon className="h-3 w-3" />
@@ -95,6 +96,6 @@ export default async function DeveloperPage() {
                     </div>
                 </div>
             </Card>
-        </div>
+        </PageContainer>
     );
 }
