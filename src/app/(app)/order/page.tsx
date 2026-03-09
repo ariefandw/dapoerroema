@@ -24,7 +24,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     return (
         <PageContainer className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Pesanan</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Order</h1>
                 <p className="text-muted-foreground">Kelola penerimaan roti dan lacak order aktif.</p>
             </div>
 

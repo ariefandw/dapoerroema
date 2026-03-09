@@ -40,9 +40,9 @@ export function OrdersTable({ orders, currentDate }: { orders: any[]; currentDat
                     <div>
                         <CardTitle className="text-lg flex items-center gap-2">
                             <Package className="h-5 w-5 text-primary" />
-                            Pesanan Aktif
+                            Order Aktif
                         </CardTitle>
-                        <CardDescription>Lacak status pesanan Anda pada tanggal terpilih.</CardDescription>
+                        <CardDescription>Lacak status order Anda pada tanggal terpilih.</CardDescription>
                     </div>
 
                     <div className="relative w-full sm:w-auto min-w-[170px]">
@@ -61,7 +61,7 @@ export function OrdersTable({ orders, currentDate }: { orders: any[]; currentDat
                     <div className="py-12 text-center border-t border-border/10">
                         <div className="flex flex-col items-center gap-2">
                             <Package className="h-8 w-8 text-muted-foreground/30" />
-                            <p className="text-muted-foreground font-medium text-sm">Tidak ada pesanan ditemukan untuk tanggal ini.</p>
+                            <p className="text-muted-foreground font-medium text-sm">Tidak ada order ditemukan untuk tanggal ini.</p>
                         </div>
                     </div>
                 ) : (
@@ -71,7 +71,7 @@ export function OrdersTable({ orders, currentDate }: { orders: any[]; currentDat
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/20 hover:bg-muted/20">
-                                        <TableHead className="w-[200px]">Tanggal Pesanan</TableHead>
+                                        <TableHead className="w-[200px]">Tanggal Order</TableHead>
                                         <TableHead>Outlet</TableHead>
                                         <TableHead>Item</TableHead>
                                         <TableHead className="text-right">Status</TableHead>

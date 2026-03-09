@@ -76,7 +76,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                     outlet_id: 0,
                     items: [{ product_id: 0, quantity: 1 }],
                 });
-                toast.success("Pesanan berhasil dibuat!");
+                toast.success("Order berhasil dibuat!");
             } else {
                 // Handle stock issues
                 if (result.stockIssues && result.stockIssues.length > 0) {
@@ -97,7 +97,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
         <Card className="w-full">
             <CardHeader>
                 <CardTitle>
-                    Penerimaan Pesanan Baru
+                    Penerimaan Order Baru
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -135,7 +135,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
 
                         <div className="space-y-4">
                             <FormLabel className="font-bold text-xs text-muted-foreground">
-                                Item Pesanan
+                                Item Order
                             </FormLabel>
 
                             <div className="space-y-2">
@@ -227,7 +227,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                                         <Plus className="h-4 w-4 animate-spin" />
                                         Memproses...
                                     </div>
-                                ) : "Buat Pesanan Sekarang"}
+                                ) : "Buat Order Sekarang"}
                             </Button>
                         </div>
                     </form>
