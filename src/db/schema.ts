@@ -10,6 +10,12 @@ export const brands = pgTable("brands", {
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const outlets = pgTable("outlets", {
   id: serial("id").primaryKey(),
   brand_id: integer("brand_id").references(() => brands.id),

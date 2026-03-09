@@ -322,6 +322,16 @@ async function seed() {
                 console.error(`   ✗ Failed to create ${u.email}:`, e?.message || e);
             }
         }
+        // 7. Settings (Telegram Bot)
+        console.log("🤖 Seeding telegram settings...");
+        await pool.query(`
+            INSERT INTO settings (key, value) VALUES 
+            ('telegram_bot_token', '8689997099:AAGrHHDsGf7gZ79mYUQN_PSVM5_DsFGxoIY'),
+            ('telegram_chat_id', ''),
+            ('telegram_notifications_enabled', 'false')
+            ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();
+        `);
+
         console.log("\n✅ Seed complete successfully!");
         console.log("\n📊 Summary:");
         console.log(`   - Outlets: ${outletsList.length}`);

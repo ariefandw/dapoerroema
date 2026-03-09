@@ -1,6 +1,6 @@
 import { PageContainer } from "@/components/PageContainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Store, Package, Database, Warehouse, Truck, Tag } from "lucide-react";
+import { Store, Package, Database, Warehouse, Truck, Tag, Bot } from "lucide-react";
 import Link from "next/link";
 
 const masterDataItems = [
@@ -43,6 +43,14 @@ const masterDataItems = [
         icon: Truck,
         color: "text-cyan-500",
         bgColor: "bg-cyan-500/10",
+    },
+    {
+        title: "Telegram Bot",
+        description: "Konfigurasi bot untuk notifikasi order otomatis.",
+        href: "/admin/master/telegram",
+        icon: Bot,
+        color: "text-blue-400",
+        bgColor: "bg-blue-400/10",
     },
     {
         title: "User",

@@ -8,6 +8,7 @@ import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { checkStockAvailability, deductStock, addStock, getProductStock } from "./actions/stock";
+import { sendTelegramNotification } from "./actions/telegram";
 
 export async function getOutlets() {
     return await db.select().from(outlets).orderBy(outlets.name);
@@ -279,10 +280,29 @@ export async function updateOrderStatus(orderId: number, currentStatus: string, 
         if (newStatus === "ready") {
             const order = await db.query.orders.findFirst({
                 where: eq(orders.id, orderId),
-                with: { items: true },
+                with: { items: true, outlet: true },
             });
 
             if (order) {
+                // Send Telegram Notification
+                const statusEmoji: Record<string, string> = {
+                    'pending': '⏳',
+                    'accepted': '✅',
+                    'in_production': '👨‍🍳',
+                    'ready': '📦',
+                    'shipping': '🚚',
+                    'delivered': '🏠',
+                    'cancelled': '❌'
+                };
+
+                const message = `<b>${statusEmoji[newStatus] || '🔔'} Update Status Order</b>\n\n` +
+                    `Order: <b>#${orderId}</b>\n` +
+                    `Status: <b>${newStatus.toUpperCase()}</b>\n` +
+                    `Outlet: <b>${order.outlet?.name || 'Unknown'}</b>\n\n` +
+                    `<i>Update dilakukan oleh sistem.</i>`;
+
+                await sendTelegramNotification(message);
+
                 for (const item of order.items) {
                     try {
                         await addStock({
@@ -295,6 +315,32 @@ export async function updateOrderStatus(orderId: number, currentStatus: string, 
                         console.error(`Failed to add warehouse stock for product ${item.product_id}:`, error);
                     }
                 }
+            }
+        } else {
+            // Send notification for other statuses too
+            const order = await db.query.orders.findFirst({
+                where: eq(orders.id, orderId),
+                with: { outlet: true },
+            });
+
+            if (order) {
+                const statusEmoji: Record<string, string> = {
+                    'pending': '⏳',
+                    'accepted': '✅',
+                    'in_production': '👨‍🍳',
+                    'ready': '📦',
+                    'shipping': '🚚',
+                    'delivered': '🏠',
+                    'cancelled': '❌'
+                };
+
+                const message = `<b>${statusEmoji[newStatus] || '🔔'} Update Status Order</b>\n\n` +
+                    `Order: <b>#${orderId}</b>\n` +
+                    `Status: <b>${newStatus.toUpperCase()}</b>\n` +
+                    `Outlet: <b>${order.outlet?.name || 'Unknown'}</b>\n\n` +
+                    `<i>Update dilakukan oleh sistem.</i>`;
+
+                await sendTelegramNotification(message);
             }
         }
 
