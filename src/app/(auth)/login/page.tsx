@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ChefHat, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const DEMO_ACCOUNTS = [
     { label: "Admin", email: "admin@test.app", password: "Password123!" },
@@ -124,7 +124,7 @@ export default function LoginPage() {
                             <div className="absolute inset-0 flex items-center">
                                 <Separator className="bg-white/5" />
                             </div>
-                            <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
+                            <div className="relative flex justify-center text-sm uppercase font-bold text-muted-foreground/30">
                                 <span className="bg-card px-2 text-muted-foreground">Demo Login</span>
                             </div>
                         </div>
@@ -136,7 +136,7 @@ export default function LoginPage() {
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    className="h-7 text-[10px] px-2 border-muted/50 hover:bg-primary/5 hover:text-primary transition-all"
+                                    className="h-7 text-sm px-2 border-muted/50 hover:bg-primary/5 hover:text-primary transition-all"
                                     onClick={() => {
                                         setEmail(acct.email);
                                         setPassword(acct.password);

@@ -136,7 +136,7 @@ export function ReceivingDialog({ open, onOpenChange, products }: ReceivingDialo
                                         <SelectContent>
                                             {categories.map((cat) => (
                                                 <div key={cat}>
-                                                    <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                                                    <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
                                                         {cat}
                                                     </div>
                                                     {products
@@ -145,7 +145,7 @@ export function ReceivingDialog({ open, onOpenChange, products }: ReceivingDialo
                                                             <SelectItem
                                                                 key={p.id}
                                                                 value={p.id.toString()}
-                                                                className="text-xs"
+                                                                className="text-sm"
                                                             >
                                                                 {p.name}
                                                             </SelectItem>
@@ -157,7 +157,7 @@ export function ReceivingDialog({ open, onOpenChange, products }: ReceivingDialo
 
                                     <div className="flex gap-2">
                                         <div className="flex-1">
-                                            <Label className="text-[10px] uppercase text-muted-foreground">
+                                            <Label className="text-sm uppercase text-muted-foreground">
                                                 Jumlah
                                             </Label>
                                             <Input
@@ -171,7 +171,7 @@ export function ReceivingDialog({ open, onOpenChange, products }: ReceivingDialo
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <Label className="text-[10px] uppercase text-muted-foreground">
+                                            <Label className="text-sm uppercase text-muted-foreground">
                                                 Catatan
                                             </Label>
                                             <Input

@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, Database, MapPin } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Database } from "lucide-react";
 
 export type NavLink = {
     href: string;
@@ -11,8 +11,6 @@ export const NAVIGATION_LINKS: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/order", label: "Order", roles: ["admin", "baker", "runner"], icon: ClipboardList },
     { href: "/admin/master", label: "Master Data", roles: ["admin"], icon: Database },
-    // Default hidden for future feature usage:
-    // { href: "/cashier", label: "Kasir", roles: ["admin", "cashier"], icon: Calculator },
 ];
 
 export function getNavigationLinks(userRole: string | undefined): NavLink[] {

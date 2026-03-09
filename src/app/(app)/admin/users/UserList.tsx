@@ -92,7 +92,7 @@ export function UserList({ users, outlets }: UserListProps) {
                 >
                     {showInactive ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     {showInactive ? "Sembunyikan user tidak aktif" : "Lihat user tidak aktif"}
-                    <span className="bg-muted px-2 py-0.5 rounded-full text-[10px] font-bold">
+                    <span className="bg-muted px-2 py-0.5 rounded-full text-sm font-bold">
                         {inactiveUsers.length}
                     </span>
                 </Button>

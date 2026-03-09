@@ -99,7 +99,7 @@ export function DeliveryConfirmationModal({
                             </div>
                             <DialogTitle className="text-base">Konfirmasi Pengiriman</DialogTitle>
                         </div>
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted px-2 py-0.5 rounded">
+                        <div className="text-sm font-bold uppercase text-muted-foreground bg-muted px-2 py-0.5 rounded">
                             Step {step + 1} / 2
                         </div>
                     </div>
@@ -114,7 +114,7 @@ export function DeliveryConfirmationModal({
                                     <Camera className="h-4 w-4 text-primary" />
                                     Ambil Foto Bukti
                                 </h3>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-sm text-muted-foreground">
                                     Silakan ambil foto bukti order telah diterima oleh pelanggan.
                                 </p>
                             </div>
@@ -133,7 +133,7 @@ export function DeliveryConfirmationModal({
                                     <PenTool className="h-4 w-4 text-primary" />
                                     Tanda Tangan Penerima
                                 </h3>
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-sm text-muted-foreground">
                                     Mintalah penerima untuk menandatangani di area bawah ini.
                                 </p>
                             </div>
@@ -169,7 +169,7 @@ export function DeliveryConfirmationModal({
                         )}
                         {!loading && (
                             <button
-                                className="w-full mt-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 hover:text-destructive transition-colors"
+                                className="w-full mt-4 text-sm font-bold uppercase text-muted-foreground/50 hover:text-destructive transition-colors"
                                 onClick={() => onOpenChange(false)}
                             >
                                 BATALKAN PROSES

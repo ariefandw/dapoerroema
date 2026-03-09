@@ -141,7 +141,7 @@ export function EditProfileDialog({
                             <FormControl>
                                 <Input value={user.email} disabled className="bg-muted" />
                             </FormControl>
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                                 Email tidak dapat diubah
                             </p>
                         </FormItem>
@@ -158,7 +158,7 @@ export function EditProfileDialog({
                                     className="bg-muted"
                                 />
                             </FormControl>
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-sm text-muted-foreground">
                                 Hubungi admin untuk mengubah peran
                             </p>
                         </FormItem>

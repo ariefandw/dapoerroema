@@ -20,9 +20,10 @@ import { cn } from "@/lib/utils";
 interface OutletSwitcherProps {
     outlets: any[];
     currentOutletId?: number | null;
+    userRole?: string;
 }
 
-export function OutletSwitcher({ outlets, currentOutletId }: OutletSwitcherProps) {
+export function OutletSwitcher({ outlets, currentOutletId, userRole }: OutletSwitcherProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
@@ -59,7 +60,7 @@ export function OutletSwitcher({ outlets, currentOutletId }: OutletSwitcherProps
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="start">
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
+                <DropdownMenuLabel className="text-sm font-black uppercase text-muted-foreground/70 px-2 py-1.5">
                     Pilih Outlet
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -67,17 +68,19 @@ export function OutletSwitcher({ outlets, currentOutletId }: OutletSwitcherProps
                     value={currentOutletId?.toString() || "all"}
                     onValueChange={handleOutletSwitch}
                 >
-                    <DropdownMenuRadioItem value="all" className="text-xs py-2 cursor-pointer font-medium">
-                        <div className="flex items-center justify-between w-full">
-                            Semua Outlet
-                            {!currentOutletId && <Check className="h-3 w-3 ml-2 text-primary" />}
-                        </div>
-                    </DropdownMenuRadioItem>
+                    {userRole !== "user" && (
+                        <DropdownMenuRadioItem value="all" className="text-sm py-2 cursor-pointer font-medium">
+                            <div className="flex items-center justify-between w-full">
+                                Semua Outlet
+                                {!currentOutletId && <Check className="h-3 w-3 ml-2 text-primary" />}
+                            </div>
+                        </DropdownMenuRadioItem>
+                    )}
                     {outlets.map((o) => (
                         <DropdownMenuRadioItem
                             key={o.id}
                             value={o.id.toString()}
-                            className="text-xs py-2 cursor-pointer font-medium"
+                            className="text-sm py-2 cursor-pointer font-medium"
                         >
                             <div className="flex items-center justify-between w-full">
                                 {o.name}

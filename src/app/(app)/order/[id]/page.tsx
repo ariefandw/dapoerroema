@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 import { Badge } from "@/components/ui/badge";
 import OrderTrackingMapWrapper from "./OrderTrackingMapWrapper";
+import { VerticalStatusStepper } from "@/components/VerticalStatusStepper";
 import { notFound } from "next/navigation";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -186,48 +187,23 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         </Card>
                     )}
 
-                    {/* Status History */}
-                    <Card className="border-border/50 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-primary" />
+                    {/* Status Tracking */}
+                    <Card className="border-border/50 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <Clock className="h-24 w-24" />
+                        </div>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-primary" />
                                 Riwayat Status
                             </CardTitle>
+                            <CardDescription className="text-xs">Update real-time perjalanan pesanan Anda.</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="relative px-6 pb-6">
-                                <div className="absolute left-[31px] top-0 bottom-6 w-px bg-border/40" />
-                                <div className="space-y-6">
-                                    {order.statusLogs.map((log: any, idx: number) => {
-                                        const ui = STATUS_UI_MAP[log.to_status as OrderStatus];
-                                        return (
-                                            <div key={log.id} className="relative flex items-start gap-4">
-                                                <div className={`mt-1 z-10 p-1 rounded-full ${ui.bg} border-4 border-background ${ui.text}`}>
-                                                    <ui.icon className="h-2 w-2" />
-                                                </div>
-                                                <div className="flex flex-col gap-0.5">
-                                                    <p className="text-xs font-bold capitalize">{ui.label}</p>
-                                                    <p className="text-[10px] text-muted-foreground">
-                                                        {format(new Date(log.created_at), "PP p", { locale: localeId })}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                    {/* Creation log */}
-                                    <div className="relative flex items-start gap-4">
-                                        <div className="mt-1 z-10 p-1 rounded-full bg-primary/20 border-4 border-background text-primary">
-                                            <Info className="h-2 w-2" />
-                                        </div>
-                                        <div className="flex flex-col gap-0.5">
-                                            <p className="text-xs font-bold uppercase tracking-tight">Order Dibuat</p>
-                                            <p className="text-[10px] text-muted-foreground">
-                                                {format(new Date(order.order_date), "PP p", { locale: localeId })}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <CardContent className="pt-2">
+                            <VerticalStatusStepper
+                                currentStatus={order.status as OrderStatus}
+                                statusLogs={order.statusLogs}
+                            />
                         </CardContent>
                     </Card>
                 </div>

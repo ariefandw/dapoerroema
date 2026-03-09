@@ -29,20 +29,20 @@ export default async function StockPage() {
   const getStatusBadge = (quantity: number, minStock: number) => {
     if (quantity === 0) {
       return (
-        <Badge variant="destructive" className="text-[10px] uppercase tracking-wider font-bold">
+        <Badge variant="destructive" className="text-sm uppercase font-bold">
           Kosong
         </Badge>
       );
     }
     if (quantity < minStock) {
       return (
-        <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold border-orange-500 text-orange-500">
+        <Badge variant="outline" className="text-sm uppercase font-bold border-orange-500 text-orange-500">
           Stok Rendah
         </Badge>
       );
     }
     return (
-      <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold border-green-500 text-green-500">
+      <Badge variant="outline" className="text-sm uppercase font-bold border-green-500 text-green-500">
         Aman
       </Badge>
     );

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -7,9 +5,9 @@ import "leaflet/dist/leaflet.css";
 import { getOrderWithDetails } from "@/app/actions";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
-import { Truck } from "lucide-react";
+import { Store, Truck } from "lucide-react";
 
-// Custom Leaflet DivIcons to match app style
+// Custom Leaflet DivIcons logic
 const createCustomIcon = (iconSvg: string, colorClass: string, bgColorClass: string, isBig = false) => {
     const size = isBig ? 40 : 32;
     const iconHtml = `
@@ -60,7 +58,7 @@ const createCustomIcon = (iconSvg: string, colorClass: string, bgColorClass: str
     });
 };
 
-function MapUpdater({ center }: { center: [number, number] }) {
+function MapAutoCenter({ center }: { center: [number, number] }) {
     const map = useMap();
     useEffect(() => {
         if (center) map.setView(center, map.getZoom());
@@ -82,7 +80,7 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
         return () => clearInterval(interval);
     }, [order.id, order.status]);
 
-    const trailPositions = order.trails.map((t: any) => [t.lat, t.lng] as [number, number]);
+    const trailPositions = (order.trails || []).map((t: any) => [t.lat, t.lng] as [number, number]);
 
     // Outlet position (Central Kitchen) should be the start of the trail
     const outletPos: [number, number] = trailPositions.length > 0
@@ -91,11 +89,10 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
 
     const runnerPos: [number, number] | null = order.activeRunner?.last_lat && order.activeRunner?.last_lng
         ? [order.activeRunner.last_lat, order.activeRunner.last_lng]
-        : order.trails.length > 0
+        : order.trails?.length > 0
             ? [order.trails[order.trails.length - 1].lat, order.trails[order.trails.length - 1].lng]
             : null;
 
-    // Destination Pin (End point)
     const destinationPos: [number, number] | null = trailPositions.length > 0 ? trailPositions[trailPositions.length - 1] : null;
 
     const center = runnerPos || destinationPos || outletPos;
@@ -112,10 +109,10 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
     }), []);
 
     return (
-        <div className="h-[450px] w-full relative z-10 border-t overflow-hidden">
+        <div className="h-full w-full bg-muted relative overflow-hidden">
             <div className="h-full w-full">
                 <MapContainer
-                    center={center}
+                    center={center as any}
                     zoom={14}
                     className="h-full w-full"
                     scrollWheelZoom={false}
@@ -153,31 +150,28 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
                             <Popup>
                                 <div className="p-1">
                                     <p className="font-bold text-sm leading-tight text-indigo-700">
-                                        {order.activeRunner?.name || "Runner Sedang Menuju Lokasi"}
+                                        {order.activeRunner?.name || "Runner"}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest font-bold">
-                                        Status: Pengiriman Berlangsung
+                                        Posisi Runner
                                     </p>
                                 </div>
                             </Popup>
                         </Marker>
                     )}
 
-                    {/* Tracking Trail - Vivid Color */}
                     {trailPositions.length > 1 && (
                         <Polyline
                             positions={trailPositions}
-                            color="#4f46e5" // Indigo-600 (Vivid)
-                            weight={5} // Thinner as requested
-                            opacity={1}
-                            lineJoin="round"
+                            pathOptions={{ color: "#4f46e5", weight: 5, opacity: 1, lineJoin: "round" }}
                         />
                     )}
 
-                    <MapUpdater center={center} />
+                    <MapAutoCenter center={center as any} />
                 </MapContainer>
             </div>
 
+            {/* Legend Overlay */}
             <div className="absolute top-4 right-4 z-[1001] bg-background/90 dark:bg-zinc-900/95 backdrop-blur-md p-3 rounded-xl border border-border dark:border-zinc-800 text-xs space-y-1 shadow-xl">
                 <div className="flex items-center gap-2.5">
                     <div className="w-4 h-1 rounded-full bg-indigo-500 shadow-sm" />

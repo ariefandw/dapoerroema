@@ -11,7 +11,34 @@ import { checkStockAvailability, deductStock, addStock, getProductStock } from "
 import { sendTelegramNotification } from "./actions/telegram";
 
 export async function getOutlets() {
-    return await db.select().from(outlets).orderBy(outlets.name);
+    try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        if (!session?.user) return [];
+
+        // Admins, Bakers, and Runners see all outlets
+        if (session.user.role !== "user") {
+            return await db.select().from(outlets).orderBy(outlets.name);
+        }
+
+        // Users can only see outlets from their brand
+        if (session.user.currentOutletId) {
+            const currentOutlet = await db.query.outlets.findFirst({
+                where: eq(outlets.id, session.user.currentOutletId),
+            });
+
+            if (currentOutlet?.brand_id) {
+                return await db.select()
+                    .from(outlets)
+                    .where(eq(outlets.brand_id, currentOutlet.brand_id))
+                    .orderBy(outlets.name);
+            }
+        }
+
+        return [];
+    } catch (error) {
+        console.error("Failed to get outlets:", error);
+        return [];
+    }
 }
 
 export async function getProducts() {
@@ -122,6 +149,27 @@ export async function updateCurrentOutlet(outletId: number | null) {
 
         if (!session?.user) {
             return { success: false, error: "Not authenticated" };
+        }
+
+        // If 'user' role, enforce brand restrictions
+        if (session.user.role === "user") {
+            if (outletId === null) {
+                return { success: false, error: "Tipe akun anda harus memilih spesifik outlet." };
+            }
+
+            // Get current outlet brand
+            const userCurrent = await db.query.user.findFirst({
+                where: eq(user.id, session.user.id),
+                with: { currentOutlet: true }
+            });
+
+            const targetOutlet = await db.query.outlets.findFirst({
+                where: eq(outlets.id, outletId)
+            });
+
+            if (!userCurrent?.currentOutlet?.brand_id || !targetOutlet?.brand_id || userCurrent.currentOutlet.brand_id !== targetOutlet.brand_id) {
+                return { success: false, error: "Anda hanya boleh memilih outlet dari brand yang sama." };
+            }
         }
 
         await db.update(user)
@@ -409,14 +457,21 @@ export async function getOrderWithDetails(orderId: number) {
         const order = await db.query.orders.findFirst({
             where: eq(orders.id, orderId),
             with: {
-                outlet: true,
+                outlet: {
+                    with: {
+                        brand: true
+                    }
+                },
                 items: {
                     with: {
                         product: true,
                     },
                 },
                 statusLogs: {
-                    orderBy: (logs, { desc }) => [desc(logs.created_at)],
+                    orderBy: (logs, { asc }) => [asc(logs.created_at)],
+                    // Note: Drizzle-ORM findFirst 'with' logs join User is tricky with 
+                    // current version if not mapped in relations. 
+                    // I will fetch logs separately if needed or rely on ID mapping.
                 },
                 trails: {
                     orderBy: (trails, { asc }) => [asc(trails.created_at)],
@@ -425,6 +480,18 @@ export async function getOrderWithDetails(orderId: number) {
         });
 
         if (!order) return null;
+
+        // Fetch user names for status logs manually to ensure precision
+        const logUserIds = order.statusLogs.map(l => l.changed_by).filter(Boolean) as string[];
+        const users = logUserIds.length > 0
+            ? await db.query.user.findMany({ where: inArray(user.id, logUserIds) })
+            : [];
+        const userMap = new Map(users.map(u => [u.id, u.name]));
+
+        const enrichedLogs = order.statusLogs.map(log => ({
+            ...log,
+            userName: log.changed_by ? userMap.get(log.changed_by) : "Sistem"
+        }));
 
         // Also fetch the runner's current location if shipping
         let activeRunner = null;
@@ -437,6 +504,7 @@ export async function getOrderWithDetails(orderId: number) {
 
         return {
             ...order,
+            statusLogs: enrichedLogs,
             activeRunner
         };
     } catch (error) {
@@ -645,4 +713,19 @@ export async function getAnalytics(outletId?: number | null) {
     }));
 
     return { totalOrders, totalDelivered, totalRevenue, topProducts, ordersByOutlet, volumeByDay, statusDist };
+}
+
+export async function seedDatabase(isCleanupOnly = false) {
+    try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        if (session?.user?.role !== "admin") {
+            return { success: false, error: "Unauthorized" };
+        }
+
+        const { runSeed } = await import("@/db/seed");
+        return await runSeed(isCleanupOnly);
+    } catch (error) {
+        console.error("Failed to seed database:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Failed to seed database" };
+    }
 }

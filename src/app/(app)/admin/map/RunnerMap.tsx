@@ -78,7 +78,7 @@ export default function RunnerMap({ initialData }: { initialData: { runners: any
                         <Popup>
                             <div className="p-1">
                                 <p className="font-bold text-sm leading-tight">{r.name}</p>
-                                <p className="text-[10px] text-muted-foreground mt-1">
+                                <p className="text-sm text-muted-foreground mt-1">
                                     Dilihat {r.last_seen_at ? formatDistanceToNow(new Date(r.last_seen_at), { addSuffix: true, locale: id }) : 'baru saja'}
                                 </p>
                             </div>

@@ -105,9 +105,9 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                         <div className="flex flex-col min-w-0">
                             <span className="font-bold text-sm truncate flex items-center gap-2">
                                 {user.name}
-                                {isBanned && <span className="text-[10px] font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded uppercase tracking-tighter">OFF</span>}
+                                {isBanned && <span className="text-sm font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded uppercase">OFF</span>}
                             </span>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                 <Mail className="h-3 w-3 shrink-0" />
                                 <span className="truncate">{user.email}</span>
                             </div>
@@ -127,16 +127,16 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <label className="text-sm font-black uppercase text-muted-foreground flex items-center gap-1">
                             Peran
                         </label>
                         <Select value={role} onValueChange={handleRoleChange} disabled={isPending || isBanned}>
-                            <SelectTrigger className="w-full h-9 text-xs bg-muted/30 border-none focus:ring-1">
+                            <SelectTrigger className="w-full h-9 text-sm bg-muted/30 border-none focus:ring-1">
                                 <SelectValue placeholder="Peran" />
                             </SelectTrigger>
                             <SelectContent>
                                 {roles.map((r) => (
-                                    <SelectItem key={r} value={r} className="capitalize text-xs">
+                                    <SelectItem key={r} value={r} className="capitalize text-sm">
                                         {r}
                                     </SelectItem>
                                 ))}
@@ -145,17 +145,17 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <label className="text-sm font-black uppercase text-muted-foreground flex items-center gap-1">
                             Outlet
                         </label>
                         <Select value={outletId} onValueChange={handleOutletChange} disabled={isPending || isBanned}>
-                            <SelectTrigger className="w-full h-9 text-xs bg-muted/30 border-none focus:ring-1">
+                            <SelectTrigger className="w-full h-9 text-sm bg-muted/30 border-none focus:ring-1">
                                 <SelectValue placeholder="Outlet" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="none" className="text-xs">Tiada</SelectItem>
+                                <SelectItem value="none" className="text-sm">Tiada</SelectItem>
                                 {outlets.map((o) => (
-                                    <SelectItem key={o.id} value={o.id.toString()} className="text-xs">
+                                    <SelectItem key={o.id} value={o.id.toString()} className="text-sm">
                                         {o.name}
                                     </SelectItem>
                                 ))}
@@ -203,20 +203,20 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                         <span className="font-bold text-sm flex items-center gap-2">
                             {user.name}
                             {isPending && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
-                            {isBanned && <span className="text-[9px] font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded uppercase tracking-tighter border border-destructive/20">NONAKTIF</span>}
+                            {isBanned && <span className="text-sm font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded uppercase border border-destructive/20">NONAKTIF</span>}
                         </span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        <span className="text-sm text-muted-foreground">{user.email}</span>
                     </div>
                 </div>
             </TableCell>
             <TableCell>
                 <Select value={role} onValueChange={handleRoleChange} disabled={isPending || isBanned}>
-                    <SelectTrigger className="w-32 h-8 text-xs font-semibold bg-transparent border-none hover:bg-muted transition-colors focus:ring-1">
+                    <SelectTrigger className="w-32 h-8 text-sm font-semibold bg-transparent border-none hover:bg-muted transition-colors focus:ring-1">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                         {roles.map((r) => (
-                            <SelectItem key={r} value={r} className="capitalize text-xs font-medium">
+                            <SelectItem key={r} value={r} className="capitalize text-sm font-medium">
                                 {r}
                             </SelectItem>
                         ))}
@@ -225,13 +225,13 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
             </TableCell>
             <TableCell>
                 <Select value={outletId} onValueChange={handleOutletChange} disabled={isPending || isBanned}>
-                    <SelectTrigger className="w-48 h-8 text-xs font-medium bg-transparent border-none hover:bg-muted transition-colors focus:ring-1">
+                    <SelectTrigger className="w-48 h-8 text-sm font-medium bg-transparent border-none hover:bg-muted transition-colors focus:ring-1">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="none" className="text-xs">Tidak Ada Outlet</SelectItem>
+                        <SelectItem value="none" className="text-sm">Tidak Ada Outlet</SelectItem>
                         {outlets.map((o) => (
-                            <SelectItem key={o.id} value={o.id.toString()} className="text-xs">
+                            <SelectItem key={o.id} value={o.id.toString()} className="text-sm">
                                 {o.name}
                             </SelectItem>
                         ))}

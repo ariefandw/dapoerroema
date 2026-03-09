@@ -32,7 +32,7 @@ export function AvatarUpload({ currentImage, onImageChange, userName }: AvatarUp
                     ) : (
                         <div className="h-full w-full flex flex-col items-center justify-center bg-muted">
                             <ImageIcon className="h-8 w-8 text-muted-foreground mb-1" />
-                            <p className="text-[10px] text-muted-foreground text-center px-2">No photo</p>
+                            <p className="text-sm text-muted-foreground text-center px-2">No photo</p>
                         </div>
                     )}
                 </div>
@@ -84,7 +84,7 @@ export function AvatarUpload({ currentImage, onImageChange, userName }: AvatarUp
                         </>
                     )}
                 </Button>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                     JPG, PNG or GIF. Max 2MB.
                 </p>
             </div>

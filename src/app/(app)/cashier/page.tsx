@@ -259,13 +259,13 @@ export default function CashierPage() {
                                             <ImageIcon className="h-12 w-12 text-muted-foreground/50" />
                                         </div>
                                     )}
-                                    <Badge className="absolute top-2 left-2 text-[10px]">
+                                    <Badge className="absolute top-2 left-2 text-sm">
                                         {product.category}
                                     </Badge>
                                     {/* Stock Badge */}
                                     <Badge
                                         variant={isOutOfStock ? "destructive" : isLowStock ? "default" : "secondary"}
-                                        className={`absolute top-2 right-2 text-[10px] flex items-center gap-1 ${isLowStock && !isOutOfStock ? "bg-amber-500 text-white" : ""
+                                        className={`absolute top-2 right-2 text-sm flex items-center gap-1 ${isLowStock && !isOutOfStock ? "bg-amber-500 text-white" : ""
                                             }`}
                                     >
                                         {isOutOfStock ? (

@@ -32,6 +32,7 @@ export function Navbar({ session, userRole, outlets }: NavbarProps) {
                     <OutletSwitcher
                         outlets={outlets}
                         currentOutletId={session?.user?.currentOutletId}
+                        userRole={userRole}
                     />
                 </div>
 

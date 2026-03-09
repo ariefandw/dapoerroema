@@ -100,7 +100,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                     name="outlet_id"
                     render={({ field }) => (
                         <FormItem className="space-y-1">
-                            <FormLabel className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-sm w-fit">
+                            <FormLabel className="font-bold text-sm uppercase text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-sm w-fit">
                                 Outlet
                             </FormLabel>
                             <Select
@@ -108,7 +108,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                                 value={field.value ? field.value.toString() : ""}
                             >
                                 <FormControl>
-                                    <SelectTrigger className="w-full h-9 bg-muted/10 border-border/40 focus:ring-primary/20 text-xs">
+                                    <SelectTrigger className="w-full h-9 bg-muted/10 border-border/40 focus:ring-primary/20 text-sm">
                                         <SelectValue placeholder="Pilih outlet destination" />
                                     </SelectTrigger>
                                 </FormControl>
@@ -126,7 +126,7 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                 />
 
                 <div className="space-y-4">
-                    <FormLabel className="font-bold text-xs text-muted-foreground">
+                    <FormLabel className="font-bold text-sm text-muted-foreground">
                         Item Order
                     </FormLabel>
 
@@ -144,19 +144,19 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                                                     value={field.value ? field.value.toString() : ""}
                                                 >
                                                     <FormControl>
-                                                        <SelectTrigger className="h-9 bg-muted/20 border-border/40 focus:ring-primary/20 text-xs w-full">
+                                                        <SelectTrigger className="h-9 bg-muted/20 border-border/40 focus:ring-primary/20 text-sm w-full">
                                                             <SelectValue placeholder="Produk" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
                                                         {products.map((p) => (
-                                                            <SelectItem key={p.id} value={p.id.toString()} className="text-xs">
+                                                            <SelectItem key={p.id} value={p.id.toString()} className="text-sm">
                                                                 {p.name}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
-                                                <FormMessage className="text-[10px]" />
+                                                <FormMessage className="text-sm" />
                                             </FormItem>
                                         )}
                                     />
@@ -174,13 +174,13 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
                                                             type="number"
                                                             min={1}
                                                             {...field}
-                                                            className="h-9 bg-muted/20 border-border/40 focus:ring-primary/20 pr-7 text-xs px-2"
+                                                            className="h-9 bg-muted/20 border-border/40 focus:ring-primary/20 pr-10 text-sm px-2"
                                                             placeholder="Qty"
                                                         />
-                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-muted-foreground uppercase pointer-events-none">pcs</span>
+                                                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-sm font-black text-muted-foreground uppercase pointer-events-none">pcs</span>
                                                     </div>
                                                 </FormControl>
-                                                <FormMessage className="text-[10px]" />
+                                                <FormMessage className="text-sm" />
                                             </FormItem>
                                         )}
                                     />

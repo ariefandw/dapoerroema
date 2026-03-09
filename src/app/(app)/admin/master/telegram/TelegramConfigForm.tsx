@@ -101,7 +101,7 @@ export function TelegramConfigForm({ initialSettings }: TelegramConfigFormProps)
                             <span className="ml-2 hidden sm:inline">Test Koneksi</span>
                         </Button>
                     </div>
-                    <p className="text-[10px] text-muted-foreground italic">Pastikan bot sudah dalam group dan memiliki izin kirim pesan.</p>
+                    <p className="text-sm text-muted-foreground italic">Pastikan bot sudah dalam group dan memiliki izin kirim pesan.</p>
                 </div>
             </div>
 

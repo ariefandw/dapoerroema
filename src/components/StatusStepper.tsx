@@ -72,7 +72,7 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
                     </DeleteConfirm>
                 )}
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
-                    <span className="text-[10px] font-black uppercase tracking-wider">Dibatalkan</span>
+                    <span className="text-sm font-black uppercase">Dibatalkan</span>
                 </div>
             </div>
         );
@@ -101,7 +101,7 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
     };
 
     return (
-        <div className="flex items-center justify-center sm:justify-end gap-1 sm:gap-2 scale-95 sm:scale-100 py-1 pr-0 sm:pr-2">
+        <div className="flex items-center justify-center sm:justify-end gap-1 sm:gap-2 scale-95 sm:scale-100 py-2.5 pr-0 sm:pr-2">
             <TooltipProvider delayDuration={0}>
                 {/* Cancellation Button for Admins */}
                 {userRole === "admin" && (

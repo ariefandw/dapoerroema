@@ -27,40 +27,40 @@ export async function AdminDashboard({ session }: { session: any }) {
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-2">
                             <ShoppingBag className="h-4 w-4 text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Orders</span>
+                            <span className="text-sm font-black uppercase text-muted-foreground">Orders</span>
                         </div>
-                        <div className="text-3xl md:text-4xl font-black tracking-tighter">{totalOrders}</div>
-                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Total Pesanan</div>
+                        <div className="text-3xl md:text-4xl font-black">{totalOrders}</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Total Pesanan</div>
                     </CardContent>
                 </Card>
                 <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-2">
                             <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Success</span>
+                            <span className="text-sm font-black uppercase text-muted-foreground">Success</span>
                         </div>
-                        <div className="text-3xl md:text-4xl font-black tracking-tighter">{totalDelivered}</div>
-                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Terkirim</div>
+                        <div className="text-3xl md:text-4xl font-black">{totalDelivered}</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Terkirim</div>
                     </CardContent>
                 </Card>
                 <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-2">
                             <TrendingUp className="h-4 w-4 text-amber-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rate</span>
+                            <span className="text-sm font-black uppercase text-muted-foreground">Rate</span>
                         </div>
-                        <div className="text-3xl md:text-4xl font-black tracking-tighter">{deliveryRate}%</div>
-                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Efisiensi</div>
+                        <div className="text-3xl md:text-4xl font-black">{deliveryRate}%</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Efisiensi</div>
                     </CardContent>
                 </Card>
                 <Card className="border-border/50 bg-gradient-to-br from-background to-muted/20">
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-2">
                             <DollarSign className="h-4 w-4 text-blue-500" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Revenue</span>
+                            <span className="text-sm font-black uppercase text-muted-foreground">Revenue</span>
                         </div>
-                        <div className="text-xl md:text-2xl lg:text-3xl font-black tracking-tighter truncate">{formatRupiah(totalRevenue).replace("Rp", "Rp ")}</div>
-                        <div className="text-[10px] text-muted-foreground font-medium mt-1">Pendapatan</div>
+                        <div className="text-xl md:text-2xl lg:text-3xl font-black truncate">{formatRupiah(totalRevenue).replace("Rp", "Rp ")}</div>
+                        <div className="text-sm text-muted-foreground font-medium mt-1">Pendapatan</div>
                     </CardContent>
                 </Card>
             </div>

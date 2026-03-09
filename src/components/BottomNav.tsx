@@ -41,7 +41,7 @@ export function BottomNav({ userRole }: BottomNavProps) {
                             )}
                         >
                             <Icon className={cn("h-5 w-5", isActive ? "fill-primary/10" : "")} />
-                            <span className="text-[10px] font-bold uppercase tracking-tight">{label}</span>
+                            <span className="text-xs font-bold uppercase">{label}</span>
                             {isActive && (
                                 <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary" />
                             )}

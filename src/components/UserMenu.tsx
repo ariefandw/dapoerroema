@@ -48,10 +48,10 @@ export function UserMenu({ user }: UserMenuProps) {
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-bold leading-none">{user.name}</p>
-                            <p className="text-[10px] leading-none text-muted-foreground uppercase font-black tracking-widest mt-0.5">
+                            <p className="text-sm font-black leading-none text-muted-foreground uppercase mt-0.5">
                                 {user.role}
                             </p>
-                            <p className="text-xs leading-none text-muted-foreground pt-1 truncate">
+                            <p className="text-sm leading-none text-muted-foreground pt-1 truncate">
                                 {user.email}
                             </p>
                         </div>

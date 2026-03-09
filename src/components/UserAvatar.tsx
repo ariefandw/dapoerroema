@@ -23,7 +23,7 @@ export function UserAvatar({ name, image, size = "md", className }: UserAvatarPr
 
     const sizeClasses = {
         sm: "h-6 w-6 text-[8px]",
-        md: "h-9 w-9 text-[10px]",
+        md: "h-9 w-9 text-xs",
         lg: "h-12 w-12 text-xs",
     };
 

@@ -119,7 +119,7 @@ export function SignaturePad({ onSave }: SignaturePadProps) {
                     variant="ghost"
                     size="sm"
                     onClick={clear}
-                    className="h-7 text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-destructive"
+                    className="h-7 text-sm font-bold uppercase text-muted-foreground hover:text-destructive"
                 >
                     <RotateCcw className="h-3 w-3 mr-1" />
                     Bersihkan Pad

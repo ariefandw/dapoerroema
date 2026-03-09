@@ -61,7 +61,7 @@ export default async function ProductsPage() {
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="outline" className="text-[10px] uppercase tracking-wider font-bold">
+                                    <Badge variant="outline" className="text-sm uppercase font-bold">
                                         {product.category}
                                     </Badge>
                                 </TableCell>

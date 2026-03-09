@@ -83,7 +83,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                 type="date"
                                 value={displayValue}
                                 onChange={handleDateChange}
-                                className="pl-9 h-9 bg-background border-border/40 focus:ring-primary/20 text-xs font-bold ring-offset-background transition-all hover:bg-muted/50"
+                                className="pl-9 h-9 bg-background border-border/40 focus:ring-primary/20 text-sm font-bold ring-offset-background transition-all hover:bg-muted/50"
                             />
                         </div>
                         {userRole === "admin" && (
@@ -130,7 +130,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 <TableCell className="font-medium">
                                                     <div className="flex flex-col">
                                                         <span>{format(new Date(order.order_date), "PP")}</span>
-                                                        <span className="text-[10px] text-muted-foreground font-mono">
+                                                        <span className="text-sm text-muted-foreground font-mono">
                                                             {format(new Date(order.order_date), "p")}
                                                         </span>
                                                     </div>
@@ -141,8 +141,8 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1 py-1">
                                                         {order.items.map((item: any) => (
-                                                            <div key={item.id} className="text-xs whitespace-nowrap">
-                                                                <span className="font-bold text-primary mr-1.5">{item.quantity}</span>
+                                                            <div key={item.id} className="text-sm whitespace-nowrap">
+                                                                <span className="font-mono font-bold text-primary mr-1.5">{item.quantity}</span>
                                                                 <span className="text-muted-foreground font-medium">{item.product.name}</span>
                                                             </div>
                                                         ))}
@@ -150,17 +150,19 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <Button
-                                                            asChild
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-                                                            title="Lihat Detail Order"
-                                                        >
-                                                            <Link href={`/order/${order.id}`}>
-                                                                <Eye className="h-4 w-4" />
-                                                            </Link>
-                                                        </Button>
+                                                        {userRole === "admin" && (
+                                                            <Button
+                                                                asChild
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                                                                title="Lihat Detail Order"
+                                                            >
+                                                                <Link href={`/admin/orders/${order.id}`}>
+                                                                    <Eye className="h-4 w-4" />
+                                                                </Link>
+                                                            </Button>
+                                                        )}
                                                         <StatusStepper
                                                             orderId={order.id}
                                                             currentStatus={order.status as OrderStatus}
@@ -184,22 +186,24 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                 return (
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
                                         <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                                            <span className="text-sm font-black text-primary uppercase tracking-tight">{order.outlet.name}</span>
+                                            <span className="text-sm font-black text-primary uppercase">{order.outlet.name}</span>
                                             <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
+                                                <div className="flex items-center gap-1.5 text-sm text-muted-foreground font-mono font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(order.order_date), "PP p")}
                                                 </div>
-                                                <Button
-                                                    asChild
-                                                    variant="secondary"
-                                                    size="icon"
-                                                    className="h-7 w-7 rounded-sm shadow-sm"
-                                                >
-                                                    <Link href={`/order/${order.id}`}>
-                                                        <ArrowRight className="h-3 w-3" />
-                                                    </Link>
-                                                </Button>
+                                                {userRole === "admin" && (
+                                                    <Button
+                                                        asChild
+                                                        variant="secondary"
+                                                        size="icon"
+                                                        className="h-7 w-7 rounded-sm shadow-sm"
+                                                    >
+                                                        <Link href={`/admin/orders/${order.id}`}>
+                                                            <ArrowRight className="h-3 w-3" />
+                                                        </Link>
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
 
@@ -217,9 +221,9 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                             <div>
                                                 {order.items.map((item: any, idx: number) => (
                                                     <div key={item.id}>
-                                                        <div className="flex justify-between items-center text-xs py-0.5">
+                                                        <div className="flex justify-between items-center text-sm py-0.5">
                                                             <span className="font-medium text-muted-foreground">{item.product.name}</span>
-                                                            <span className="font-bold text-primary">{item.quantity}</span>
+                                                            <span className="font-mono font-bold text-primary">{item.quantity}</span>
                                                         </div>
                                                     </div>
                                                 ))}
