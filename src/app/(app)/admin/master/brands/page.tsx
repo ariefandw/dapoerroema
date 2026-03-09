@@ -3,7 +3,8 @@ import { brands } from "@/db/schema";
 import { requireRole } from "@/lib/auth-guard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Tag } from "lucide-react";
+import { Plus, Pencil, Tag, DollarSign } from "lucide-react";
+import Link from "next/link";
 import { BrandDialog } from "./BrandDialog";
 import { deleteBrand } from "@/app/actions/master";
 import { PageContainer } from "@/components/PageContainer";
@@ -61,6 +62,11 @@ export default async function BrandsPage() {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            <Link href={`/admin/master/brands/${brand.id}/prices`}>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-50">
+                                                    <DollarSign className="h-4 w-4" />
+                                                </Button>
+                                            </Link>
                                             <BrandDialog brand={brand}>
                                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                                                     <Pencil className="h-4 w-4" />

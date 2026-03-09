@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/db";
-import { outlets, products, brands } from "@/db/schema";
+import { outlets, products, brands, brandProducts } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -26,6 +26,25 @@ export async function deleteBrand(id: number) {
         console.error("Failed to delete brand:", error);
         return { success: false, message: "Gagal menghapus brand. Pastikan tidak ada outlet yang terkait." };
     }
+}
+
+export async function getBrandPrices(brandId: number) {
+    return await db.query.brandProducts.findMany({
+        where: (bp, { eq }) => eq(bp.brand_id, brandId),
+        with: {
+            product: true
+        }
+    });
+}
+
+export async function updateBrandPrice(brandId: number, productId: number, price: number) {
+    await db.insert(brandProducts)
+        .values({ brand_id: brandId, product_id: productId, price })
+        .onConflictDoUpdate({
+            target: [brandProducts.brand_id, brandProducts.product_id],
+            set: { price, updated_at: new Date() }
+        });
+    revalidatePath(`/admin/master/brands/${brandId}/prices`);
 }
 
 // ─── Outlet Actions ───────────────────────────────────────────────────────────

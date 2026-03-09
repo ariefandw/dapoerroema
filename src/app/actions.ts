@@ -170,6 +170,41 @@ export async function createOrder(data: NewOrderParams) {
             };
         }
 
+        // Fetch outlet and brand info
+        const outlet = await db.query.outlets.findFirst({
+            where: eq(outlets.id, data.outlet_id),
+            with: { brand: true }
+        });
+
+        if (!outlet) throw new Error("Outlet not found");
+
+        // Fetch brand prices overrides
+        const brandPricesMap = new Map<number, number>();
+        if (outlet.brand_id) {
+            const overrides = await db.query.brandProducts.findMany({
+                where: (bp, { eq }) => eq(bp.brand_id, outlet.brand_id!)
+            });
+            overrides.forEach(o => brandPricesMap.set(o.product_id, o.price));
+        }
+
+        // Fetch products to get base prices
+        const productIds = data.items.map(i => i.product_id);
+        const productsList = await db.query.products.findMany({
+            where: inArray(products.id, productIds)
+        });
+        const basePricesMap = new Map(productsList.map(p => [p.id, p.base_price]));
+
+        // Calculate subtotal and items with resolved prices
+        let subtotal = 0;
+        const resolvedItems = data.items.map(item => {
+            const price = brandPricesMap.get(item.product_id) ?? basePricesMap.get(item.product_id) ?? 0;
+            subtotal += price * item.quantity;
+            return {
+                ...item,
+                unit_price: price
+            };
+        });
+
         // Create the order using transaction
         await db.transaction(async (tx) => {
             const [newOrder] = await tx
@@ -178,14 +213,17 @@ export async function createOrder(data: NewOrderParams) {
                     outlet_id: data.outlet_id,
                     order_date: orderDate,
                     status: "pending",
+                    subtotal: subtotal,
+                    total_amount: subtotal, // Assuming no discount initially
                 })
                 .returning();
 
-            if (data.items.length > 0) {
-                const itemsToInsert = data.items.map((item) => ({
+            if (resolvedItems.length > 0) {
+                const itemsToInsert = resolvedItems.map((item) => ({
                     order_id: newOrder.id,
                     product_id: item.product_id,
                     quantity: item.quantity,
+                    unit_price: item.unit_price,
                 }));
 
                 await tx.insert(orderItems).values(itemsToInsert);
@@ -443,9 +481,8 @@ export async function getAnalytics(outletId?: number | null) {
     const totalDelivered = parseInt(totalDeliveredRes.rows[0].total);
 
     const revenueRes = await pool.query(`
-        SELECT COALESCE(SUM(oi.quantity * p.base_price), 0) AS total
+        SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total
         FROM order_items oi
-        JOIN products p ON oi.product_id = p.id
         JOIN orders o ON oi.order_id = o.id
         WHERE o.status = 'delivered' ${joinWhereClause}
     `);

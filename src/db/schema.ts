@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, boolean, real } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean, real, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ─── Bakery Domain Tables ────────────────────────────────────────────────────
@@ -32,6 +32,21 @@ export const products = pgTable("products", {
   image_url: text("image_url"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const brandProducts = pgTable("brand_products", {
+  id: serial("id").primaryKey(),
+  brand_id: integer("brand_id")
+    .references(() => brands.id)
+    .notNull(),
+  product_id: integer("product_id")
+    .references(() => products.id)
+    .notNull(),
+  price: integer("price").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+}, (t) => ({
+  unq: unique().on(t.brand_id, t.product_id),
+}));
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
@@ -168,6 +183,7 @@ export const verification = pgTable("verification", {
 
 export const brandsRelations = relations(brands, ({ many }) => ({
   outlets: many(outlets),
+  brandPrices: many(brandProducts),
 }));
 
 export const outletsRelations = relations(outlets, ({ many, one }) => ({
@@ -182,6 +198,18 @@ export const outletsRelations = relations(outlets, ({ many, one }) => ({
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
   stock: many(stock),
+  brandPrices: many(brandProducts),
+}));
+
+export const brandProductsRelations = relations(brandProducts, ({ one }) => ({
+  brand: one(brands, {
+    fields: [brandProducts.brand_id],
+    references: [brands.id],
+  }),
+  product: one(products, {
+    fields: [brandProducts.product_id],
+    references: [products.id],
+  }),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
