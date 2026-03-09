@@ -46,7 +46,7 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
     const [isBanned, setIsBanned] = useState(user.banned || false);
     const [confirmOpen, setConfirmOpen] = useState(false);
 
-    const roles = ["admin", "baker", "driver", "user"];
+    const roles = ["admin", "baker", "runner", "user"];
 
     function handleRoleChange(newRole: string) {
         setRole(newRole);

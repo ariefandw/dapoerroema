@@ -1,7 +1,11 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { format } from "date-fns";
+import { useTransition } from "react";
+import { updateOrderStatus } from "@/app/actions";
+import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -16,12 +20,36 @@ import { Calendar, Package, CalendarDays } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 
-export function OrdersTable({ orders, currentDate }: { orders: any[]; currentDate?: string }) {
+export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const [isPending, startTransition] = useTransition();
 
     const today = format(new Date(), "yyyy-MM-dd");
     const displayValue = currentDate || today;
+
+    const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string) => {
+        if (currentStatus === newStatus) return;
+        startTransition(async () => {
+            const result = await updateOrderStatus(orderId, currentStatus, newStatus, pathname);
+            if (result.success) {
+                toast.success("Status order berhasil diperbarui!");
+            } else {
+                toast.error(result.error || "Gagal memperbarui status");
+            }
+        });
+    };
+
+    const getAvailableStatuses = (role: string) => {
+        const allStatuses = ["pending", "accepted", "in_production", "ready", "shipping", "delivered", "cancelled"];
+        if (role === "admin") return allStatuses;
+        if (role === "baker") return ["pending", "accepted", "in_production", "ready"];
+        if (role === "runner") return ["ready", "shipping", "delivered"];
+        return [];
+    };
+
+    const availableStatuses = getAvailableStatuses(userRole);
 
     function handleDateChange(e: React.ChangeEvent<HTMLInputElement>) {
         const val = e.target.value;
@@ -104,9 +132,28 @@ export function OrdersTable({ orders, currentDate }: { orders: any[]; currentDat
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
-                                                        {ui?.label ?? order.status}
-                                                    </span>
+                                                    {availableStatuses.includes(order.status) && availableStatuses.length > 0 ? (
+                                                        <Select
+                                                            defaultValue={order.status}
+                                                            onValueChange={(val) => handleStatusChange(order.id, order.status, val)}
+                                                            disabled={isPending}
+                                                        >
+                                                            <SelectTrigger className={`w-[130px] ml-auto h-7 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
+                                                                <SelectValue />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {availableStatuses.map(status => (
+                                                                    <SelectItem key={status} value={status} className="text-xs">
+                                                                        {STATUS_UI_MAP[status as OrderStatus]?.label || status}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    ) : (
+                                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
+                                                            {ui?.label ?? order.status}
+                                                        </span>
+                                                    )}
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -123,9 +170,28 @@ export function OrdersTable({ orders, currentDate }: { orders: any[]; currentDat
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
                                         <div className="flex justify-between items-center px-4 pt-4">
                                             <span className="text-sm font-black text-primary uppercase tracking-tight">{order.outlet.name}</span>
-                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
-                                                {ui?.label ?? order.status}
-                                            </span>
+                                            {availableStatuses.includes(order.status) && availableStatuses.length > 0 ? (
+                                                <Select
+                                                    defaultValue={order.status}
+                                                    onValueChange={(val) => handleStatusChange(order.id, order.status, val)}
+                                                    disabled={isPending}
+                                                >
+                                                    <SelectTrigger className={`w-[120px] h-7 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {availableStatuses.map(status => (
+                                                            <SelectItem key={status} value={status} className="text-xs">
+                                                                {STATUS_UI_MAP[status as OrderStatus]?.label || status}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : (
+                                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
+                                                    {ui?.label ?? order.status}
+                                                </span>
+                                            )}
                                         </div>
 
                                         <div className="px-4 py-2">

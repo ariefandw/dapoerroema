@@ -1,8 +1,6 @@
+import { AdminDashboard } from "@/components/dashboards/AdminDashboard";
 import { requireRole } from "@/lib/auth-guard";
 import { PageContainer } from "@/components/PageContainer";
-import { AdminDashboard } from "@/components/dashboards/AdminDashboard";
-import { BakerDashboard } from "@/components/dashboards/BakerDashboard";
-import { DriverDashboard } from "@/components/dashboards/DriverDashboard";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -24,13 +22,12 @@ export default async function DashboardPage() {
 
             {role === "admin" || role === "owner" ? (
                 <AdminDashboard session={session} />
-            ) : role === "baker" ? (
-                <BakerDashboard session={session} />
-            ) : role === "driver" ? (
-                <DriverDashboard session={session} />
             ) : (
-                <div className="p-8 text-center text-muted-foreground">
-                    Peran tidak dikenali. Silakan hubungi administrator.
+                <div className="rounded-xl border border-border bg-muted/20 p-8 text-center space-y-2">
+                    <p className="text-lg font-semibold">Selamat datang, {session.user.name}!</p>
+                    <p className="text-sm text-muted-foreground">
+                        Gunakan menu <strong>Order</strong> untuk mengelola dan memperbarui status pesanan.
+                    </p>
                 </div>
             )}
         </PageContainer>

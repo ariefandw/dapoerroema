@@ -37,7 +37,7 @@ import { adminCreateUser } from "@/app/actions";
 const formSchema = z.object({
     name: z.string().min(2, "Nama minimal 2 karakter"),
     email: z.string().email("Email tidak valid"),
-    role: z.enum(["admin", "baker", "driver", "user"]),
+    role: z.enum(["admin", "baker", "runner", "user"]),
     currentOutletId: z.string().optional(),
     password: z.string().min(6, "Password minimal 6 karakter").optional(),
 });
@@ -146,7 +146,7 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
                                             <SelectContent>
                                                 <SelectItem value="admin">Admin</SelectItem>
                                                 <SelectItem value="baker">Baker</SelectItem>
-                                                <SelectItem value="driver">Driver</SelectItem>
+                                                <SelectItem value="runner">Runner</SelectItem>
                                                 <SelectItem value="user">User</SelectItem>
                                             </SelectContent>
                                         </Select>

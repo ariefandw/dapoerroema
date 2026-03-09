@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, boolean, real } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 // ─── Bakery Domain Tables ────────────────────────────────────────────────────
@@ -25,17 +25,14 @@ export const orders = pgTable("orders", {
     .references(() => outlets.id)
     .notNull(),
   status: text("status").default("pending").notNull(),
-  payment_status: text("payment_status"),
-  payment_method: text("payment_method"), // 'cash', 'qris', 'transfer'
-  discount_type: text("discount_type"), // 'percentage', 'fixed'
-  discount_amount: integer("discount_amount").default(0), // discount value
-  subtotal: integer("subtotal"), // before discount
-  total_amount: integer("total_amount"), // final amount after discount
+  payment_status: text("payment_status"),        // 'paid', 'pending', 'failed'
+  payment_method: text("payment_method"),        // 'cash', 'qris', 'transfer'
+  discount_type: text("discount_type"),          // 'percentage', 'fixed'
+  discount_amount: integer("discount_amount").default(0),
+  subtotal: integer("subtotal"),                 // before discount
+  total_amount: integer("total_amount"),          // final after discount
+  notes: text("notes"),
   order_date: timestamp("order_date").notNull(),
-  sent_to_baker_at: timestamp("sent_to_baker_at"),
-  production_ready_at: timestamp("production_ready_at"),
-  shipped_at: timestamp("shipped_at"),
-  delivered_at: timestamp("delivered_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -49,6 +46,20 @@ export const orderItems = pgTable("order_items", {
     .references(() => products.id)
     .notNull(),
   quantity: integer("quantity").notNull(),
+  unit_price: integer("unit_price"),             // snapshot of price at time of order
+});
+
+// Records every status transition — replaces the 4 timestamp columns
+export const orderStatusLogs = pgTable("order_status_logs", {
+  id: serial("id").primaryKey(),
+  order_id: integer("order_id")
+    .references(() => orders.id)
+    .notNull(),
+  from_status: text("from_status"),              // null = initial creation
+  to_status: text("to_status").notNull(),
+  changed_by: text("changed_by"),                // user id
+  notes: text("notes"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
 // ─── Stock Management Tables ───────────────────────────────────────────────────
@@ -60,8 +71,7 @@ export const stock = pgTable("stock", {
     .notNull(),
   outlet_id: integer("outlet_id").references(() => outlets.id), // NULL = central warehouse
   quantity: integer("quantity").default(0).notNull(),
-  min_stock: integer("min_stock").default(5), // low stock threshold
-  created_at: timestamp("created_at").defaultNow().notNull(),
+  min_stock: integer("min_stock").default(5),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
@@ -73,9 +83,9 @@ export const stockTransactions = pgTable("stock_transactions", {
   outlet_id: integer("outlet_id").references(() => outlets.id), // NULL = central warehouse
   transaction_type: text("transaction_type").notNull(), // 'add', 'deduct', 'transfer_out', 'transfer_in'
   quantity: integer("quantity").notNull(),
-  reference_outlet_id: integer("reference_outlet_id").references(() => outlets.id), // for transfers
+  reference_outlet_id: integer("reference_outlet_id").references(() => outlets.id),
   notes: text("notes"),
-  created_by: text("created_by"), // user id
+  created_by: text("created_by"),                // user id
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -87,10 +97,12 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
-  // Custom field for role-based access
   role: text("role").notNull().default("admin"),
   currentOutletId: integer("current_outlet_id").references(() => outlets.id),
-  // Better Auth Admin Plugin fields
+  // Location tracking for runner role
+  last_lat: real("last_lat"),
+  last_lng: real("last_lng"),
+  last_seen_at: timestamp("last_seen_at"),
   banned: boolean("banned"),
   banReason: text("banReason"),
   banExpires: timestamp("banExpires"),
@@ -142,10 +154,12 @@ export const verification = pgTable("verification", {
 
 export const outletsRelations = relations(outlets, ({ many }) => ({
   orders: many(orders),
+  stock: many(stock),
 }));
 
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
+  stock: many(stock),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -154,6 +168,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [outlets.id],
   }),
   items: many(orderItems),
+  statusLogs: many(orderStatusLogs),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -164,6 +179,13 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   product: one(products, {
     fields: [orderItems.product_id],
     references: [products.id],
+  }),
+}));
+
+export const orderStatusLogsRelations = relations(orderStatusLogs, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderStatusLogs.order_id],
+    references: [orders.id],
   }),
 }));
 

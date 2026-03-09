@@ -5,9 +5,8 @@ dotenv.config({ path: ".env.local" });
 
 const USERS = [
     { name: "Admin Dapoer Roema", email: "admin@test.app", password: "Password123!", role: "admin" },
-    { name: "Cashier Dapoer Roema", email: "cashier@test.app", password: "Password123!", role: "cashier" },
     { name: "Baker Dapoer Roema", email: "baker@test.app", password: "Password123!", role: "baker" },
-    { name: "Driver Dapoer Roema", email: "driver@test.app", password: "Password123!", role: "driver" },
+    { name: "Runner Dapoer Roema", email: "runner@test.app", password: "Password123!", role: "runner" },
     { name: "User Dapoer Roema", email: "user@test.app", password: "Password123!", role: "user" },
 ];
 

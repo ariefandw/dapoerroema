@@ -13,11 +13,8 @@ import { ChefHat, Loader2 } from "lucide-react";
 const DEMO_ACCOUNTS = [
     { label: "Admin", email: "admin@test.app", password: "Password123!" },
     { label: "Baker", email: "baker@test.app", password: "Password123!" },
-    { label: "Driver", email: "driver@test.app", password: "Password123!" },
+    { label: "Runner", email: "runner@test.app", password: "Password123!" },
     { label: "User", email: "user@test.app", password: "Password123!" },
-    { label: "Cashier YAP", email: "cashier-yap@test.app", password: "Password123!" },
-    { label: "Cashier Kael", email: "cashier-kael@test.app", password: "Password123!" },
-    { label: "Cashier Seken", email: "cashier-seken@test.app", password: "Password123!" },
 ];
 
 export default function LoginPage() {
@@ -46,7 +43,7 @@ export default function LoginPage() {
             }
             const role = (res.data?.user as any)?.role ?? "admin";
             const dest = role === "baker" ? "/baker"
-                : role === "driver" ? "/driver"
+                : role === "runner" ? "/runner"
                     : role === "owner" ? "/dashboard"
                         : "/order";
             router.push(dest);

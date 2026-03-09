@@ -118,15 +118,12 @@ async function seed() {
             stockInserts.push(`(${p.id}, NULL, ${qty}, ${minStock})`);
         });
 
-        // Stock for each outlet
+        // Stock for each outlet (100% availability guaranteed)
         outletsList.forEach((outlet) => {
             productsList.forEach((p) => {
-                // Some products may not be available at all outlets
-                if (Math.random() > 0.1) { // 90% chance of availability
-                    const qty = 5 + Math.floor(Math.random() * 30); // 5-35 units
-                    const minStock = 5 + Math.floor(Math.random() * 10); // 5-15 min stock
-                    stockInserts.push(`(${p.id}, ${outlet.id}, ${qty}, ${minStock})`);
-                }
+                const qty = 5 + Math.floor(Math.random() * 30);
+                const minStock = 5 + Math.floor(Math.random() * 10);
+                stockInserts.push(`(${p.id}, ${outlet.id}, ${qty}, ${minStock})`);
             });
         });
 
@@ -179,11 +176,20 @@ async function seed() {
         const paymentStatuses = ['paid', 'pending', 'failed'];
 
         const now = new Date();
-        const orderCount = 25;
+        // Guarantee coverage: each outlet gets every status at least once
+        const guaranteedOrders: { status: string; outlet: any }[] = [];
+        for (const outlet of outletsList) {
+            for (const status of statuses) {
+                guaranteedOrders.push({ status, outlet });
+            }
+        }
+        // Top up with random-outlet orders so we have at least 30 total
+        const orderCount = Math.max(guaranteedOrders.length, 30);
 
         for (let i = 0; i < orderCount; i++) {
-            const status = statuses[i % statuses.length];
-            const outlet = outletsList[Math.floor(Math.random() * outletsList.length)];
+            const { status, outlet } = i < guaranteedOrders.length
+                ? guaranteedOrders[i]
+                : { status: statuses[i % statuses.length], outlet: outletsList[Math.floor(Math.random() * outletsList.length)] };
 
             const orderDate = new Date(now.getTime() - (Math.random() * 7 * 24 * 60 * 60 * 1000));
 
@@ -231,18 +237,13 @@ async function seed() {
                 INSERT INTO orders (
                     outlet_id, status, payment_status, payment_method,
                     discount_type, discount_amount, subtotal, total_amount,
-                    order_date, sent_to_baker_at, production_ready_at, shipped_at, delivered_at,
-                    created_at, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+                    order_date, created_at, updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 RETURNING id;
             `, [
                 outlet.id, status, paymentStatus, paymentMethod,
                 discountType, discountAmount, subtotal, totalAmount,
                 orderDate.toISOString(),
-                sentAt?.toISOString() || null,
-                readyAt?.toISOString() || null,
-                shippedAt?.toISOString() || null,
-                deliveredAt?.toISOString() || null,
                 orderDate.toISOString(),
                 orderDate.toISOString()
             ]);
@@ -255,9 +256,22 @@ async function seed() {
                     INSERT INTO order_items (order_id, product_id, quantity) VALUES ($1, $2, $3);
                 `, [orderId, item.product_id, item.quantity]);
             }
+
+            // Seed status log: initial creation + current status (if not pending)
+            await pool.query(`
+                INSERT INTO order_status_logs (order_id, from_status, to_status, created_at)
+                VALUES ($1, NULL, 'pending', $2);
+            `, [orderId, orderDate.toISOString()]);
+
+            if (status !== 'pending') {
+                await pool.query(`
+                    INSERT INTO order_status_logs (order_id, from_status, to_status, created_at)
+                    VALUES ($1, 'pending', $2, $3);
+                `, [orderId, status, new Date(orderDate.getTime() + 30 * 60 * 1000).toISOString()]);
+            }
         }
 
-        console.log(`   ✓ Created ${orderCount} orders with diverse statuses`);
+        console.log(`   ✓ Created ${orderCount} orders (${outletsList.length} outlets × ${statuses.length} statuses guaranteed + extras)`);
 
         // Commit the transaction first so outlets are visible for foreign key constraints
         await pool.query("COMMIT");
@@ -268,11 +282,8 @@ async function seed() {
 
         const USERS = [
             { name: "Admin", email: "admin@test.app", password: "Password123!", role: "admin", outlet: "YAP Cafe" },
-            { name: "Cashier YAP", email: "cashier-yap@test.app", password: "Password123!", role: "cashier", outlet: "YAP Cafe" },
-            { name: "Cashier Kael", email: "cashier-kael@test.app", password: "Password123!", role: "cashier", outlet: "Kael - Sender" },
-            { name: "Cashier Seken", email: "cashier-seken@test.app", password: "Password123!", role: "cashier", outlet: "Seken" },
             { name: "Baker", email: "baker@test.app", password: "Password123!", role: "baker", outlet: null },
-            { name: "Driver", email: "driver@test.app", password: "Password123!", role: "driver", outlet: null },
+            { name: "Runner", email: "runner@test.app", password: "Password123!", role: "runner", outlet: null },
             { name: "User", email: "user@test.app", password: "Password123!", role: "user", outlet: "YAP Cafe" },
         ];
 

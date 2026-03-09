@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { outlets, products, orders, orderItems, user } from "@/db/schema";
+import { outlets, products, orders, orderItems, user, orderStatusLogs } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { eq, inArray, and, sql, gte, lte } from "drizzle-orm";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
@@ -26,7 +26,7 @@ export async function getUsers() {
     });
 }
 
-export async function adminCreateUser(data: { email: string; name: string; role: "admin" | "baker" | "driver" | "user"; currentOutletId?: number | null; password?: string }) {
+export async function adminCreateUser(data: { email: string; name: string; role: "admin" | "baker" | "runner" | "user"; currentOutletId?: number | null; password?: string }) {
     try {
         await auth.api.createUser({
             headers: await headers(),
@@ -256,88 +256,38 @@ export async function getActiveOrders(outletId?: number | null, dateStr?: string
     });
 }
 
-export async function getBakerItems(outletId?: number | null) {
-    // We want order items where the order status is pending, accepted, or in_production
-    const where = [inArray(orders.status, ["pending", "accepted", "in_production"])];
-    if (outletId) where.push(eq(orders.outlet_id, outletId));
-
-    const relevantOrders = await db.query.orders.findMany({
-        where: and(...where),
-        with: {
-            items: {
-                with: {
-                    product: true,
-                },
-            },
-            outlet: true,
-        },
-        orderBy: (orders, { asc }) => [asc(orders.order_date)],
-    });
-
-    return relevantOrders;
-}
-
-export async function getDriverOrders(outletId?: number | null) {
-    // Deliveries that are ready or shipping
-    const where = [inArray(orders.status, ["ready", "shipping"])];
-    if (outletId) where.push(eq(orders.outlet_id, outletId));
-
-    const relevantOrders = await db.query.orders.findMany({
-        where: and(...where),
-        with: {
-            outlet: true,
-            items: {
-                with: {
-                    product: true,
-                },
-            },
-        },
-        orderBy: (orders, { asc }) => [asc(orders.order_date)],
-    });
-
-    return relevantOrders;
-}
 
 export async function updateOrderStatus(orderId: number, currentStatus: string, newStatus: string, pathname: string) {
     try {
-        const timestampMap: Record<string, keyof typeof orders.$inferSelect> = {
-            "accepted": "sent_to_baker_at",
-            "ready": "production_ready_at",
-            "shipping": "shipped_at",
-            "delivered": "delivered_at",
-        };
+        const session = await auth.api.getSession({ headers: await headers() });
+        const changedBy = session?.user?.id ?? null;
 
-        const updateData: Partial<typeof orders.$inferInsert> = { status: newStatus };
-
-        if (timestampMap[newStatus]) {
-            const field = timestampMap[newStatus] as any; // Drizzle needs a bit of help with dynamic keys here
-            (updateData as any)[field] = new Date();
-        }
-
+        // Update order status
         await db.update(orders)
-            .set(updateData)
-            .where(
-                eq(orders.id, orderId)
-            );
+            .set({ status: newStatus, updated_at: new Date() })
+            .where(eq(orders.id, orderId));
+
+        // Write to audit log
+        await db.insert(orderStatusLogs).values({
+            order_id: orderId,
+            from_status: currentStatus,
+            to_status: newStatus,
+            changed_by: changedBy,
+        });
 
         // When production is ready, add stock to warehouse (make-to-stock model)
-        // This assumes the bakery produces goods that go into central warehouse inventory
         if (newStatus === "ready") {
-            // Get the order with items
             const order = await db.query.orders.findFirst({
                 where: eq(orders.id, orderId),
-                with: {
-                    items: true,
-                },
+                with: { items: true },
             });
 
             if (order) {
-                // Add each product to warehouse stock (outlet_id = null)
                 for (const item of order.items) {
                     try {
                         await addStock({
                             product_id: item.product_id,
-                            outlet_id: null, // null = central warehouse
+                            outlet_id: null,
                             quantity: item.quantity,
                             notes: `Production completed for order #${orderId}`,
                         });
@@ -354,6 +304,19 @@ export async function updateOrderStatus(orderId: number, currentStatus: string, 
     } catch (error) {
         console.error("Failed to update status:", error);
         return { success: false, error: "Failed to update status" };
+    }
+}
+
+export async function updateRunnerLocation(lat: number, lng: number) {
+    try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        if (!session?.user?.id) return;
+        await db.update(user)
+            .set({ last_lat: lat, last_lng: lng, last_seen_at: new Date() })
+            .where(eq(user.id, session.user.id));
+    } catch (error) {
+        // Silent fail — location updates are best-effort
+        console.error("Failed to update runner location:", error);
     }
 }
 
