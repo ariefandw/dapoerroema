@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, Database } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Database, MapPin } from "lucide-react";
 
 export type NavLink = {
     href: string;

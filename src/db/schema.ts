@@ -139,6 +139,18 @@ export const user = pgTable("user", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
+export const runnerTrail = pgTable("runner_trail", {
+  id: serial("id").primaryKey(),
+  user_id: text("user_id")
+    .references(() => user.id)
+    .notNull(),
+  order_id: integer("order_id")
+    .references(() => orders.id),
+  lat: real("lat").notNull(),
+  lng: real("lng").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
   expiresAt: timestamp("expiresAt").notNull(),
@@ -219,6 +231,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
   items: many(orderItems),
   statusLogs: many(orderStatusLogs),
+  trails: many(runnerTrail),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -239,10 +252,22 @@ export const orderStatusLogsRelations = relations(orderStatusLogs, ({ one }) => 
   }),
 }));
 
-export const userRelations = relations(user, ({ one }) => ({
+export const userRelations = relations(user, ({ one, many }) => ({
   currentOutlet: one(outlets, {
     fields: [user.currentOutletId],
     references: [outlets.id],
+  }),
+  trails: many(runnerTrail),
+}));
+
+export const runnerTrailRelations = relations(runnerTrail, ({ one }) => ({
+  user: one(user, {
+    fields: [runnerTrail.user_id],
+    references: [user.id],
+  }),
+  order: one(orders, {
+    fields: [runnerTrail.order_id],
+    references: [orders.id],
   }),
 }));
 

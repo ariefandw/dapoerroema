@@ -41,12 +41,7 @@ export default function LoginPage() {
                 setLoading(false);
                 return;
             }
-            const role = (res.data?.user as any)?.role ?? "admin";
-            const dest = role === "baker" ? "/baker"
-                : role === "runner" ? "/runner"
-                    : role === "owner" ? "/dashboard"
-                        : "/order";
-            router.push(dest);
+            router.push("/order");
             router.refresh();
         } catch {
             setError("Terjadi kesalahan. Silakan coba lagi.");

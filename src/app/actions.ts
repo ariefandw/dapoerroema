@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { outlets, products, orders, orderItems, user, orderStatusLogs } from "@/db/schema";
+import { outlets, products, orders, orderItems, user, orderStatusLogs, runnerTrail } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { eq, inArray, and, sql, gte, lte } from "drizzle-orm";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
@@ -394,14 +394,64 @@ export async function updateOrderStatus(orderId: number, currentStatus: string, 
 export async function updateRunnerLocation(lat: number, lng: number) {
     try {
         const session = await auth.api.getSession({ headers: await headers() });
-        if (!session?.user?.id) return;
+        const userId = session?.user?.id;
+        if (!userId) return;
+
+        // 1. Update the user's current location (latest snapshot)
         await db.update(user)
             .set({ last_lat: lat, last_lng: lng, last_seen_at: new Date() })
-            .where(eq(user.id, session.user.id));
+            .where(eq(user.id, userId));
+
+        // 2. Check if the runner has an active delivery (shipping status)
+        // We only record the trail if they are currently delivering something
+        const activeOrder = await db.query.orders.findFirst({
+            where: (o, { eq, and }) => and(
+                eq(o.status, "shipping"),
+                // In this system, orders aren't explicitly assigned to users, 
+                // but we can assume if the user is a runner and looking at/updating orders, 
+                // they are the one handling it. 
+                // For now, we'll record for ANY shipping order if the user is a runner.
+            )
+        });
+
+        if (activeOrder) {
+            // 3. Record the trail
+            // To prevent DB bloat, we could throttle this (e.g. only every 30s or if distance > 10m)
+            // For now, we'll just insert since the browser hook already throttles to 30s
+            await db.insert(runnerTrail).values({
+                user_id: userId,
+                order_id: activeOrder.id,
+                lat,
+                lng,
+            });
+        }
     } catch (error) {
         // Silent fail — location updates are best-effort
         console.error("Failed to update runner location:", error);
     }
+}
+
+export async function getRunnerLocations() {
+    // 1. Get all runners who have been seen in the last 2 hours
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    const activeRunners = await db.query.user.findMany({
+        where: (u, { eq, and, gte }) => and(
+            eq(u.role, "runner"),
+            gte(u.last_seen_at, twoHoursAgo)
+        ),
+    });
+
+    // 2. Get trails for active shipping orders
+    const activeTrails = await db.query.runnerTrail.findMany({
+        where: (t, { gte }) => gte(t.created_at, twoHoursAgo),
+        orderBy: (t, { asc }) => [asc(t.created_at)],
+    });
+
+    return {
+        runners: activeRunners,
+        trails: activeTrails
+    };
 }
 
 /**

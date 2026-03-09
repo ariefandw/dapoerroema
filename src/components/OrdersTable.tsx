@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
-import { Calendar, Package, CalendarDays } from "lucide-react";
+import { Calendar, Package, CalendarDays, MapPin } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
 export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
     const router = useRouter();
@@ -73,14 +75,29 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                         <CardDescription>Lacak status order Anda pada tanggal terpilih.</CardDescription>
                     </div>
 
-                    <div className="relative w-full sm:w-auto min-w-[170px]">
-                        <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
-                        <Input
-                            type="date"
-                            value={displayValue}
-                            onChange={handleDateChange}
-                            className="pl-9 h-9 bg-background border-border/40 focus:ring-primary/20 text-xs font-bold ring-offset-background transition-all hover:bg-muted/50"
-                        />
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-initial min-w-[170px]">
+                            <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary pointer-events-none" />
+                            <Input
+                                type="date"
+                                value={displayValue}
+                                onChange={handleDateChange}
+                                className="pl-9 h-9 bg-background border-border/40 focus:ring-primary/20 text-xs font-bold ring-offset-background transition-all hover:bg-muted/50"
+                            />
+                        </div>
+                        {userRole === "admin" && (
+                            <Button
+                                asChild
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 bg-background border-border/40 hover:bg-muted font-bold shadow-sm"
+                                title="Pantau Lokasi Runner"
+                            >
+                                <Link href="/admin/map">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </CardHeader>
