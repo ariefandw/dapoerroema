@@ -296,14 +296,27 @@ export async function getActiveOrders(outletId?: number | null, dateStr?: string
 }
 
 
-export async function updateOrderStatus(orderId: number, currentStatus: string, newStatus: string, pathname: string) {
+export async function updateOrderStatus(
+    orderId: number,
+    currentStatus: string,
+    newStatus: string,
+    pathname: string,
+    deliveryData?: { photoUrl: string; signatureUrl: string }
+) {
     try {
         const session = await auth.api.getSession({ headers: await headers() });
         const changedBy = session?.user?.id ?? null;
 
-        // Update order status
+        // Update order status and delivery proof if provided
         await db.update(orders)
-            .set({ status: newStatus, updated_at: new Date() })
+            .set({
+                status: newStatus,
+                updated_at: new Date(),
+                ...(deliveryData && {
+                    delivery_photo_url: deliveryData.photoUrl,
+                    delivery_signature_url: deliveryData.signatureUrl
+                })
+            })
             .where(eq(orders.id, orderId));
 
         // Write to audit log
@@ -388,6 +401,47 @@ export async function updateOrderStatus(orderId: number, currentStatus: string, 
     } catch (error) {
         console.error("Failed to update status:", error);
         return { success: false, error: "Failed to update status" };
+    }
+}
+
+export async function getOrderWithDetails(orderId: number) {
+    try {
+        const order = await db.query.orders.findFirst({
+            where: eq(orders.id, orderId),
+            with: {
+                outlet: true,
+                items: {
+                    with: {
+                        product: true,
+                    },
+                },
+                statusLogs: {
+                    orderBy: (logs, { desc }) => [desc(logs.created_at)],
+                },
+                trails: {
+                    orderBy: (trails, { asc }) => [asc(trails.created_at)],
+                },
+            },
+        });
+
+        if (!order) return null;
+
+        // Also fetch the runner's current location if shipping
+        let activeRunner = null;
+        if (order.status === "shipping" && order.trails.length > 0) {
+            const lastTrail = order.trails[order.trails.length - 1];
+            activeRunner = await db.query.user.findFirst({
+                where: eq(user.id, lastTrail.user_id),
+            });
+        }
+
+        return {
+            ...order,
+            activeRunner
+        };
+    } catch (error) {
+        console.error("Failed to fetch order details:", error);
+        return null;
     }
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import React, { useState } from "react";
+
 import { OrderStatus, STATUS_UI_MAP } from "@/lib/status-dictionary";
 import {
     ClipboardList,
@@ -14,12 +16,13 @@ import {
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DeleteConfirm } from "./DeleteConfirm";
+import { DeliveryConfirmationModal } from "./DeliveryConfirmationModal";
 
 interface StatusStepperProps {
     orderId: number;
     currentStatus: OrderStatus;
     userRole: string;
-    onStatusChange: (orderId: number, currentStatus: string, newStatus: string) => void;
+    onStatusChange: (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => void;
     disabled?: boolean;
 }
 
@@ -33,6 +36,8 @@ const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
 ];
 
 export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange, disabled }: StatusStepperProps) {
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+
     if (currentStatus === "cancelled") {
         return (
             <div className="flex items-center gap-3 ml-auto w-fit">
@@ -78,7 +83,10 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
     const isClickable = (status: OrderStatus) => {
         if (disabled) return false;
 
-        // Admins can toggle anything
+        // Only "Delivered" status is immutable once reached (index 5)
+        if (status === "delivered" && currentIndex === 5) return false;
+
+        // Admins can toggle anything else
         if (userRole === "admin") return true;
 
         // General rule: can only move forward or stay on current
@@ -165,6 +173,14 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
                         return "bg-background border-muted";
                     };
 
+                    const handleStepClick = () => {
+                        if (step.status === "delivered" && userRole === "runner") {
+                            setConfirmModalOpen(true);
+                        } else {
+                            onStatusChange(orderId, currentStatus, step.status);
+                        }
+                    };
+
                     return (
                         <div key={step.status} className="flex items-center">
                             <Tooltip>
@@ -172,7 +188,7 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
                                     <button
                                         type="button"
                                         disabled={!canClick || disabled}
-                                        onClick={() => onStatusChange(orderId, currentStatus, step.status)}
+                                        onClick={handleStepClick}
                                         className={cn(
                                             "relative flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-200 outline-none",
                                             getBgColor(),
@@ -201,6 +217,14 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
                     );
                 })}
             </TooltipProvider>
+
+            <DeliveryConfirmationModal
+                open={confirmModalOpen}
+                onOpenChange={setConfirmModalOpen}
+                onConfirm={async (data) => {
+                    onStatusChange(orderId, currentStatus, "delivered", data);
+                }}
+            />
         </div>
     );
 }

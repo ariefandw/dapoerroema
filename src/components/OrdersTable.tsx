@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
-import { Calendar, Package, CalendarDays, MapPin } from "lucide-react";
+import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -32,10 +32,10 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
     const today = format(new Date(), "yyyy-MM-dd");
     const displayValue = currentDate || today;
 
-    const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string) => {
+    const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => {
         if (currentStatus === newStatus) return;
         startTransition(async () => {
-            const result = await updateOrderStatus(orderId, currentStatus, newStatus, pathname);
+            const result = await updateOrderStatus(orderId, currentStatus, newStatus, pathname, deliveryData);
             if (result.success) {
                 toast.success("Status order berhasil diperbarui!");
             } else {
@@ -87,17 +87,16 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                             />
                         </div>
                         {userRole === "admin" && (
-                            <Button
-                                asChild
-                                variant="outline"
-                                size="icon"
-                                className="h-9 w-9 bg-background border-border/40 hover:bg-muted font-bold shadow-sm"
-                                title="Pantau Lokasi Runner"
-                            >
-                                <Link href="/admin/map">
+                            <Link href="/admin/map">
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-9 w-9 shrink-0 bg-background border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all font-bold shadow-sm"
+                                    title="Pantau Lokasi Runner"
+                                >
                                     <MapPin className="h-4 w-4 text-primary" />
-                                </Link>
-                            </Button>
+                                </Button>
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -150,13 +149,26 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
-                                                    <StatusStepper
-                                                        orderId={order.id}
-                                                        currentStatus={order.status as OrderStatus}
-                                                        userRole={userRole}
-                                                        onStatusChange={handleStatusChange}
-                                                        disabled={isPending}
-                                                    />
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                                                            title="Lihat Detail Order"
+                                                        >
+                                                            <Link href={`/order/${order.id}`}>
+                                                                <Eye className="h-4 w-4" />
+                                                            </Link>
+                                                        </Button>
+                                                        <StatusStepper
+                                                            orderId={order.id}
+                                                            currentStatus={order.status as OrderStatus}
+                                                            userRole={userRole}
+                                                            onStatusChange={handleStatusChange}
+                                                            disabled={isPending}
+                                                        />
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -173,9 +185,21 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
                                         <div className="flex items-center justify-between px-4 pt-4 pb-2">
                                             <span className="text-sm font-black text-primary uppercase tracking-tight">{order.outlet.name}</span>
-                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
-                                                <Calendar className="h-3 w-3" />
-                                                {format(new Date(order.order_date), "PP p")}
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
+                                                    <Calendar className="h-3 w-3" />
+                                                    {format(new Date(order.order_date), "PP p")}
+                                                </div>
+                                                <Button
+                                                    asChild
+                                                    variant="secondary"
+                                                    size="icon"
+                                                    className="h-7 w-7 rounded-sm shadow-sm"
+                                                >
+                                                    <Link href={`/order/${order.id}`}>
+                                                        <ArrowRight className="h-3 w-3" />
+                                                    </Link>
+                                                </Button>
                                             </div>
                                         </div>
 

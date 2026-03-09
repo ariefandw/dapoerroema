@@ -62,6 +62,8 @@ export const orders = pgTable("orders", {
   total_amount: integer("total_amount"),          // final after discount
   notes: text("notes"),
   order_date: timestamp("order_date").notNull(),
+  delivery_photo_url: text("delivery_photo_url"),
+  delivery_signature_url: text("delivery_signature_url"),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });

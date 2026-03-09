@@ -77,8 +77,9 @@ export async function AdminDashboard({ session }: { session: any }) {
                             return (
                                 <div
                                     key={s.status}
-                                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${uiConfig?.colorClass ?? "bg-gray-100 text-gray-700"}`}
+                                    className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${uiConfig?.bg ?? "bg-gray-100"} ${uiConfig?.text ?? "text-gray-700 shadow-sm"}`}
                                 >
+                                    {uiConfig && <uiConfig.icon className="h-4 w-4" />}
                                     <span>{uiConfig?.label ?? s.status}</span>
                                     <span className="bg-black/10 rounded-full px-2 py-0.5 text-xs">{s.count}</span>
                                 </div>
