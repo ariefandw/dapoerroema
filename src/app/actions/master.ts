@@ -1,20 +1,49 @@
 "use server";
 import { db } from "@/db";
-import { outlets, products } from "@/db/schema";
+import { outlets, products, brands } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-// ─── Outlet Actions ──────────────────────────────────────────────────────────
+// ─── Brand Actions ────────────────────────────────────────────────────────────
 
-export async function upsertOutlet(data: { id?: number; name: string; contact_info?: string }) {
+export async function upsertBrand(data: { id?: number; name: string; description?: string }) {
+    if (data.id) {
+        await db.update(brands)
+            .set({ name: data.name, description: data.description })
+            .where(eq(brands.id, data.id));
+    } else {
+        await db.insert(brands).values({ name: data.name, description: data.description });
+    }
+    revalidatePath("/admin/master/brands");
+}
+
+export async function deleteBrand(id: number) {
+    try {
+        await db.delete(brands).where(eq(brands.id, id));
+        revalidatePath("/admin/master/brands");
+        return { success: true, message: "Brand berhasil dihapus" };
+    } catch (error) {
+        console.error("Failed to delete brand:", error);
+        return { success: false, message: "Gagal menghapus brand. Pastikan tidak ada outlet yang terkait." };
+    }
+}
+
+// ─── Outlet Actions ───────────────────────────────────────────────────────────
+
+export async function upsertOutlet(data: { id?: number; name: string; contact_info?: string; brand_id?: number | null }) {
     if (data.id) {
         await db.update(outlets)
-            .set({ name: data.name, contact_info: data.contact_info })
+            .set({
+                name: data.name,
+                contact_info: data.contact_info,
+                brand_id: data.brand_id
+            })
             .where(eq(outlets.id, data.id));
     } else {
         await db.insert(outlets).values({
             name: data.name,
-            contact_info: data.contact_info
+            contact_info: data.contact_info,
+            brand_id: data.brand_id
         });
     }
     revalidatePath("/admin/master/outlets");

@@ -73,16 +73,29 @@ async function seed() {
 
         // Cleanup existing data
         console.log("🧹 Cleaning up existing data...");
-        await pool.query("TRUNCATE TABLE stock_transactions, stock, order_items, orders, products, outlets CASCADE");
+        await pool.query("TRUNCATE TABLE stock_transactions, stock, order_items, orders, order_status_logs, products, outlets, brands CASCADE");
         await pool.query('TRUNCATE TABLE "session", "account", "verification", "user" CASCADE');
 
-        // 1. Outlets - Only 3 as requested
+        // 0. Brands
+        console.log("🏷️ Creating brands...");
+        const brandsRes = await pool.query(`
+            INSERT INTO brands (name, description) VALUES
+            ('Toko Roema', 'Premium Artisan Bakery & Pastry'),
+            ('Bake & Co', 'Modern Healthy Bread Division'),
+            ('Roema Kopi', 'Specialty Coffee & Breakfast')
+            RETURNING id, name;
+        `);
+        const brandsList = brandsRes.rows;
+        console.log(`   ✓ Created ${brandsList.length} brands`);
+
+        // 1. Outlets
         console.log("🏪 Creating outlets...");
         const outletsRes = await pool.query(`
-            INSERT INTO outlets (name, contact_info) VALUES
-            ('YAP Cafe', '0812-1111-2222'),
-            ('Kael - Sender', '0812-3333-4444'),
-            ('Seken', '0812-5555-6666')
+            INSERT INTO outlets (name, contact_info, brand_id) VALUES
+            ('YAP Cafe', '0812-1111-2222', ${brandsList[0].id}),
+            ('Kael - Sender', '0812-3333-4444', ${brandsList[0].id}),
+            ('Seken', '0812-5555-6666', ${brandsList[1].id}),
+            ('Roema Kopi - Kebayoran', '0812-7777-8888', ${brandsList[2].id})
             RETURNING id, name;
         `);
         const outletMap = new Map(outletsRes.rows.map(o => [o.name, o.id]));
@@ -183,8 +196,8 @@ async function seed() {
                 guaranteedOrders.push({ status, outlet });
             }
         }
-        // Top up with random-outlet orders so we have at least 30 total
-        const orderCount = Math.max(guaranteedOrders.length, 30);
+        // Top up with random-outlet orders so we have at least 50 total
+        const orderCount = Math.max(guaranteedOrders.length, 50);
 
         for (let i = 0; i < orderCount; i++) {
             const { status, outlet } = i < guaranteedOrders.length

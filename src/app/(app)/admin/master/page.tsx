@@ -1,9 +1,17 @@
 import { PageContainer } from "@/components/PageContainer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Store, Package, Database, Warehouse, Truck } from "lucide-react";
+import { Store, Package, Database, Warehouse, Truck, Tag } from "lucide-react";
 import Link from "next/link";
 
 const masterDataItems = [
+    {
+        title: "Brand",
+        description: "Kelola identitas brand dan pengelompokan outlet.",
+        href: "/admin/master/brands",
+        icon: Tag,
+        color: "text-indigo-500",
+        bgColor: "bg-indigo-500/10",
+    },
     {
         title: "Produk",
         description: "Kelola katalog produk, harga, dan varian.",
@@ -60,7 +68,7 @@ export default function MasterDataHub() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {masterDataItems.map((item) => (
                         <Link key={item.href} href={item.href}>
                             <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-border/50">
@@ -69,8 +77,8 @@ export default function MasterDataHub() {
                                         <item.icon className={`h-6 w-6 ${item.color}`} />
                                     </div>
                                     <div className="flex-1">
-                                        <CardTitle className="text-lg">{item.title}</CardTitle>
-                                        <CardDescription>{item.description}</CardDescription>
+                                        <CardTitle className="text-base">{item.title}</CardTitle>
+                                        <CardDescription className="text-xs line-clamp-2">{item.description}</CardDescription>
                                     </div>
                                 </CardHeader>
                             </Card>

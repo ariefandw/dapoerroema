@@ -3,8 +3,16 @@ import { relations } from "drizzle-orm";
 
 // ─── Bakery Domain Tables ────────────────────────────────────────────────────
 
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const outlets = pgTable("outlets", {
   id: serial("id").primaryKey(),
+  brand_id: integer("brand_id").references(() => brands.id),
   name: text("name").notNull(),
   contact_info: text("contact_info"),
   created_at: timestamp("created_at").defaultNow().notNull(),
@@ -152,7 +160,15 @@ export const verification = pgTable("verification", {
 
 // ─── Relations ───────────────────────────────────────────────────────────────
 
-export const outletsRelations = relations(outlets, ({ many }) => ({
+export const brandsRelations = relations(brands, ({ many }) => ({
+  outlets: many(outlets),
+}));
+
+export const outletsRelations = relations(outlets, ({ many, one }) => ({
+  brand: one(brands, {
+    fields: [outlets.brand_id],
+    references: [brands.id],
+  }),
   orders: many(orders),
   stock: many(stock),
 }));
