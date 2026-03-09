@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { StatusStepper } from "./StatusStepper";
 
 export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
     const router = useRouter();
@@ -148,29 +149,14 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                         ))}
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    {availableStatuses.includes(order.status) && availableStatuses.length > 0 ? (
-                                                        <Select
-                                                            defaultValue={order.status}
-                                                            onValueChange={(val) => handleStatusChange(order.id, order.status, val)}
-                                                            disabled={isPending}
-                                                        >
-                                                            <SelectTrigger className={`w-[130px] ml-auto h-7 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {availableStatuses.map(status => (
-                                                                    <SelectItem key={status} value={status} className="text-xs">
-                                                                        {STATUS_UI_MAP[status as OrderStatus]?.label || status}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    ) : (
-                                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
-                                                            {ui?.label ?? order.status}
-                                                        </span>
-                                                    )}
+                                                <TableCell className="text-right pr-4">
+                                                    <StatusStepper
+                                                        orderId={order.id}
+                                                        currentStatus={order.status as OrderStatus}
+                                                        userRole={userRole}
+                                                        onStatusChange={handleStatusChange}
+                                                        disabled={isPending}
+                                                    />
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -185,30 +171,22 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                 const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                 return (
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
-                                        <div className="flex justify-between items-center px-4 pt-4">
+                                        <div className="flex items-center justify-between px-4 pt-4 pb-2">
                                             <span className="text-sm font-black text-primary uppercase tracking-tight">{order.outlet.name}</span>
-                                            {availableStatuses.includes(order.status) && availableStatuses.length > 0 ? (
-                                                <Select
-                                                    defaultValue={order.status}
-                                                    onValueChange={(val) => handleStatusChange(order.id, order.status, val)}
-                                                    disabled={isPending}
-                                                >
-                                                    <SelectTrigger className={`w-[120px] h-7 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {availableStatuses.map(status => (
-                                                            <SelectItem key={status} value={status} className="text-xs">
-                                                                {STATUS_UI_MAP[status as OrderStatus]?.label || status}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : (
-                                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${ui?.colorClass ?? "bg-primary/10 text-primary"}`}>
-                                                    {ui?.label ?? order.status}
-                                                </span>
-                                            )}
+                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
+                                                <Calendar className="h-3 w-3" />
+                                                {format(new Date(order.order_date), "PP p")}
+                                            </div>
+                                        </div>
+
+                                        <div className="px-4 py-3 border-y border-border/5 bg-muted/5">
+                                            <StatusStepper
+                                                orderId={order.id}
+                                                currentStatus={order.status as OrderStatus}
+                                                userRole={userRole}
+                                                onStatusChange={handleStatusChange}
+                                                disabled={isPending}
+                                            />
                                         </div>
 
                                         <div className="px-4 py-2">
@@ -221,13 +199,6 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                         </div>
                                                     </div>
                                                 ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="px-2 pb-4">
-                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium bg-muted/30 px-2 py-1 rounded w-fit">
-                                                <Calendar className="h-3 w-3" />
-                                                {format(new Date(order.order_date), "PP p")}
                                             </div>
                                         </div>
                                         <Separator className="h-2 bg-muted/20 border-y border-border/10" />

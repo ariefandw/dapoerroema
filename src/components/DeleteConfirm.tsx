@@ -17,6 +17,7 @@ interface DeleteConfirmProps {
     onConfirm: () => void;
     title?: string;
     description?: string;
+    confirmLabel?: string;
     children?: React.ReactNode;
 }
 
@@ -24,6 +25,7 @@ export function DeleteConfirm({
     onConfirm,
     title = "Hapus Data?",
     description = "Tindakan ini tidak dapat dibatalkan. Data akan dihapus secara permanen dari server.",
+    confirmLabel = "Ya, Hapus",
     children
 }: DeleteConfirmProps) {
     const [open, setOpen] = useState(false);
@@ -61,7 +63,7 @@ export function DeleteConfirm({
                             setOpen(false);
                         }}
                     >
-                        Ya, Hapus
+                        {confirmLabel}
                     </Button>
                 </DialogFooter>
             </DialogContent>
