@@ -1,1 +1,0 @@
-ALTER TABLE "brand_products" ADD CONSTRAINT "brand_products_brand_id_product_id_unique" UNIQUE("brand_id","product_id");

@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1773062775761,
-      "tag": "0000_organic_chamber",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1773063597158,
-      "tag": "0001_quiet_molly_hayes",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1773064407172,
-      "tag": "0002_busy_energizer",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1773065535361,
-      "tag": "0003_friendly_maggott",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1773067259710,
-      "tag": "0004_magenta_dormammu",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1773067298646,
-      "tag": "0005_youthful_tyrannus",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1773068111545,
-      "tag": "0006_sudden_mystique",
+      "when": 1773146210067,
+      "tag": "0000_awesome_switch",
       "breakpoints": true
     }
   ]
