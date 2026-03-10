@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { redirect } from "next/navigation";
 
 export default async function DeveloperPage() {
-    await requireRole(["admin"]);
+    // Public access - no auth required
 
     const handleSeed = async () => {
         "use server";
