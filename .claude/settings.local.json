@@ -20,7 +20,8 @@
       "Bash(python:*)",
       "Bash(cat:*)",
       "Bash(DATABASE_URL=\"postgresql://dapoerroema:DapoerRoema7c2200f6d870@194.31.53.215:5432/dapoerroema\" npx drizzle-kit push:*)",
-      "Bash(npx drizzle-kit generate:*)"
+      "Bash(npx drizzle-kit generate:*)",
+      "Bash(git ls-tree:*)"
     ]
   }
 }

@@ -36,7 +36,7 @@ export default async function DeveloperPage() {
                     <TerminalIcon className="h-3 w-3" />
                     Developer Console
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter">Sytem <span className="text-primary italic">Management</span></h1>
+                <h1 className="text-4xl font-black tracking-tighter">System <span className="text-primary italic">Management</span></h1>
                 <p className="text-muted-foreground">Advanced tools for database orchestration and state management. Exercise caution.</p>
             </div>
 
