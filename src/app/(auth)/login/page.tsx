@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2 } from "lucide-react";
+import { Loader2, DatabaseIcon } from "lucide-react";
+import { toast } from "sonner";
+import { seedDatabase } from "@/app/actions";
 
 const DEMO_ACCOUNTS = [
     { label: "Admin", email: "admin@test.app", password: "Password123!" },
@@ -24,6 +26,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isSeeding, setIsSeeding] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -46,6 +49,25 @@ export default function LoginPage() {
         } catch {
             setError("Terjadi kesalahan. Silakan coba lagi.");
             setLoading(false);
+        }
+    }
+
+    async function handleResetDatabase() {
+        if (!confirm("Are you sure you want to reset and re-seed the database? This will clear all existing data.")) {
+            return;
+        }
+        setIsSeeding(true);
+        try {
+            const result = await seedDatabase(false);
+            if (result.success) {
+                toast.success("Database reset and re-seeded successfully");
+            } else {
+                toast.error("Failed to reset database: " + result.error);
+            }
+        } catch (error: any) {
+            toast.error("Failed to reset database: " + error.message);
+        } finally {
+            setIsSeeding(false);
         }
     }
 
@@ -146,6 +168,23 @@ export default function LoginPage() {
                                     {acct.label}
                                 </Button>
                             ))}
+                        </div>
+
+                        <div className="pt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="w-full h-8 text-xs border-destructive/30 text-destructive hover:bg-destructive/10 transition-all"
+                                onClick={handleResetDatabase}
+                                disabled={isSeeding || loading}
+                            >
+                                {isSeeding ? (
+                                    <><Loader2 className="h-3 w-3 mr-2 animate-spin" /> Resetting...</>
+                                ) : (
+                                    <><DatabaseIcon className="h-3 w-3 mr-2" /> Reset & Re-seed Database</>
+                                )}
+                            </Button>
                         </div>
                     </div>
                 </CardContent>
