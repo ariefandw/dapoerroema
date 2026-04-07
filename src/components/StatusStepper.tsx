@@ -24,7 +24,6 @@ interface StatusStepperProps {
     userRole: string;
     onStatusChange: (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => void;
     disabled?: boolean;
-    hideCancelOnMobile?: boolean;
 }
 
 const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
@@ -36,7 +35,7 @@ const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
     { status: "delivered", icon: Home, label: "Diterima" },
 ];
 
-export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange, disabled, hideCancelOnMobile }: StatusStepperProps) {
+export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange, disabled }: StatusStepperProps) {
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
     if (currentStatus === "cancelled") {
@@ -111,41 +110,6 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
     return (
         <div className="flex items-center justify-center sm:justify-end gap-1 sm:gap-2 scale-95 sm:scale-100 py-2.5 pr-0 sm:pr-2">
             <TooltipProvider delayDuration={0}>
-                {/* Cancellation Button for Admins and Users */}
-                {(userRole === "admin" || (userRole === "user" && currentStatus === "pending")) && (
-                    <div className={cn("flex items-center mr-1 sm:mr-2", hideCancelOnMobile && "hidden sm:flex")}>
-                        <DeleteConfirm
-                            title="Batalkan Order?"
-                            description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
-                            confirmLabel="Ya, Batalkan"
-                            onConfirm={() => onStatusChange(orderId, currentStatus, "cancelled")}
-                        >
-                            <div className="cursor-pointer">
-                                <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button
-                                                type="button"
-                                                disabled={disabled}
-                                                className={cn(
-                                                    "flex h-8 w-8 items-center justify-center rounded-full border border-destructive/30 bg-destructive/5 text-destructive transition-all duration-200 hover:bg-destructive hover:text-destructive-foreground active:scale-95 outline-none",
-                                                    disabled && "opacity-50 cursor-not-allowed"
-                                                )}
-                                            >
-                                                <XCircle className="h-4 w-4" />
-                                            </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" className="font-bold uppercase">
-                                            Batalkan
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </DeleteConfirm>
-                        <div className="h-[1.5px] w-2 sm:w-4 bg-muted ml-1 sm:ml-2" />
-                    </div>
-                )}
-
                 {STEPS.map((step, index) => {
                     const isCompleted = index < currentIndex;
                     const isCurrent = index === currentIndex;

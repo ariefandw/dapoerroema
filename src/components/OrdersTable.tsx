@@ -24,6 +24,7 @@ import { Button } from "./ui/button";
 import { StatusStepper } from "./StatusStepper";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteConfirm } from "./DeleteConfirm";
+import { cn } from "@/lib/utils";
 
 export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
     const router = useRouter();
@@ -138,7 +139,16 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <span className="text-sm font-medium">{order.outlet.name}</span>
+                                                    <div className="flex flex-col gap-1 items-start">
+                                                        <span className="text-sm font-medium">{order.outlet.name}</span>
+                                                        <span className={cn(
+                                                            "text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider border",
+                                                            ui.bg,
+                                                            ui.text
+                                                        )}>
+                                                            {ui.label}
+                                                        </span>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1 py-1">
@@ -152,19 +162,6 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        {userRole === "admin" && (
-                                                            <Button
-                                                                asChild
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-                                                                title="Lihat Detail Order"
-                                                            >
-                                                                <Link href={`/admin/orders/${order.id}`}>
-                                                                    <Eye className="h-4 w-4" />
-                                                                </Link>
-                                                            </Button>
-                                                        )}
                                                         <StatusStepper
                                                             orderId={order.id}
                                                             currentStatus={order.status as OrderStatus}
@@ -172,6 +169,42 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                             onStatusChange={handleStatusChange}
                                                             disabled={isPending}
                                                         />
+                                                        {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && (
+                                                            <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                                                                    >
+                                                                        <MoreVertical className="h-4 w-4" />
+                                                                    </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                    {userRole === "admin" && (
+                                                                        <DropdownMenuItem asChild>
+                                                                            <Link href={`/admin/orders/${order.id}`} className="cursor-pointer flex items-center">
+                                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                                <span>Lihat Detail</span>
+                                                                            </Link>
+                                                                        </DropdownMenuItem>
+                                                                    )}
+                                                                    {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                                                        <DeleteConfirm
+                                                                            title="Batalkan Order?"
+                                                                            description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                                                            confirmLabel="Ya, Batalkan"
+                                                                            onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                                                        >
+                                                                            <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                                                                <XCircle className="mr-2 h-4 w-4" />
+                                                                                <span>Batalkan Order</span>
+                                                                            </div>
+                                                                        </DeleteConfirm>
+                                                                    )}
+                                                                </DropdownMenuContent>
+                                                            </DropdownMenu>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -188,9 +221,16 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                 return (
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
                                         <div className="flex items-start justify-between px-4 pt-4 pb-2">
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex flex-col gap-1.5 items-start">
                                                 <span className="text-sm font-black text-primary uppercase leading-tight">{order.outlet.name}</span>
-                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono font-medium capitalize">
+                                                <span className={cn(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
+                                                    ui.bg,
+                                                    ui.text
+                                                )}>
+                                                    {ui.label}
+                                                </span>
+                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono font-medium capitalize mt-0.5">
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(order.order_date), "PP p")}
                                                 </div>
@@ -242,7 +282,6 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 userRole={userRole}
                                                 onStatusChange={handleStatusChange}
                                                 disabled={isPending}
-                                                hideCancelOnMobile
                                             />
                                         </div>
 
