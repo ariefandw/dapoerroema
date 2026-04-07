@@ -26,7 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { DeleteConfirm } from "./DeleteConfirm";
 import { cn } from "@/lib/utils";
 
-export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
+export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string | "admin" | "user" | "baker" | "runner" }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -169,7 +169,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                             onStatusChange={handleStatusChange}
                                                             disabled={isPending}
                                                         />
-                                                        {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && (
+                                                        {(userRole === "admin" || userRole === "baker" || (userRole === "user" && order.status === "pending")) && (
                                                             <DropdownMenu>
                                                                 <DropdownMenuTrigger asChild>
                                                                     <Button
@@ -189,7 +189,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                             </Link>
                                                                         </DropdownMenuItem>
                                                                     )}
-                                                                    {(userRole === "user" || userRole === "baker") && (
+                                                                    {["user", "baker"].includes(userRole as string) && (
                                                                         <DropdownMenuItem asChild>
                                                                             <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
                                                                                 <Edit className="mr-2 h-4 w-4" />
@@ -244,7 +244,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 mt-1">
-                                                {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && (
+                                                {(userRole === "admin" || userRole === "baker" || (userRole === "user" && order.status === "pending")) && (
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <Button
@@ -264,7 +264,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                     </Link>
                                                                 </DropdownMenuItem>
                                                             )}
-                                                            {(userRole === "user" || userRole === "baker") && (
+                                                            {["user", "baker"].includes(userRole as string) && (
                                                                 <DropdownMenuItem asChild>
                                                                     <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
                                                                         <Edit className="mr-2 h-4 w-4" />
