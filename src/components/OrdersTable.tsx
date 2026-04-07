@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
-import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft } from "lucide-react";
+import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft, MoreVertical, XCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { StatusStepper } from "./StatusStepper";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DeleteConfirm } from "./DeleteConfirm";
 
 export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
     const router = useRouter();
@@ -185,35 +187,62 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                 const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                 return (
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
-                                        <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                                            <span className="text-sm font-black text-primary uppercase">{order.outlet.name}</span>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1.5 text-sm text-muted-foreground font-mono font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
+                                        <div className="flex items-start justify-between px-4 pt-4 pb-2">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-black text-primary uppercase leading-tight">{order.outlet.name}</span>
+                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono font-medium capitalize">
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(order.order_date), "PP p")}
                                                 </div>
-                                                {userRole === "admin" && (
-                                                    <Button
-                                                        asChild
-                                                        variant="secondary"
-                                                        size="icon"
-                                                        className="h-7 w-7 rounded-sm shadow-sm"
-                                                    >
-                                                        <Link href={`/admin/orders/${order.id}`}>
-                                                            <ArrowRight className="h-3 w-3" />
-                                                        </Link>
-                                                    </Button>
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && (
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-7 w-7 rounded-sm shadow-sm"
+                                                            >
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            {userRole === "admin" && (
+                                                                <DropdownMenuItem asChild>
+                                                                    <Link href={`/admin/orders/${order.id}`} className="cursor-pointer flex items-center">
+                                                                        <Eye className="mr-2 h-4 w-4" />
+                                                                        <span>Lihat Detail</span>
+                                                                    </Link>
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                                                <DeleteConfirm
+                                                                    title="Batalkan Order?"
+                                                                    description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                                                    confirmLabel="Ya, Batalkan"
+                                                                    onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                                                >
+                                                                    <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                                                        <XCircle className="mr-2 h-4 w-4" />
+                                                                        <span>Batalkan Order</span>
+                                                                    </div>
+                                                                </DeleteConfirm>
+                                                            )}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div className="px-4 py-3 border-y border-border/5 bg-muted/5">
+                                        <div className="px-4 py-3 border-y border-border/5 bg-muted/5 overflow-x-auto">
                                             <StatusStepper
                                                 orderId={order.id}
                                                 currentStatus={order.status as OrderStatus}
                                                 userRole={userRole}
                                                 onStatusChange={handleStatusChange}
                                                 disabled={isPending}
+                                                hideCancelOnMobile
                                             />
                                         </div>
 
