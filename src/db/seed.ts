@@ -41,7 +41,7 @@ export async function runSeed(isCleanupOnly = false) {
 
     try {
         console.log("🧹 Cleaning up...");
-        await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, products, outlets, brands CASCADE");
+        await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, brand_products, products, outlets, settings, brands CASCADE");
 
         if (isCleanupOnly) {
             console.log("✅ Cleanup complete.");
@@ -49,6 +49,13 @@ export async function runSeed(isCleanupOnly = false) {
         }
 
         await pool.query("BEGIN");
+
+        // 0. Settings
+        console.log("   - Seeding settings...");
+        await pool.query(
+            "INSERT INTO settings (key, value) VALUES ($1, $2), ($3, $4)",
+            ["app_name", "Orbery Central Kitchen", "maintenance_mode", "false"]
+        );
 
         // 1. Brands
         const brandIds: Record<string, number> = {};
@@ -67,14 +74,53 @@ export async function runSeed(isCleanupOnly = false) {
             outletList.push({ id: res.rows[0].id, name: o.name });
         }
 
-        // 3. Products
+        // 3. Products & Brand Pricing & Initial Stock
         const productIds: number[] = [];
+        console.log("   - Seeding products, pricing, and initial stock...");
         for (const p of PRODUCTS) {
+            const basePrice = Math.floor(p.price * 0.7);
             const res = await pool.query(
                 "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
-                [p.name, p.category, Math.floor(p.price * 0.7), getImageUrl(p.name)]
+                [p.name, p.category, basePrice, getImageUrl(p.name)]
             );
-            productIds.push(res.rows[0].id);
+            const productId = res.rows[0].id;
+            productIds.push(productId);
+
+            // Add brand pricing
+            for (const b of BRANDS) {
+                const bId = brandIds[b.name];
+                const markup = b.name === "Toko Roema" ? 1.2 : (b.name === "YAP Cafe" ? 1.5 : 1.1);
+                await pool.query(
+                    "INSERT INTO brand_products (brand_id, product_id, price) VALUES ($1, $2, $3)",
+                    [bId, productId, Math.floor(basePrice * markup)]
+                );
+            }
+
+            // Initial central stock (outlet_id = null)
+            await pool.query(
+                "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4)",
+                [productId, null, 1000, 100]
+            );
+
+            // Log initial stock transaction
+            await pool.query(
+                "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6)",
+                [productId, null, "add", 1000, "Initial System Seeding", "system"]
+            );
+
+            // Initial outlet stock
+            for (const outlet of outletList) {
+                const initialQty = 50 + Math.floor(Math.random() * 50);
+                await pool.query(
+                    "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4)",
+                    [productId, outlet.id, initialQty, 20]
+                );
+
+                await pool.query(
+                    "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6)",
+                    [productId, outlet.id, "transfer_in", initialQty, "Initial Distribution", "system"]
+                );
+            }
         }
 
         // 4. Users
