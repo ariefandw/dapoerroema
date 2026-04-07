@@ -41,7 +41,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
                                 Buat Order Baru
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px] max-sm:max-w-[100vw] max-sm:w-screen max-sm:h-[100dvh] max-sm:rounded-none max-sm:border-none max-sm:m-0 overflow-y-auto">
+                        <DialogContent className="sm:max-w-[425px] max-sm:max-w-[100vw] max-sm:w-screen max-sm:h-[100dvh] max-sm:rounded-none max-sm:border-none max-sm:m-0 max-sm:!top-0 max-sm:!translate-y-0 max-sm:content-start overflow-y-auto">
                             <DialogHeader>
                                 <DialogTitle>Penerimaan Order Baru</DialogTitle>
                                 <DialogDescription>
