@@ -110,8 +110,8 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
     return (
         <div className="flex items-center justify-center sm:justify-end gap-1 sm:gap-2 scale-95 sm:scale-100 py-2.5 pr-0 sm:pr-2">
             <TooltipProvider delayDuration={0}>
-                {/* Cancellation Button for Admins */}
-                {userRole === "admin" && (
+                {/* Cancellation Button for Admins and Users */}
+                {(userRole === "admin" || (userRole === "user" && currentStatus === "pending")) && (
                     <div className="flex items-center mr-1 sm:mr-2">
                         <DeleteConfirm
                             title="Batalkan Order?"

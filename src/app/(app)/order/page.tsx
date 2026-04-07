@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { LocationGate } from "@/components/LocationGate";
 
 export default async function OrderPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
-    await requireRole(["admin", "baker", "runner"]);
+    await requireRole(["admin", "baker", "runner", "user"]);
     const { date } = await searchParams;
     const session = await auth.api.getSession({
         headers: await headers(),
@@ -33,7 +33,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
                     <h1 className="text-3xl font-bold tracking-tight">Order</h1>
                     <p className="text-muted-foreground">Kelola penerimaan roti dan lacak order aktif.</p>
                 </div>
-                {userRole === "admin" && (
+                {["admin", "user"].includes(userRole) && (
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button className="font-bold shadow-lg shadow-primary/20">
