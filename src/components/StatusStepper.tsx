@@ -83,13 +83,20 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
     const isClickable = (status: OrderStatus) => {
         if (disabled) return false;
 
-        // Only "Delivered" status is immutable once reached (index 5)
-        if (status === "delivered" && currentIndex === 5) return false;
-
         // Admins can toggle anything else
         if (userRole === "admin") return true;
 
-        // General rule: can only move forward or stay on current
+        const targetIndex = STEPS.findIndex(s => s.status === status);
+
+        // Non-admins can only move exactly 1 step backward or 1 step forward (or stay on current)
+        if (Math.abs(targetIndex - currentIndex) > 1) {
+            return false;
+        }
+
+        // Roles have restricted pools of statuses they can set
+        if (userRole === "user") {
+            return ["pending"].includes(status);
+        }
         if (userRole === "baker") {
             return ["pending", "accepted", "in_production", "ready"].includes(status);
         }
