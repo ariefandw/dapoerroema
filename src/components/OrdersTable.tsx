@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
-import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft, MoreVertical, XCircle } from "lucide-react";
+import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft, MoreVertical, XCircle, Edit } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -189,6 +189,14 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                             </Link>
                                                                         </DropdownMenuItem>
                                                                     )}
+                                                                    {(userRole === "user" || userRole === "baker") && (
+                                                                        <DropdownMenuItem asChild>
+                                                                            <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                                <Edit className="mr-2 h-4 w-4" />
+                                                                                <span>Edit Order</span>
+                                                                            </Link>
+                                                                        </DropdownMenuItem>
+                                                                    )}
                                                                     {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
                                                                         <DeleteConfirm
                                                                             title="Batalkan Order?"
@@ -256,6 +264,14 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                     </Link>
                                                                 </DropdownMenuItem>
                                                             )}
+                                                            {(userRole === "user" || userRole === "baker") && (
+                                                                <DropdownMenuItem asChild>
+                                                                    <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                        <Edit className="mr-2 h-4 w-4" />
+                                                                        <span>Edit Order</span>
+                                                                    </Link>
+                                                                </DropdownMenuItem>
+                                                            )}
                                                             {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
                                                                 <DeleteConfirm
                                                                     title="Batalkan Order?"
@@ -297,7 +313,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 ))}
                                             </div>
                                         </div>
-                                        <Separator className="h-2 bg-muted/20 border-y border-border/10" />
+                                        <Separator className="h-2 bg-slate-200 dark:bg-slate-800 border-y border-slate-300 dark:border-slate-700" />
                                     </div>
                                 );
                             })}
