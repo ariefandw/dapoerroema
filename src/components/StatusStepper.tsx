@@ -24,6 +24,7 @@ interface StatusStepperProps {
     userRole: string;
     onStatusChange: (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => void;
     disabled?: boolean;
+    hideCancelOnMobile?: boolean;
 }
 
 const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
@@ -35,7 +36,7 @@ const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
     { status: "delivered", icon: Home, label: "Diterima" },
 ];
 
-export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange, disabled }: StatusStepperProps) {
+export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange, disabled, hideCancelOnMobile }: StatusStepperProps) {
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
 
     if (currentStatus === "cancelled") {
@@ -112,7 +113,7 @@ export function StatusStepper({ orderId, currentStatus, userRole, onStatusChange
             <TooltipProvider delayDuration={0}>
                 {/* Cancellation Button for Admins and Users */}
                 {(userRole === "admin" || (userRole === "user" && currentStatus === "pending")) && (
-                    <div className="flex items-center mr-1 sm:mr-2">
+                    <div className={cn("flex items-center mr-1 sm:mr-2", hideCancelOnMobile && "hidden sm:flex")}>
                         <DeleteConfirm
                             title="Batalkan Order?"
                             description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
