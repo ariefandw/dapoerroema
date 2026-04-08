@@ -51,7 +51,7 @@ interface CreateOrderResult {
     stockIssues?: Array<{ product_id: number; requested: number; available: number }>;
 }
 
-export function CreateOrderForm({ currentOutletId, products }: { currentOutletId?: number | null; products: Product[] }) {
+export function CreateOrderForm({ currentOutletId, products, onSuccess }: { currentOutletId?: number | null; products: Product[]; onSuccess?: () => void }) {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<FormValues>({
@@ -76,6 +76,9 @@ export function CreateOrderForm({ currentOutletId, products }: { currentOutletId
                     items: [{ product_id: 0, quantity: 1 }],
                 });
                 toast.success("Order berhasil dibuat!");
+                if (onSuccess) {
+                    onSuccess();
+                }
             } else {
                 // Handle stock issues
                 if (result.stockIssues && result.stockIssues.length > 0) {
