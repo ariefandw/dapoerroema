@@ -825,7 +825,7 @@ export async function getAnalytics(outletId?: number | null) {
 
 export async function seedDatabase(isCleanupOnly = false) {
     try {
-        if (process.env.NODE_ENV === "production") {
+        if (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production") {
             return { success: false, error: "Cannot seed database in production environment." };
         }
 
