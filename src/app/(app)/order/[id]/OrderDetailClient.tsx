@@ -94,25 +94,6 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                 {/* Left Column: Details & Items */}
                 <div className="lg:col-span-2 space-y-6">
 
-                    {/* Interactive Status Stepper */}
-                    <Card className="border-border/50 shadow-sm overflow-hidden">
-                        <CardHeader className="bg-muted/30 pb-4">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Info className="h-5 w-5 text-primary" />
-                                Update Status
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-4 overflow-x-auto">
-                            <StatusStepper
-                                orderId={order.id}
-                                currentStatus={order.status as OrderStatus}
-                                userRole={userRole}
-                                onStatusChange={handleStatusChange}
-                                disabled={isPending}
-                            />
-                        </CardContent>
-                    </Card>
-
                     {/* Timeline */}
                     <Card className="border-border/50 shadow-sm">
                         <CardHeader className="pb-0">
@@ -120,12 +101,18 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                 <Info className="h-5 w-5 text-primary" />
                                 Riwayat Status
                             </CardTitle>
-                            <CardDescription className="text-xs">Update real-time perjalanan pesanan Anda.</CardDescription>
+                            <CardDescription className="text-xs">
+                                Update real-time perjalanan pesanan Anda. Klik ikon status untuk memperbarui.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-2">
                             <VerticalStatusStepper
+                                orderId={order.id}
                                 currentStatus={order.status as OrderStatus}
                                 statusLogs={order.statusLogs}
+                                userRole={userRole}
+                                onStatusChange={handleStatusChange}
+                                disabled={isPending}
                             />
                         </CardContent>
                     </Card>
