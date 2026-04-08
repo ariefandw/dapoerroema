@@ -180,48 +180,46 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                             onStatusChange={handleStatusChange}
                                                             disabled={isPending}
                                                         />
-                                                        {(userRole === "admin" || userRole === "baker" || (userRole === "user" && order.status === "pending")) && (
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button
-                                                                        variant="ghost"
-                                                                        size="icon"
-                                                                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                                                                    >
-                                                                        <MoreVertical className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent align="end">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                                                                >
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem asChild>
+                                                                    <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                        <Eye className="mr-2 h-4 w-4" />
+                                                                        <span>Lihat Detail</span>
+                                                                    </Link>
+                                                                </DropdownMenuItem>
+                                                                {(userRole === "admin" || ((userRole === "user" || userRole === "baker") && order.status === "pending")) && (
                                                                     <DropdownMenuItem asChild>
-                                                                        <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
-                                                                            <Eye className="mr-2 h-4 w-4" />
-                                                                            <span>Lihat Detail</span>
+                                                                        <Link href={`/order/${order.id}/edit`} className="cursor-pointer flex items-center">
+                                                                            <Edit className="mr-2 h-4 w-4" />
+                                                                            <span>Edit Order</span>
                                                                         </Link>
                                                                     </DropdownMenuItem>
-                                                                    {["admin", "user", "baker"].includes(userRole as string) && (
-                                                                        <DropdownMenuItem asChild>
-                                                                            <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
-                                                                                <Edit className="mr-2 h-4 w-4" />
-                                                                                <span>Edit Order</span>
-                                                                            </Link>
-                                                                        </DropdownMenuItem>
-                                                                    )}
-                                                                    {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
-                                                                        <DeleteConfirm
-                                                                            title="Batalkan Order?"
-                                                                            description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
-                                                                            confirmLabel="Ya, Batalkan"
-                                                                            onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
-                                                                        >
-                                                                            <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
-                                                                                <XCircle className="mr-2 h-4 w-4" />
-                                                                                <span>Batalkan Order</span>
-                                                                            </div>
-                                                                        </DeleteConfirm>
-                                                                    )}
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                        )}
+                                                                )}
+                                                                {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                                                    <DeleteConfirm
+                                                                        title="Batalkan Order?"
+                                                                        description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                                                        confirmLabel="Ya, Batalkan"
+                                                                        onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                                                    >
+                                                                        <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                                                            <XCircle className="mr-2 h-4 w-4" />
+                                                                            <span>Batalkan Order</span>
+                                                                        </div>
+                                                                    </DeleteConfirm>
+                                                                )}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -258,48 +256,46 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 mt-1">
-                                                {(userRole === "admin" || userRole === "baker" || (userRole === "user" && order.status === "pending")) && (
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-7 w-7 rounded-sm shadow-sm"
-                                                            >
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7 rounded-sm shadow-sm"
+                                                        >
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                <span>Lihat Detail</span>
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        {(userRole === "admin" || ((userRole === "user" || userRole === "baker") && order.status === "pending")) && (
                                                             <DropdownMenuItem asChild>
-                                                                <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
-                                                                    <Eye className="mr-2 h-4 w-4" />
-                                                                    <span>Lihat Detail</span>
-                                                                </Link>
+                                                                <Link href={`/order/${order.id}/edit`} className="cursor-pointer flex items-center">
+                                                                    <Edit className="mr-2 h-4 w-4" />
+                                                                    <span>Edit Order</span>
+                                                            </Link>
                                                             </DropdownMenuItem>
-                                                            {["admin", "user", "baker"].includes(userRole as string) && (
-                                                                <DropdownMenuItem asChild>
-                                                                    <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
-                                                                        <Edit className="mr-2 h-4 w-4" />
-                                                                        <span>Edit Order</span>
-                                                                </Link>
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                            {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
-                                                                <DeleteConfirm
-                                                                    title="Batalkan Order?"
-                                                                    description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
-                                                                    confirmLabel="Ya, Batalkan"
-                                                                    onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
-                                                                >
-                                                                    <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
-                                                                        <XCircle className="mr-2 h-4 w-4" />
-                                                                        <span>Batalkan Order</span>
-                                                                    </div>
-                                                                </DeleteConfirm>
-                                                            )}
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                )}
+                                                        )}
+                                                        {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                                            <DeleteConfirm
+                                                                title="Batalkan Order?"
+                                                                description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                                                confirmLabel="Ya, Batalkan"
+                                                                onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                                            >
+                                                                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                                                    <XCircle className="mr-2 h-4 w-4" />
+                                                                    <span>Batalkan Order</span>
+                                                                </div>
+                                                            </DeleteConfirm>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
 
