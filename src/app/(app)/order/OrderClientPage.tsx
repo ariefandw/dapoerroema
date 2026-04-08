@@ -9,10 +9,40 @@ import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LocationGate } from "@/components/LocationGate";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
+import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 
-export function OrderClientPage({ orders, products, userRole, outletId, date }: any) {
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export function OrderClientPage({ orders: initialOrders, products, userRole, outletId, date }: any) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const router = useRouter();
+
+    const { data: orders = initialOrders } = useSWR(
+        `/api/orders${date ? `?date=${date}` : ""}`,
+        fetcher,
+        {
+            fallbackData: initialOrders,
+            refreshInterval: 5000,
+            revalidateOnFocus: true,
+        }
+    );
+
+    const prevOrdersRef = useRef(orders);
+
+    useEffect(() => {
+        if (orders && prevOrdersRef.current) {
+            orders.forEach((order: any) => {
+                const prevOrder = prevOrdersRef.current.find((o: any) => o.id === order.id);
+                if (prevOrder && prevOrder.status !== order.status) {
+                    toast.info(`Status order #${order.id} berubah menjadi: ${STATUS_UI_MAP[order.status as OrderStatus]?.label}`);
+                }
+            });
+        }
+        prevOrdersRef.current = orders;
+    }, [orders]);
 
     const handleSuccess = (orderId?: number) => {
         setIsDialogOpen(false);

@@ -1,0 +1,13 @@
+
+> orbery@0.2.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 3.6s
+○ Compiling /login ...
+LOGIN PAGE MOUNTED - V2
+ GET /login 200 in 9.0s (compile: 8.6s, render: 358ms)
