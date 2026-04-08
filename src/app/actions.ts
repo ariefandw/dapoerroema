@@ -553,11 +553,25 @@ export async function getOrderWithDetails(orderId: number) {
             });
         }
 
-        return {
+        const session = await auth.api.getSession({ headers: await headers() });
+
+        const resultOrder = {
             ...order,
             statusLogs: enrichedLogs,
             activeRunner
         };
+
+        if (session?.user?.role !== "admin") {
+            resultOrder.items = resultOrder.items.map((item) => {
+                if (item.product) {
+                    // @ts-ignore
+                    item.product.base_price = null;
+                }
+                return item;
+            });
+        }
+
+        return resultOrder;
     } catch (error) {
         console.error("Failed to fetch order details:", error);
         return null;

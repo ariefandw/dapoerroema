@@ -181,22 +181,12 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                     </Button>
                                                                 </DropdownMenuTrigger>
                                                                 <DropdownMenuContent align="end">
-                                                                    {userRole === "admin" && (
-                                                                        <DropdownMenuItem asChild>
-                                                                            <Link href={`/admin/orders/${order.id}`} className="cursor-pointer flex items-center">
-                                                                                <Eye className="mr-2 h-4 w-4" />
-                                                                                <span>Lihat Detail</span>
-                                                                            </Link>
-                                                                        </DropdownMenuItem>
-                                                                    )}
-                                                                    {["user", "baker"].includes(userRole as string) && (
-                                                                        <DropdownMenuItem asChild>
-                                                                            <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
-                                                                                <Edit className="mr-2 h-4 w-4" />
-                                                                                <span>Edit Order</span>
-                                                                            </Link>
-                                                                        </DropdownMenuItem>
-                                                                    )}
+                                                                    <DropdownMenuItem asChild>
+                                                                        <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                            <Eye className="mr-2 h-4 w-4" />
+                                                                            <span>Lihat Detail</span>
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
                                                                     {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
                                                                         <DeleteConfirm
                                                                             title="Batalkan Order?"
@@ -256,22 +246,12 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            {userRole === "admin" && (
-                                                                <DropdownMenuItem asChild>
-                                                                    <Link href={`/admin/orders/${order.id}`} className="cursor-pointer flex items-center">
-                                                                        <Eye className="mr-2 h-4 w-4" />
-                                                                        <span>Lihat Detail</span>
-                                                                    </Link>
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                            {["user", "baker"].includes(userRole as string) && (
-                                                                <DropdownMenuItem asChild>
-                                                                    <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
-                                                                        <Edit className="mr-2 h-4 w-4" />
-                                                                        <span>Edit Order</span>
-                                                                    </Link>
-                                                                </DropdownMenuItem>
-                                                            )}
+                                                            <DropdownMenuItem asChild>
+                                                                <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                    <Eye className="mr-2 h-4 w-4" />
+                                                                    <span>Lihat Detail</span>
+                                                                </Link>
+                                                            </DropdownMenuItem>
                                                             {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
                                                                 <DeleteConfirm
                                                                     title="Batalkan Order?"
