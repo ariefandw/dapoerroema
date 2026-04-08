@@ -71,13 +71,18 @@ export function useGeolocation(enabled: boolean = true): GeolocationState {
                     setStatus("denied");
                     setError("Izin lokasi ditolak. Aktifkan lokasi di pengaturan browser.");
                     return;
+                } else if (result.state === "granted") {
+                    // Already granted, start watching directly
+                    startWatching();
+                    return;
                 }
-                // "granted" or "prompt" — start watching (prompt will show the browser dialog)
-                startWatching();
+                // If "prompt", wait for user action. The `LocationGate` component handles the initial click.
+                // We do NOT call `startWatching()` automatically here if state is "prompt",
+                // because we want the user to click the button in the UI first.
+                // Wait for the explicit `requestPermission` call.
             })
             .catch(() => {
-                // Permissions API not available, just try directly
-                startWatching();
+                // Permissions API not available, wait for explicit click
             });
 
         return () => {
