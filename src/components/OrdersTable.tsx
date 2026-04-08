@@ -198,6 +198,14 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                             <span>Lihat Detail</span>
                                                                         </Link>
                                                                     </DropdownMenuItem>
+                                                                    {["admin", "user", "baker"].includes(userRole as string) && (
+                                                                        <DropdownMenuItem asChild>
+                                                                            <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                                <Edit className="mr-2 h-4 w-4" />
+                                                                                <span>Edit Order</span>
+                                                                            </Link>
+                                                                        </DropdownMenuItem>
+                                                                    )}
                                                                     {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
                                                                         <DeleteConfirm
                                                                             title="Batalkan Order?"
@@ -268,6 +276,14 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                                     <span>Lihat Detail</span>
                                                                 </Link>
                                                             </DropdownMenuItem>
+                                                            {["admin", "user", "baker"].includes(userRole as string) && (
+                                                                <DropdownMenuItem asChild>
+                                                                    <Link href={`/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                        <Edit className="mr-2 h-4 w-4" />
+                                                                        <span>Edit Order</span>
+                                                                </Link>
+                                                                </DropdownMenuItem>
+                                                            )}
                                                             {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
                                                                 <DeleteConfirm
                                                                     title="Batalkan Order?"

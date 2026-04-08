@@ -60,12 +60,11 @@ export function LocationGate({ children }: LocationGateProps) {
                     </p>
                 </div>
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Menunggu izin lokasi…
+                    Silakan klik tombol di bawah untuk mengizinkan akses lokasi.
                 </div>
                 <Button onClick={requestPermission} className="w-full">
                     <MapPin className="w-4 h-4 mr-2" />
-                    Izinkan Lokasi
+                    Izinkan Akses Lokasi
                 </Button>
             </div>
         </div>
