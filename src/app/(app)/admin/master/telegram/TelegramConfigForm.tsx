@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Send, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Send, Save, Eye, EyeOff } from "lucide-react";
 import { updateTelegramSettings, testTelegramConnection } from "@/app/actions/telegram";
 import { toast } from "sonner";
 
@@ -20,6 +20,7 @@ interface TelegramConfigFormProps {
 export function TelegramConfigForm({ initialSettings }: TelegramConfigFormProps) {
     const [loading, setLoading] = useState(false);
     const [testing, setTesting] = useState(false);
+    const [showToken, setShowToken] = useState(false);
     const [token, setToken] = useState(initialSettings.token || "8689997099:AAGrHHDsGf7gZ79mYUQN_PSVM5_DsFGxoIY"); // Default provided
     const [chatId, setChatId] = useState(initialSettings.chatId);
     const [enabled, setEnabled] = useState(initialSettings.enabled);
@@ -71,14 +72,26 @@ export function TelegramConfigForm({ initialSettings }: TelegramConfigFormProps)
             <div className="grid gap-6">
                 <div className="grid gap-2">
                     <Label htmlFor="token" className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Bot Token API</Label>
-                    <Input
-                        id="token"
-                        type="password"
-                        value={token}
-                        onChange={(e) => setToken(e.target.value)}
-                        placeholder="Contoh: 123456789:ABCDefgh..."
-                        className="bg-muted/10 border-border/60"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="token"
+                            type={showToken ? "text" : "password"}
+                            value={token}
+                            onChange={(e) => setToken(e.target.value)}
+                            placeholder="Contoh: 123456789:ABCDefgh..."
+                            className="bg-muted/10 border-border/60 pr-10"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowToken(!showToken)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                            {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Dapatkan dari <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@BotFather</a>. Buat bot baru dengan <code className="bg-muted px-1 py-0.5 rounded">/newbot</code> lalu copy HTTP API Token.
+                    </p>
                 </div>
 
                 <div className="grid gap-2">
@@ -101,7 +114,9 @@ export function TelegramConfigForm({ initialSettings }: TelegramConfigFormProps)
                             <span className="ml-2 hidden sm:inline">Test Koneksi</span>
                         </Button>
                     </div>
-                    <p className="text-sm text-muted-foreground italic">Pastikan bot sudah dalam group dan memiliki izin kirim pesan.</p>
+                    <p className="text-xs text-muted-foreground">
+                        Chat ID untuk personal (contoh: 123456789) atau Group (contoh: -100123456789). Anda bisa mendapatkan Chat ID dengan meneruskan pesan ke bot seperti <a href="https://t.me/userinfobot" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@userinfobot</a>. Pastikan bot Anda sudah dimasukkan ke dalam group dan memiliki izin mengirim pesan.
+                    </p>
                 </div>
             </div>
 
