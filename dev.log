@@ -11,3 +11,5 @@
 ○ Compiling /login ...
 LOGIN PAGE MOUNTED - V2
  GET /login 200 in 9.0s (compile: 8.6s, render: 358ms)
+LOGIN PAGE MOUNTED - V2
+ GET /login 200 in 794ms (compile: 107ms, render: 687ms)
