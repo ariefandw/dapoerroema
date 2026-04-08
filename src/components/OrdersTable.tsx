@@ -27,6 +27,9 @@ import { DeleteConfirm } from "./DeleteConfirm";
 import { cn } from "@/lib/utils";
 
 export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string | "admin" | "user" | "baker" | "runner" }) {
+    // Sort orders descending by order_date if they are not already
+    const sortedOrders = [...orders].sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime());
+
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -105,7 +108,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                 </div>
             </CardHeader>
             <CardContent className="p-0">
-                {orders.length === 0 ? (
+                {sortedOrders.length === 0 ? (
                     <div className="py-12 text-center border-t border-border/10">
                         <div className="flex flex-col items-center gap-2">
                             <Package className="h-8 w-8 text-muted-foreground/30" />
@@ -126,7 +129,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {orders.map((order) => {
+                                    {sortedOrders.map((order) => {
                                         const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                         return (
                                             <TableRow key={order.id} className="group transition-colors">
@@ -214,7 +217,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
 
                         {/* Mobile View */}
                         <div className="md:hidden">
-                            {orders.map((order, orderIdx) => {
+                            {sortedOrders.map((order, orderIdx) => {
                                 const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                 return (
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
