@@ -10,18 +10,23 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 import { Badge } from "@/components/ui/badge";
-import OrderTrackingMapWrapper from "./OrderTrackingMapWrapper";
+import { OrderTrackingMapWrapper } from "./MapWrapper";
 import { VerticalStatusStepper } from "@/components/VerticalStatusStepper";
 import { notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    await requireRole(["admin", "baker", "runner"]);
+    await requireRole(["admin", "baker", "runner", "user"]);
     const { id } = await params;
     const orderId = parseInt(id);
 
     if (isNaN(orderId)) notFound();
 
     const order = await getOrderWithDetails(orderId);
+
+    const session = await auth.api.getSession({ headers: await headers() });
+    const isAdmin = session?.user?.role === "admin";
 
     if (!order) notFound();
 
@@ -64,38 +69,106 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left">
+                                <table className="w-full text-sm text-left hidden md:table">
                                     <thead className="bg-muted/20 text-muted-foreground font-medium border-b border-border/10">
                                         <tr>
                                             <th className="px-6 py-3">Produk</th>
                                             <th className="px-6 py-3 text-center">Jumlah</th>
                                             <th className="px-6 py-3 text-right">Harga Satuan</th>
-                                            <th className="px-6 py-3 text-right">Total</th>
+                                            {isAdmin && <th className="px-6 py-3 text-right text-orange-600">HPP</th>}
+                                            {isAdmin && <th className="px-6 py-3 text-right text-blue-600">Margin</th>}
+                                            <th className="px-6 py-3 text-right">Total Jual</th>
+                                            {isAdmin && <th className="px-6 py-3 text-right text-green-600">Net Profit</th>}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border/10">
-                                        {order.items.map((item: any) => (
-                                            <tr key={item.id} className="hover:bg-muted/5 transition-colors">
-                                                <td className="px-6 py-4 font-medium">{item.product.name}</td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <Badge variant="secondary" className="font-bold">{item.quantity}x</Badge>
-                                                </td>
-                                                <td className="px-6 py-4 text-right">Rp {(item.unit_price ?? 0).toLocaleString()}</td>
-                                                <td className="px-6 py-4 text-right font-bold text-primary">
-                                                    Rp {(item.quantity * (item.unit_price ?? 0)).toLocaleString()}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {order.items.map((item: any) => {
+                                            const qty = item.quantity;
+                                            const sellPrice = item.unit_price ?? 0;
+                                            const hpp = item.product?.base_price ?? 0;
+                                            const margin = sellPrice - hpp;
+                                            const totalJual = qty * sellPrice;
+                                            const netProfit = qty * margin;
+                                            return (
+                                                <tr key={item.id} className="hover:bg-muted/5 transition-colors">
+                                                    <td className="px-6 py-4 font-medium">{item.product.name}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <Badge variant="secondary" className="font-bold">{qty}x</Badge>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">Rp {sellPrice.toLocaleString()}</td>
+                                                    {isAdmin && <td className="px-6 py-4 text-right text-orange-600">Rp {hpp.toLocaleString()}</td>}
+                                                    {isAdmin && <td className="px-6 py-4 text-right text-blue-600">Rp {margin.toLocaleString()}</td>}
+                                                    <td className="px-6 py-4 text-right font-bold text-primary">
+                                                        Rp {totalJual.toLocaleString()}
+                                                    </td>
+                                                    {isAdmin && <td className="px-6 py-4 text-right font-bold text-green-600">Rp {netProfit.toLocaleString()}</td>}
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                     <tfoot className="bg-muted/10 border-t-2 border-border/20">
                                         <tr>
-                                            <td colSpan={3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
-                                            <td className="px-6 py-4 text-right font-black text-lg text-primary">
+                                            <td colSpan={isAdmin ? 5 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
+                                            <td colSpan={isAdmin ? 2 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
                                                 Rp {(order.total_amount ?? 0).toLocaleString()}
                                             </td>
                                         </tr>
                                     </tfoot>
                                 </table>
+
+                                {/* Mobile view */}
+                                <div className="flex flex-col gap-4 md:hidden p-4">
+                                    {order.items.map((item: any) => {
+                                        const qty = item.quantity;
+                                        const sellPrice = item.unit_price ?? 0;
+                                        const hpp = item.product?.base_price ?? 0;
+                                        const margin = sellPrice - hpp;
+                                        const totalJual = qty * sellPrice;
+                                        const netProfit = qty * margin;
+
+                                        return (
+                                            <div key={item.id} className="bg-muted/10 p-4 rounded-lg border border-border/10 flex flex-col gap-2">
+                                                <div className="flex justify-between items-start">
+                                                    <span className="font-bold">{item.product.name}</span>
+                                                    <Badge variant="secondary" className="font-bold">{qty}x</Badge>
+                                                </div>
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-muted-foreground">Harga Satuan</span>
+                                                    <span>Rp {sellPrice.toLocaleString()}</span>
+                                                </div>
+                                                {isAdmin && (
+                                                    <>
+                                                        <div className="flex justify-between text-sm text-orange-600">
+                                                            <span>HPP</span>
+                                                            <span>Rp {hpp.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex justify-between text-sm text-blue-600">
+                                                            <span>Margin</span>
+                                                            <span>Rp {margin.toLocaleString()}</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                <Separator className="my-1" />
+                                                <div className="flex justify-between font-bold">
+                                                    <span>Total Jual</span>
+                                                    <span className="text-primary">Rp {totalJual.toLocaleString()}</span>
+                                                </div>
+                                                {isAdmin && (
+                                                    <div className="flex justify-between font-bold text-green-600">
+                                                        <span>Net Profit</span>
+                                                        <span>Rp {netProfit.toLocaleString()}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                    <div className="mt-4 bg-muted/20 p-4 rounded-lg border border-primary/20 flex flex-col gap-2">
+                                        <div className="flex justify-between font-bold uppercase tracking-wider text-sm">
+                                            <span>Total Pembayaran</span>
+                                            <span className="text-primary text-xl">Rp {(order.total_amount ?? 0).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
