@@ -12,7 +12,6 @@ import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 import { Badge } from "@/components/ui/badge";
 import { OrderTrackingMapWrapper } from "./MapWrapper";
 import { VerticalStatusStepper } from "@/components/VerticalStatusStepper";
-import { StatusStepper } from "@/components/StatusStepper";
 import { notFound } from "next/navigation";
 import useSWR, { useSWRConfig } from "swr";
 import { toast } from "sonner";
@@ -21,7 +20,11 @@ import { updateOrderStatus } from "@/app/actions";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then(async (res) => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch');
+    return data;
+});
 
 export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initialOrder: any; isAdmin: boolean; userRole: string }) {
     const pathname = usePathname();
@@ -84,10 +87,6 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                         {format(new Date(order.order_date), "dd/MM/yyyy HH:mm")}
                     </p>
                 </div>
-                <Badge className={`${statusUi.text} ${statusUi.bg} border-none font-bold px-3 py-1 text-sm shadow-sm`}>
-                    <statusUi.icon className="mr-2 h-4 w-4" />
-                    {statusUi.label}
-                </Badge>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -97,13 +96,21 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                     {/* Timeline */}
                     <Card className="border-border/50 shadow-sm">
                         <CardHeader className="pb-0">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Info className="h-5 w-5 text-primary" />
-                                Riwayat Status
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                                Update real-time perjalanan pesanan Anda. Klik ikon status untuk memperbarui.
-                            </CardDescription>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Info className="h-5 w-5 text-primary" />
+                                        Riwayat Status
+                                    </CardTitle>
+                                    <CardDescription className="text-xs mt-1">
+                                        Update real-time perjalanan pesanan Anda. Klik ikon status untuk memperbarui.
+                                    </CardDescription>
+                                </div>
+                                <Badge className={cn(statusUi.text, statusUi.bg, "border-none font-bold px-3 py-1 text-sm shadow-sm flex items-center gap-2")}>
+                                    <statusUi.icon className="h-4 w-4" />
+                                    {statusUi.label}
+                                </Badge>
+                            </div>
                         </CardHeader>
                         <CardContent className="pt-2">
                             <VerticalStatusStepper

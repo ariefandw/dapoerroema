@@ -86,10 +86,10 @@ export function VerticalStatusStepper({ orderId, currentStatus, statusLogs, user
             return ["pending"].includes(status);
         }
         if (userRole === "baker") {
-            return ["pending", "accepted", "in_production", "ready"].includes(status);
+            return ["accepted", "in_production", "ready"].includes(status);
         }
         if (userRole === "runner") {
-            return ["ready", "shipping", "delivered"].includes(status);
+            return ["shipping", "delivered"].includes(status);
         }
 
         return false;
