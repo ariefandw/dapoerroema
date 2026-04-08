@@ -14,7 +14,11 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then(async (res) => {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch');
+    return data;
+});
 
 export function OrderClientPage({ orders: initialOrders, products, userRole, outletId, date }: any) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -33,7 +37,7 @@ export function OrderClientPage({ orders: initialOrders, products, userRole, out
     const prevOrdersRef = useRef(orders);
 
     useEffect(() => {
-        if (orders && prevOrdersRef.current) {
+        if (orders && Array.isArray(orders) && prevOrdersRef.current && Array.isArray(prevOrdersRef.current)) {
             orders.forEach((order: any) => {
                 const prevOrder = prevOrdersRef.current.find((o: any) => o.id === order.id);
                 if (prevOrder && prevOrder.status !== order.status) {
