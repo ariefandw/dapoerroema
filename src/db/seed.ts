@@ -24,7 +24,7 @@ const BRANDS = [
 ];
 
 const OUTLETS = [
-    { name: "Toko Roema Prawirotaman", contact: "0812-5000-6000", brand: "Toko Roema", lat: -7.8198, lng: 110.3719 },
+    { name: "Toko Roema Sapen", contact: "0812-5000-6000", brand: "Toko Roema", lat: -7.8198, lng: 110.3719 },
     { name: "Toko Roema Seturan", contact: "0812-5000-6001", brand: "Toko Roema", lat: -7.7691, lng: 110.4101 },
     { name: "Sender Malioboro", contact: "0812-3000-4000", brand: "Sender", lat: -7.7926, lng: 110.3658 },
     { name: "Sender Jakal", contact: "0812-3000-4001", brand: "Sender", lat: -7.7511, lng: 110.3765 },
@@ -150,8 +150,10 @@ export async function runSeed(isCleanupOnly = false) {
             }
 
             userMap[u.role] = userId;
-            // Assign user to first outlet if role is 'user' to enable brand restriction logic
-            const outletUpdate = u.role === 'user' ? `, current_outlet_id = ${outletList[0].id}` : '';
+
+            // Find "Toko Roema Sapen" to assign all demo users
+            const targetOutlet = outletList.find(o => o.name === "Toko Roema Sapen") || outletList[0];
+            const outletUpdate = `, current_outlet_id = ${targetOutlet.id}`;
             await pool.query(`UPDATE "user" SET role = $1 ${outletUpdate} WHERE id = $2`, [u.role, userId]);
         }
 
