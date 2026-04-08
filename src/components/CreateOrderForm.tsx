@@ -51,7 +51,7 @@ interface CreateOrderResult {
     stockIssues?: Array<{ product_id: number; requested: number; available: number }>;
 }
 
-export function CreateOrderForm({ currentOutletId, products, onSuccess }: { currentOutletId?: number | null; products: Product[]; onSuccess?: () => void }) {
+export function CreateOrderForm({ currentOutletId, products, onSuccess }: { currentOutletId?: number | null; products: Product[]; onSuccess?: (orderId?: number) => void }) {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<FormValues>({
@@ -69,7 +69,7 @@ export function CreateOrderForm({ currentOutletId, products, onSuccess }: { curr
 
     function onSubmit(data: FormValues) {
         startTransition(async () => {
-            const result = await createOrder(data) as CreateOrderResult;
+            const result = await createOrder(data) as CreateOrderResult & { orderId?: number };
             if (result.success) {
                 form.reset({
                     outlet_id: currentOutletId || 0,
@@ -77,7 +77,7 @@ export function CreateOrderForm({ currentOutletId, products, onSuccess }: { curr
                 });
                 toast.success("Order berhasil dibuat!");
                 if (onSuccess) {
-                    onSuccess();
+                    onSuccess(result.orderId);
                 }
             } else {
                 // Handle stock issues

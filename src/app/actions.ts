@@ -261,6 +261,7 @@ export async function createOrder(data: NewOrderParams) {
         });
 
         // Create the order and deduct stock in a single transaction to prevent race conditions
+        let createdOrderId: number | null = null;
         await db.transaction(async (tx) => {
             const [newOrder] = await tx
                 .insert(orders)
@@ -272,6 +273,8 @@ export async function createOrder(data: NewOrderParams) {
                     total_amount: subtotal, // Assuming no discount initially
                 })
                 .returning();
+
+            createdOrderId = newOrder.id;
 
             if (resolvedItems.length > 0) {
                 const itemsToInsert = resolvedItems.map((item) => ({
@@ -316,7 +319,7 @@ export async function createOrder(data: NewOrderParams) {
 
         revalidatePath("/order");
         revalidatePath("/admin/master/stock");
-        return { success: true };
+        return { success: true, orderId: createdOrderId };
     } catch (error) {
         console.error("Failed to create order:", error);
         return { success: false, error: "Failed to create order" };
