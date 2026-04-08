@@ -39,15 +39,11 @@ export function DeliveryConfirmationModal({
             sliderRef.current?.reset();
             return;
         }
-        if (!signatureUrl) {
-            toast.error("Mohon sertakan tanda tangan penerima");
-            sliderRef.current?.reset();
-            return;
-        }
+        // Signature is optional now
 
         setLoading(true);
         try {
-            await onConfirm({ photoUrl, signatureUrl });
+            await onConfirm({ photoUrl, signatureUrl: signatureUrl || "" });
             onOpenChange(false);
             // Reset for next time
             setTimeout(() => {
@@ -131,10 +127,10 @@ export function DeliveryConfirmationModal({
                             <div className="space-y-2">
                                 <h3 className="text-sm font-bold flex items-center gap-2">
                                     <PenTool className="h-4 w-4 text-primary" />
-                                    Tanda Tangan Penerima
+                                    Tanda Tangan Penerima (Opsional)
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    Mintalah penerima untuk menandatangani di area bawah ini.
+                                    Mintalah penerima untuk menandatangani di area bawah ini jika diperlukan.
                                 </p>
                             </div>
 

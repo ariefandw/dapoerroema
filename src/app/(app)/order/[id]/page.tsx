@@ -46,7 +46,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     </div>
                     <p className="text-muted-foreground flex items-center gap-2 text-sm ml-8">
                         <Clock className="h-3.5 w-3.5" />
-                        Dibuat pada {format(new Date(order.order_date), "PPP p", { locale: localeId })}
+                        {format(new Date(order.order_date), "dd/MM/yyyy HH:mm")}
                     </p>
                 </div>
 
@@ -59,6 +59,26 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Order Stats & Items */}
                 <div className="lg:col-span-2 space-y-6">
+                    {/* Status Tracking - Moved to top */}
+                    <Card className="border-border/50 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                            <Clock className="h-24 w-24" />
+                        </div>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Clock className="h-5 w-5 text-primary" />
+                                Riwayat Status
+                            </CardTitle>
+                            <CardDescription className="text-xs">Update real-time perjalanan pesanan Anda.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-2">
+                            <VerticalStatusStepper
+                                currentStatus={order.status as OrderStatus}
+                                statusLogs={order.statusLogs}
+                            />
+                        </CardContent>
+                    </Card>
+
                     {/* Order Items */}
                     <Card className="border-border/50 shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 pb-4">
@@ -260,25 +280,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                         </Card>
                     )}
 
-                    {/* Status Tracking */}
-                    <Card className="border-border/50 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                            <Clock className="h-24 w-24" />
-                        </div>
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Clock className="h-5 w-5 text-primary" />
-                                Riwayat Status
-                            </CardTitle>
-                            <CardDescription className="text-xs">Update real-time perjalanan pesanan Anda.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-2">
-                            <VerticalStatusStepper
-                                currentStatus={order.status as OrderStatus}
-                                statusLogs={order.statusLogs}
-                            />
-                        </CardContent>
-                    </Card>
                 </div>
             </div>
         </PageContainer>

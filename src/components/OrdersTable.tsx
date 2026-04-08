@@ -122,6 +122,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/20 hover:bg-muted/20">
+                                        <TableHead className="w-[120px]">Order #</TableHead>
                                         <TableHead className="w-[200px]">Tanggal Order</TableHead>
                                         <TableHead>Outlet</TableHead>
                                         <TableHead>Item</TableHead>
@@ -134,6 +135,20 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                         return (
                                             <TableRow key={order.id} className="group transition-colors">
                                                 <TableCell className="font-medium">
+                                                    <div className="flex flex-col gap-1 items-start">
+                                                        <Link href={`/order/${order.id}`} className="hover:underline text-primary">
+                                                            #{order.id}
+                                                        </Link>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
+                                                            ui.bg,
+                                                            ui.text
+                                                        )}>
+                                                            {ui.label}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="font-medium">
                                                     <div className="flex flex-col">
                                                         <span>{format(new Date(order.order_date), "PP")}</span>
                                                         <span className="text-sm text-muted-foreground font-mono">
@@ -144,13 +159,6 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1 items-start">
                                                         <span className="text-sm font-medium">{order.outlet.name}</span>
-                                                        <span className={cn(
-                                                            "text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider border",
-                                                            ui.bg,
-                                                            ui.text
-                                                        )}>
-                                                            {ui.label}
-                                                        </span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
@@ -223,14 +231,19 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
                                         <div className="flex items-start justify-between px-4 pt-4 pb-2">
                                             <div className="flex flex-col gap-1.5 items-start">
-                                                <span className="text-sm font-black text-primary uppercase leading-tight">{order.outlet.name}</span>
-                                                <span className={cn(
-                                                    "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
-                                                    ui.bg,
-                                                    ui.text
-                                                )}>
-                                                    {ui.label}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <Link href={`/order/${order.id}`} className="text-sm font-black text-primary uppercase leading-tight hover:underline">
+                                                        #{order.id}
+                                                    </Link>
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
+                                                        ui.bg,
+                                                        ui.text
+                                                    )}>
+                                                        {ui.label}
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm font-medium">{order.outlet.name}</span>
                                                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono font-medium capitalize mt-0.5">
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(order.order_date), "PP p")}

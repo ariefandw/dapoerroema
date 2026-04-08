@@ -8,9 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { LocationGate } from "@/components/LocationGate";
+import { useRouter } from "next/navigation";
 
 export function OrderClientPage({ orders, products, userRole, outletId, date }: any) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const router = useRouter();
+
+    const handleSuccess = (orderId?: number) => {
+        setIsDialogOpen(false);
+        if (orderId) {
+            router.push(`/order/${orderId}`);
+        }
+    };
 
     const content = (
         <PageContainer>
@@ -35,7 +44,7 @@ export function OrderClientPage({ orders, products, userRole, outletId, date }: 
                                 <CreateOrderForm
                                     currentOutletId={outletId}
                                     products={products}
-                                    onSuccess={() => setIsDialogOpen(false)}
+                                    onSuccess={handleSuccess}
                                 />
                             </div>
                         </DialogContent>
