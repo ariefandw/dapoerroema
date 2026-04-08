@@ -194,18 +194,20 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                     </Card>
 
                     {/* Tracking Map */}
-                    <Card className="border-border/50 shadow-sm overflow-hidden">
-                        <CardHeader className="bg-muted/30 pb-4">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                                <Map className="h-5 w-5 text-primary" />
-                                Pelacakan Pengiriman
-                            </CardTitle>
-                            <CardDescription>Visualisasi lokasi runner dan rute pengiriman.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <OrderTrackingMapWrapper order={order} />
-                        </CardContent>
-                    </Card>
+                    {["ready", "shipping", "delivered"].includes(order.status) && (
+                        <Card className="border-border/50 shadow-sm overflow-hidden">
+                            <CardHeader className="bg-muted/30 pb-4">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Map className="h-5 w-5 text-primary" />
+                                    Pelacakan Pengiriman
+                                </CardTitle>
+                                <CardDescription>Visualisasi lokasi runner dan rute pengiriman.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <OrderTrackingMapWrapper order={order} />
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 {/* Right Column: Info & Evidence */}
