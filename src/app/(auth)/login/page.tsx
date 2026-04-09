@@ -14,9 +14,9 @@ import { seedDatabase } from "@/app/actions";
 
 const DEMO_ACCOUNTS = [
     { label: "Admin", email: "admin@test.app", password: "Password123!" },
+    { label: "User", email: "user@test.app", password: "Password123!" },
     { label: "Baker", email: "baker@test.app", password: "Password123!" },
     { label: "Runner", email: "runner@test.app", password: "Password123!" },
-    { label: "User", email: "user@test.app", password: "Password123!" },
 ];
 
 export default function LoginPage() {

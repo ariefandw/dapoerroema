@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { useTransition } from "react";
 import { updateOrderStatus } from "@/app/actions";
 import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
@@ -38,12 +39,15 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
     const today = format(new Date(), "yyyy-MM-dd");
     const displayValue = currentDate || today;
 
+    const { mutate } = useSWRConfig();
+
     const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => {
         if (currentStatus === newStatus) return;
         startTransition(async () => {
             const result = await updateOrderStatus(orderId, currentStatus, newStatus, pathname, deliveryData);
             if (result.success) {
                 toast.success("Status order berhasil diperbarui!");
+                mutate((key: any) => typeof key === 'string' && key.startsWith('/api/orders')); // Trigger revalidation
             } else {
                 toast.error(result.error || "Gagal memperbarui status");
             }

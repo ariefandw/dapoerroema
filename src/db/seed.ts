@@ -168,7 +168,15 @@ export async function runSeed(isCleanupOnly = false) {
                 const currentStatus = stats[i];
                 const now = new Date();
                 const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-                const orderDate = new Date(now.getTime() - threeDaysMs + (Math.random() * 2 * threeDaysMs));
+
+                let orderDate = new Date(now.getTime() - threeDaysMs + (Math.random() * 2 * threeDaysMs));
+
+                // If it's Toko Roema Sapen, force the date to be strictly in the past (not today)
+                if (outlet.name === "Toko Roema Sapen") {
+                    const randomPastDays = 1 + Math.floor(Math.random() * 5); // 1 to 5 days ago
+                    orderDate = new Date(now.getTime() - (randomPastDays * 24 * 60 * 60 * 1000));
+                }
+
                 const subtotal = 100000 + Math.floor(Math.random() * 200000);
 
                 const orderRes = await pool.query(

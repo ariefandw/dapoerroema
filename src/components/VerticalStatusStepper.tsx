@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { OrderStatus, STATUS_UI_MAP } from "@/lib/status-dictionary";
 import {
     ClipboardList,
@@ -9,14 +9,22 @@ import {
     Box,
     Truck,
     Home,
+    RotateCcw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DeleteConfirm } from "./DeleteConfirm";
+import { DeliveryConfirmationModal } from "./DeliveryConfirmationModal";
 
 interface VerticalStatusStepperProps {
+    orderId?: number;
     currentStatus: OrderStatus;
     statusLogs: any[];
+    userRole?: string;
+    onStatusChange?: (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => void;
+    disabled?: boolean;
 }
 
 const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
@@ -28,15 +36,72 @@ const STEPS: { status: OrderStatus; icon: any; label: string }[] = [
     { status: "delivered", icon: Home, label: "Sampai Tujuan" },
 ];
 
-export function VerticalStatusStepper({ currentStatus, statusLogs }: VerticalStatusStepperProps) {
+export function VerticalStatusStepper({ orderId, currentStatus, statusLogs, userRole, onStatusChange, disabled }: VerticalStatusStepperProps) {
+    const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+
+    if (currentStatus === "cancelled") {
+        return (
+            <div className="flex flex-col gap-3 px-4 py-2">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/10 text-destructive border border-destructive/20 w-fit">
+                    <span className="text-sm font-black uppercase">Dibatalkan</span>
+                </div>
+                {userRole === "admin" && orderId && onStatusChange && (
+                    <DeleteConfirm
+                        title="Pulihkan Order?"
+                        description="Apakah Anda yakin ingin mengganti status order ini kembali ke 'Order' (Pending)?"
+                        confirmLabel="Ya, Pulihkan"
+                        onConfirm={() => onStatusChange(orderId, currentStatus, "pending")}
+                    >
+                        <button
+                            type="button"
+                            disabled={disabled}
+                            className={cn(
+                                "flex items-center gap-2 h-8 px-3 rounded-full border border-primary/30 bg-primary/5 text-primary transition-all duration-200 hover:bg-primary hover:text-white active:scale-95 outline-none w-fit text-sm font-bold",
+                                disabled && "opacity-50 cursor-not-allowed"
+                            )}
+                        >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            Pulihkan Order
+                        </button>
+                    </DeleteConfirm>
+                )}
+            </div>
+        );
+    }
+
     const currentIndex = STEPS.findIndex(s => s.status === currentStatus);
+
+    const isClickable = (status: OrderStatus) => {
+        if (disabled || !userRole || !onStatusChange) return false;
+
+        if (userRole === "admin") return true;
+
+        const targetIndex = STEPS.findIndex(s => s.status === status);
+
+        if (Math.abs(targetIndex - currentIndex) > 1) {
+            return false;
+        }
+
+        if (userRole === "user") {
+            return ["pending"].includes(status);
+        }
+        if (userRole === "baker") {
+            return ["accepted", "in_production", "ready"].includes(status);
+        }
+        if (userRole === "runner") {
+            return ["shipping", "delivered"].includes(status);
+        }
+
+        return false;
+    };
 
     return (
         <div className="relative px-4 py-2">
-            <div className="space-y-0">
-                {STEPS.map((step, index) => {
-                    const isCompleted = index <= currentIndex && currentStatus !== "cancelled";
-                    const isCurrent = index === currentIndex && currentStatus !== "cancelled";
+            <TooltipProvider delayDuration={0}>
+                <div className="space-y-0">
+                    {STEPS.map((step, index) => {
+                    const isCompleted = index <= currentIndex && (currentStatus as string) !== "cancelled";
+                    const isCurrent = index === currentIndex && (currentStatus as string) !== "cancelled";
                     const StepIcon = step.icon;
 
                     // Find the log for this specific status to get the timestamp
@@ -81,16 +146,51 @@ export function VerticalStatusStepper({ currentStatus, statusLogs }: VerticalSta
 
                             {/* Icon Node */}
                             <div className="relative z-10 flex flex-col items-center">
-                                <div className={cn(
-                                    "flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300",
-                                    getBgColor(),
-                                    isCurrent && "ring-4 ring-primary/10 scale-110"
-                                )}>
-                                    <StepIcon className={cn("h-4 w-4 transition-colors", getIconColor())} />
-                                    {isCurrent && (
-                                        <span className="absolute inset-0 rounded-full border border-primary/40 animate-[ping_2s_ease-in-out_infinite] pointer-events-none" />
-                                    )}
-                                </div>
+                                {(() => {
+                                    const canClick = isClickable(step.status);
+
+                                    const handleStepClick = () => {
+                                        if (!canClick || !orderId || !onStatusChange) return;
+                                        if (step.status === "delivered" && userRole === "runner") {
+                                            setConfirmModalOpen(true);
+                                        } else {
+                                            onStatusChange(orderId, currentStatus, step.status);
+                                        }
+                                    };
+
+                                    const iconElement = (
+                                        <button
+                                            type="button"
+                                            disabled={!canClick || disabled}
+                                            onClick={handleStepClick}
+                                            className={cn(
+                                                "relative flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300 outline-none",
+                                                getBgColor(),
+                                                isCurrent && "ring-4 ring-primary/10 scale-110",
+                                                canClick && !isCurrent ? "hover:scale-110 cursor-pointer active:scale-95" :
+                                                    !canClick && !isCurrent ? "cursor-default" : "cursor-default"
+                                            )}
+                                        >
+                                            <StepIcon className={cn("h-4 w-4 transition-colors", getIconColor())} />
+                                            {isCurrent && (
+                                                <span className="absolute inset-0 rounded-full border border-primary/40 animate-[ping_2s_ease-in-out_infinite] pointer-events-none" />
+                                            )}
+                                        </button>
+                                    );
+
+                                    return canClick ? (
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                {iconElement}
+                                            </TooltipTrigger>
+                                            <TooltipContent side="right" className="font-bold uppercase ml-2">
+                                                Update ke: {step.label}
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    ) : (
+                                        iconElement
+                                    );
+                                })()}
                             </div>
 
                             {/* Content */}
@@ -121,8 +221,19 @@ export function VerticalStatusStepper({ currentStatus, statusLogs }: VerticalSta
                             </div>
                         </div>
                     );
-                })}
-            </div>
+                    })}
+                </div>
+            </TooltipProvider>
+
+            {orderId && onStatusChange && (
+                <DeliveryConfirmationModal
+                    open={confirmModalOpen}
+                    onOpenChange={setConfirmModalOpen}
+                    onConfirm={async (data) => {
+                        onStatusChange(orderId, currentStatus, "delivered", data);
+                    }}
+                />
+            )}
         </div>
     );
 }
