@@ -26,12 +26,14 @@ interface Outlet {
 interface StockTransferDialogProps {
   products: Product[];
   outlets: Outlet[];
+  userRole?: string;
+  currentOutletId?: number | null;
   children: React.ReactNode;
 }
 
 const WAREHOUSE_OPTION = { id: -1, name: "Central Kitchen" };
 
-export function StockTransferDialog({ products, outlets, children }: StockTransferDialogProps) {
+export function StockTransferDialog({ products, outlets, userRole, currentOutletId, children }: StockTransferDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,7 +76,7 @@ export function StockTransferDialog({ products, outlets, children }: StockTransf
   useEffect(() => {
     if (open) {
       setProductId("");
-      setFromOutletId("warehouse");
+      setFromOutletId(userRole === "user" && currentOutletId ? currentOutletId.toString() : "warehouse");
       setToOutletId("");
       setQuantity("1");
       setNotes("");

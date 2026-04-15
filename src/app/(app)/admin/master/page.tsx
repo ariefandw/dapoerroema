@@ -62,7 +62,17 @@ const masterDataItems = [
     },
 ];
 
-export default function MasterDataHub() {
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+
+export default async function MasterDataHub() {
+    const session = await auth.api.getSession({ headers: await headers() });
+    const userRole = (session?.user as any)?.role || "user";
+
+    const filteredItems = masterDataItems.filter(item =>
+        userRole === "admin" || (userRole === "user" && item.href === "/admin/master/stock")
+    );
+
     return (
         <PageContainer>
             <div className="space-y-6 max-w-7xl mx-auto py-6">
@@ -77,7 +87,7 @@ export default function MasterDataHub() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {masterDataItems.map((item) => (
+                    {filteredItems.map((item) => (
                         <Link key={item.href} href={item.href}>
                             <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-border/50">
                                 <CardHeader className="flex flex-row items-center gap-4 pb-2">

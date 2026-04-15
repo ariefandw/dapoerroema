@@ -10,7 +10,7 @@ export type NavLink = {
 export const NAVIGATION_LINKS: NavLink[] = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/order", label: "Order", icon: ClipboardList },
-    { href: "/admin/master", label: "Master Data", roles: ["admin"], icon: Database },
+    { href: "/admin/master", label: "Master Data", roles: ["admin", "user"], icon: Database },
 ];
 
 export function getNavigationLinks(userRole: string | undefined): NavLink[] {
