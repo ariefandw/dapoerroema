@@ -51,13 +51,13 @@ interface CreateOrderResult {
     stockIssues?: Array<{ product_id: number; requested: number; available: number }>;
 }
 
-export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; products: Product[] }) {
+export function CreateOrderForm({ currentOutletId, products, onSuccess }: { currentOutletId?: number | null; products: Product[]; onSuccess?: (orderId?: number) => void }) {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema) as any,
         defaultValues: {
-            outlet_id: 0,
+            outlet_id: currentOutletId || 0,
             items: [{ product_id: 0, quantity: 1 }],
         },
     });
@@ -69,13 +69,16 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
 
     function onSubmit(data: FormValues) {
         startTransition(async () => {
-            const result = await createOrder(data) as CreateOrderResult;
+            const result = await createOrder(data) as CreateOrderResult & { orderId?: number };
             if (result.success) {
                 form.reset({
-                    outlet_id: 0,
+                    outlet_id: currentOutletId || 0,
                     items: [{ product_id: 0, quantity: 1 }],
                 });
                 toast.success("Order berhasil dibuat!");
+                if (onSuccess) {
+                    onSuccess(result.orderId);
+                }
             } else {
                 // Handle stock issues
                 if (result.stockIssues && result.stockIssues.length > 0) {
@@ -92,39 +95,18 @@ export function CreateOrderForm({ outlets, products }: { outlets: Outlet[]; prod
         });
     }
 
+    if (!currentOutletId) {
+        return (
+            <div className="text-center py-6 text-muted-foreground">
+                <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>Silakan pilih outlet di menu atas terlebih dahulu untuk membuat order.</p>
+            </div>
+        );
+    }
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-                <FormField
-                    control={form.control}
-                    name="outlet_id"
-                    render={({ field }) => (
-                        <FormItem className="space-y-1">
-                            <FormLabel className="font-bold text-sm uppercase text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-sm w-fit">
-                                Outlet
-                            </FormLabel>
-                            <Select
-                                onValueChange={(val) => field.onChange(Number(val))}
-                                value={field.value ? field.value.toString() : ""}
-                            >
-                                <FormControl>
-                                    <SelectTrigger className="w-full h-9 bg-muted/10 border-border/40 focus:ring-primary/20 text-sm">
-                                        <SelectValue placeholder="Pilih outlet destination" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {outlets.map((outlet) => (
-                                        <SelectItem key={outlet.id} value={outlet.id.toString()}>
-                                            {outlet.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 <div className="space-y-4">
                     <FormLabel className="font-bold text-sm text-muted-foreground">
                         Item Order

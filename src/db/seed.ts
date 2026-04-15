@@ -24,7 +24,7 @@ const BRANDS = [
 ];
 
 const OUTLETS = [
-    { name: "Toko Roema Prawirotaman", contact: "0812-5000-6000", brand: "Toko Roema", lat: -7.8198, lng: 110.3719 },
+    { name: "Toko Roema Sapen", contact: "0812-5000-6000", brand: "Toko Roema", lat: -7.8198, lng: 110.3719 },
     { name: "Toko Roema Seturan", contact: "0812-5000-6001", brand: "Toko Roema", lat: -7.7691, lng: 110.4101 },
     { name: "Sender Malioboro", contact: "0812-3000-4000", brand: "Sender", lat: -7.7926, lng: 110.3658 },
     { name: "Sender Jakal", contact: "0812-3000-4001", brand: "Sender", lat: -7.7511, lng: 110.3765 },
@@ -41,7 +41,7 @@ export async function runSeed(isCleanupOnly = false) {
 
     try {
         console.log("🧹 Cleaning up...");
-        await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, products, outlets, brands CASCADE");
+        await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, brand_products, products, outlets, settings, brands CASCADE");
 
         if (isCleanupOnly) {
             console.log("✅ Cleanup complete.");
@@ -49,6 +49,13 @@ export async function runSeed(isCleanupOnly = false) {
         }
 
         await pool.query("BEGIN");
+
+        // 0. Settings
+        console.log("   - Seeding settings...");
+        await pool.query(
+            "INSERT INTO settings (key, value) VALUES ($1, $2), ($3, $4)",
+            ["app_name", "Orbery Central Kitchen", "maintenance_mode", "false"]
+        );
 
         // 1. Brands
         const brandIds: Record<string, number> = {};
@@ -67,14 +74,53 @@ export async function runSeed(isCleanupOnly = false) {
             outletList.push({ id: res.rows[0].id, name: o.name });
         }
 
-        // 3. Products
+        // 3. Products & Brand Pricing & Initial Stock
         const productIds: number[] = [];
+        console.log("   - Seeding products, pricing, and initial stock...");
         for (const p of PRODUCTS) {
+            const basePrice = Math.floor(p.price * 0.7);
             const res = await pool.query(
                 "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
-                [p.name, p.category, Math.floor(p.price * 0.7), getImageUrl(p.name)]
+                [p.name, p.category, basePrice, getImageUrl(p.name)]
             );
-            productIds.push(res.rows[0].id);
+            const productId = res.rows[0].id;
+            productIds.push(productId);
+
+            // Add brand pricing
+            for (const b of BRANDS) {
+                const bId = brandIds[b.name];
+                const markup = b.name === "Toko Roema" ? 1.2 : (b.name === "YAP Cafe" ? 1.5 : 1.1);
+                await pool.query(
+                    "INSERT INTO brand_products (brand_id, product_id, price) VALUES ($1, $2, $3)",
+                    [bId, productId, Math.floor(basePrice * markup)]
+                );
+            }
+
+            // Initial central stock (outlet_id = null)
+            await pool.query(
+                "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4)",
+                [productId, null, 1000, 100]
+            );
+
+            // Log initial stock transaction
+            await pool.query(
+                "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6)",
+                [productId, null, "add", 1000, "Initial System Seeding", "system"]
+            );
+
+            // Initial outlet stock
+            for (const outlet of outletList) {
+                const initialQty = 50 + Math.floor(Math.random() * 50);
+                await pool.query(
+                    "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4)",
+                    [productId, outlet.id, initialQty, 20]
+                );
+
+                await pool.query(
+                    "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6)",
+                    [productId, outlet.id, "transfer_in", initialQty, "Initial Distribution", "system"]
+                );
+            }
         }
 
         // 4. Users
@@ -104,8 +150,10 @@ export async function runSeed(isCleanupOnly = false) {
             }
 
             userMap[u.role] = userId;
-            // Assign user to first outlet if role is 'user' to enable brand restriction logic
-            const outletUpdate = u.role === 'user' ? `, current_outlet_id = ${outletList[0].id}` : '';
+
+            // Find "Toko Roema Sapen" to assign all demo users
+            const targetOutlet = outletList.find(o => o.name === "Toko Roema Sapen") || outletList[0];
+            const outletUpdate = `, current_outlet_id = ${targetOutlet.id}`;
             await pool.query(`UPDATE "user" SET role = $1 ${outletUpdate} WHERE id = $2`, [u.role, userId]);
         }
 
@@ -120,7 +168,15 @@ export async function runSeed(isCleanupOnly = false) {
                 const currentStatus = stats[i];
                 const now = new Date();
                 const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-                const orderDate = new Date(now.getTime() - threeDaysMs + (Math.random() * 2 * threeDaysMs));
+
+                let orderDate = new Date(now.getTime() - threeDaysMs + (Math.random() * 2 * threeDaysMs));
+
+                // If it's Toko Roema Sapen, force the date to be strictly in the past (not today)
+                if (outlet.name === "Toko Roema Sapen") {
+                    const randomPastDays = 1 + Math.floor(Math.random() * 5); // 1 to 5 days ago
+                    orderDate = new Date(now.getTime() - (randomPastDays * 24 * 60 * 60 * 1000));
+                }
+
                 const subtotal = 100000 + Math.floor(Math.random() * 200000);
 
                 const orderRes = await pool.query(

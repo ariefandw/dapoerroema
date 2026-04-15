@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { useTransition } from "react";
 import { updateOrderStatus } from "@/app/actions";
 import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
@@ -16,14 +17,20 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
-import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft } from "lucide-react";
+import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft, MoreVertical, XCircle, Edit } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { StatusStepper } from "./StatusStepper";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DeleteConfirm } from "./DeleteConfirm";
+import { cn } from "@/lib/utils";
 
-export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string }) {
+export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string | "admin" | "user" | "baker" | "runner" }) {
+    // Sort orders descending by order_date if they are not already
+    const sortedOrders = [...orders].sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime());
+
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -32,12 +39,15 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
     const today = format(new Date(), "yyyy-MM-dd");
     const displayValue = currentDate || today;
 
+    const { mutate } = useSWRConfig();
+
     const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => {
         if (currentStatus === newStatus) return;
         startTransition(async () => {
             const result = await updateOrderStatus(orderId, currentStatus, newStatus, pathname, deliveryData);
             if (result.success) {
                 toast.success("Status order berhasil diperbarui!");
+                mutate((key: any) => typeof key === 'string' && key.startsWith('/api/orders')); // Trigger revalidation
             } else {
                 toast.error(result.error || "Gagal memperbarui status");
             }
@@ -102,7 +112,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                 </div>
             </CardHeader>
             <CardContent className="p-0">
-                {orders.length === 0 ? (
+                {sortedOrders.length === 0 ? (
                     <div className="py-12 text-center border-t border-border/10">
                         <div className="flex flex-col items-center gap-2">
                             <Package className="h-8 w-8 text-muted-foreground/30" />
@@ -116,6 +126,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                             <Table>
                                 <TableHeader>
                                     <TableRow className="bg-muted/20 hover:bg-muted/20">
+                                        <TableHead className="w-[120px]">Order #</TableHead>
                                         <TableHead className="w-[200px]">Tanggal Order</TableHead>
                                         <TableHead>Outlet</TableHead>
                                         <TableHead>Item</TableHead>
@@ -123,10 +134,24 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {orders.map((order) => {
+                                    {sortedOrders.map((order) => {
                                         const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                         return (
                                             <TableRow key={order.id} className="group transition-colors">
+                                                <TableCell className="font-medium">
+                                                    <div className="flex flex-col gap-1 items-start">
+                                                        <Link href={`/order/${order.id}`} className="hover:underline text-primary">
+                                                            #{order.id}
+                                                        </Link>
+                                                        <span className={cn(
+                                                            "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
+                                                            ui.bg,
+                                                            ui.text
+                                                        )}>
+                                                            {ui.label}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
                                                 <TableCell className="font-medium">
                                                     <div className="flex flex-col">
                                                         <span>{format(new Date(order.order_date), "PP")}</span>
@@ -136,7 +161,9 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                     </div>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <span className="text-sm font-medium">{order.outlet.name}</span>
+                                                    <div className="flex flex-col gap-1 items-start">
+                                                        <span className="text-sm font-medium">{order.outlet.name}</span>
+                                                    </div>
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1 py-1">
@@ -150,17 +177,6 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <Button
-                                                            asChild
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-                                                            title="Lihat Detail Order"
-                                                        >
-                                                            <Link href={userRole === "admin" ? `/admin/orders/${order.id}` : `/order/${order.id}`}>
-                                                                <Eye className="h-4 w-4" />
-                                                            </Link>
-                                                        </Button>
                                                         <StatusStepper
                                                             orderId={order.id}
                                                             currentStatus={order.status as OrderStatus}
@@ -168,6 +184,46 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                             onStatusChange={handleStatusChange}
                                                             disabled={isPending}
                                                         />
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                                                                >
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem asChild>
+                                                                    <Link href={userRole === "admin" ? `/admin/orders/${order.id}` : `/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                        <Eye className="mr-2 h-4 w-4" />
+                                                                        <span>Lihat Detail</span>
+                                                                    </Link>
+                                                                </DropdownMenuItem>
+                                                                {(userRole === "admin" || ((userRole === "user" || userRole === "baker") && order.status === "pending")) && (
+                                                                    <DropdownMenuItem asChild>
+                                                                        <Link href={`/order/${order.id}/edit`} className="cursor-pointer flex items-center">
+                                                                            <Edit className="mr-2 h-4 w-4" />
+                                                                            <span>Edit Order</span>
+                                                                        </Link>
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                                                    <DeleteConfirm
+                                                                        title="Batalkan Order?"
+                                                                        description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                                                        confirmLabel="Ya, Batalkan"
+                                                                        onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                                                    >
+                                                                        <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                                                            <XCircle className="mr-2 h-4 w-4" />
+                                                                            <span>Batalkan Order</span>
+                                                                        </div>
+                                                                    </DeleteConfirm>
+                                                                )}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -179,31 +235,75 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
 
                         {/* Mobile View */}
                         <div className="md:hidden">
-                            {orders.map((order, orderIdx) => {
+                            {sortedOrders.map((order, orderIdx) => {
                                 const ui = STATUS_UI_MAP[order.status as OrderStatus];
                                 return (
                                     <div key={order.id} className="hover:bg-muted/10 transition-colors">
-                                        <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                                            <span className="text-sm font-black text-primary uppercase">{order.outlet.name}</span>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1.5 text-sm text-muted-foreground font-mono font-medium bg-muted/30 px-2 py-1 rounded w-fit capitalize">
+                                        <div className="flex items-start justify-between px-4 pt-4 pb-2">
+                                            <div className="flex flex-col gap-1.5 items-start">
+                                                <div className="flex items-center gap-2">
+                                                    <Link href={`/order/${order.id}`} className="text-sm font-black text-primary uppercase leading-tight hover:underline">
+                                                        #{order.id}
+                                                    </Link>
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
+                                                        ui.bg,
+                                                        ui.text
+                                                    )}>
+                                                        {ui.label}
+                                                    </span>
+                                                </div>
+                                                <span className="text-sm font-medium">{order.outlet.name}</span>
+                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono font-medium capitalize mt-0.5">
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(order.order_date), "PP p")}
                                                 </div>
-                                                <Button
-                                                    asChild
-                                                    variant="secondary"
-                                                    size="icon"
-                                                    className="h-7 w-7 rounded-sm shadow-sm"
-                                                >
-                                                    <Link href={userRole === "admin" ? `/admin/orders/${order.id}` : `/order/${order.id}`}>
-                                                        <ArrowRight className="h-3 w-3" />
-                                                    </Link>
-                                                </Button>
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-7 w-7 rounded-sm shadow-sm"
+                                                        >
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={userRole === "admin" ? `/admin/orders/${order.id}` : `/order/${order.id}`} className="cursor-pointer flex items-center">
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                <span>Lihat Detail</span>
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        {(userRole === "admin" || ((userRole === "user" || userRole === "baker") && order.status === "pending")) && (
+                                                            <DropdownMenuItem asChild>
+                                                                <Link href={`/order/${order.id}/edit`} className="cursor-pointer flex items-center">
+                                                                    <Edit className="mr-2 h-4 w-4" />
+                                                                    <span>Edit Order</span>
+                                                            </Link>
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {(userRole === "admin" || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                                            <DeleteConfirm
+                                                                title="Batalkan Order?"
+                                                                description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                                                confirmLabel="Ya, Batalkan"
+                                                                onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                                            >
+                                                                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                                                    <XCircle className="mr-2 h-4 w-4" />
+                                                                    <span>Batalkan Order</span>
+                                                                </div>
+                                                            </DeleteConfirm>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </div>
 
-                                        <div className="px-4 py-3 border-y border-border/5 bg-muted/5">
+                                        <div className="px-4 py-3 border-y border-border/5 bg-muted/5 overflow-x-auto">
                                             <StatusStepper
                                                 orderId={order.id}
                                                 currentStatus={order.status as OrderStatus}
@@ -225,7 +325,7 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 ))}
                                             </div>
                                         </div>
-                                        <Separator className="h-2 bg-muted/20 border-y border-border/10" />
+                                        <Separator className="h-2 bg-slate-200 dark:bg-slate-800 border-y border-slate-300 dark:border-slate-700" />
                                     </div>
                                 );
                             })}

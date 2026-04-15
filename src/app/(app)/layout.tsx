@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/Navbar";
 import { Toaster } from "sonner";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { OrderNotificationManager } from "@/components/OrderNotificationManager";
 import { BottomNav } from "@/components/BottomNav";
 import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -28,6 +30,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <BottomNav userRole={userRole} />
             <Toaster richColors position="top-right" />
             <ServiceWorkerRegistration />
+            <PWAInstallPrompt />
+            <OrderNotificationManager userRole={userRole} currentOutletId={session.user.currentOutletId} />
         </div>
     );
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { outlets, products, orders, orderItems, user, orderStatusLogs, runnerTrail } from "@/db/schema";
+import { outlets, products, orders, orderItems, user, orderStatusLogs, runnerTrail, stock, stockTransactions } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { eq, inArray, and, sql, gte, lte } from "drizzle-orm";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
@@ -191,6 +191,13 @@ type NewOrderParams = {
 
 export async function createOrder(data: NewOrderParams) {
     try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        const userRole = session?.user?.role;
+
+        if (!userRole || !["admin", "user"].includes(userRole as string)) {
+            return { success: false, error: "Unauthorized: Anda tidak memiliki akses untuk membuat order." };
+        }
+
         const orderDate = new Date();
 
         // Check stock availability for all items at the outlet
@@ -253,7 +260,8 @@ export async function createOrder(data: NewOrderParams) {
             };
         });
 
-        // Create the order using transaction
+        // Create the order and deduct stock in a single transaction to prevent race conditions
+        let createdOrderId: number | null = null;
         await db.transaction(async (tx) => {
             const [newOrder] = await tx
                 .insert(orders)
@@ -266,6 +274,8 @@ export async function createOrder(data: NewOrderParams) {
                 })
                 .returning();
 
+            createdOrderId = newOrder.id;
+
             if (resolvedItems.length > 0) {
                 const itemsToInsert = resolvedItems.map((item) => ({
                     order_id: newOrder.id,
@@ -276,25 +286,40 @@ export async function createOrder(data: NewOrderParams) {
 
                 await tx.insert(orderItems).values(itemsToInsert);
             }
-        });
 
-        // Deduct stock for each item after order is created
-        for (const item of data.items) {
-            try {
-                await deductStock({
+            // Deduct stock safely within the same transaction
+            for (const item of data.items) {
+                const existingStock = await tx.query.stock.findFirst({
+                    where: (s, { eq, and }) => and(
+                        eq(s.product_id, item.product_id),
+                        eq(s.outlet_id, data.outlet_id)
+                    )
+                });
+
+                if (!existingStock || existingStock.quantity < item.quantity) {
+                    throw new Error(`Insufficient stock during final check for product ${item.product_id}`);
+                }
+
+                const newQuantity = existingStock.quantity - item.quantity;
+
+                await tx.update(stock)
+                    .set({ quantity: newQuantity, updated_at: new Date() })
+                    .where(eq(stock.id, existingStock.id));
+
+                await tx.insert(stockTransactions).values({
                     product_id: item.product_id,
                     outlet_id: data.outlet_id,
+                    transaction_type: "deduct",
                     quantity: item.quantity,
-                    notes: `Order #${data.outlet_id}`,
+                    notes: `Order #${newOrder.id}`,
+                    created_by: session?.user?.id ?? null,
                 });
-            } catch (error) {
-                console.error(`Failed to deduct stock for product ${item.product_id}:`, error);
             }
-        }
+        });
 
         revalidatePath("/order");
         revalidatePath("/admin/master/stock");
-        return { success: true };
+        return { success: true, orderId: createdOrderId };
     } catch (error) {
         console.error("Failed to create order:", error);
         return { success: false, error: "Failed to create order" };
@@ -353,7 +378,29 @@ export async function updateOrderStatus(
 ) {
     try {
         const session = await auth.api.getSession({ headers: await headers() });
-        const changedBy = session?.user?.id ?? null;
+        if (!session?.user) return { success: false, error: "Unauthorized" };
+
+        const userRole = session.user.role as string;
+        const changedBy = session.user.id;
+
+        // Strict role validation based on allowed statuses
+        if (userRole !== "admin") {
+            if (userRole === "user") {
+                if (!["pending", "cancelled"].includes(newStatus)) {
+                    return { success: false, error: "Unauthorized: User cannot set this status." };
+                }
+            } else if (userRole === "baker") {
+                if (!["pending", "accepted", "in_production", "ready"].includes(newStatus)) {
+                    return { success: false, error: "Unauthorized: Baker cannot set this status." };
+                }
+            } else if (userRole === "runner") {
+                if (!["ready", "shipping", "delivered"].includes(newStatus)) {
+                    return { success: false, error: "Unauthorized: Runner cannot set this status." };
+                }
+            } else {
+                return { success: false, error: "Unauthorized: Invalid role." };
+            }
+        }
 
         // Update order status and delivery proof if provided
         await db.update(orders)
@@ -383,30 +430,11 @@ export async function updateOrderStatus(
             });
 
             if (order) {
-                // Send Telegram Notification
-                const statusEmoji: Record<string, string> = {
-                    'pending': '⏳',
-                    'accepted': '✅',
-                    'in_production': '👨‍🍳',
-                    'ready': '📦',
-                    'shipping': '🚚',
-                    'delivered': '🏠',
-                    'cancelled': '❌'
-                };
-
-                const message = `<b>${statusEmoji[newStatus] || '🔔'} Update Status Order</b>\n\n` +
-                    `Order: <b>#${orderId}</b>\n` +
-                    `Status: <b>${newStatus.toUpperCase()}</b>\n` +
-                    `Outlet: <b>${order.outlet?.name || 'Unknown'}</b>\n\n` +
-                    `<i>Update dilakukan oleh sistem.</i>`;
-
-                await sendTelegramNotification(message);
-
                 for (const item of order.items) {
                     try {
                         await addStock({
                             product_id: item.product_id,
-                            outlet_id: null,
+                            outlet_id: null, // Add to central kitchen
                             quantity: item.quantity,
                             notes: `Production completed for order #${orderId}`,
                         });
@@ -415,32 +443,58 @@ export async function updateOrderStatus(
                     }
                 }
             }
-        } else {
-            // Send notification for other statuses too
+        }
+
+        // When shipping, stock transfers from central to the destination outlet
+        if (newStatus === "shipping") {
             const order = await db.query.orders.findFirst({
                 where: eq(orders.id, orderId),
-                with: { outlet: true },
+                with: { items: true },
             });
 
-            if (order) {
-                const statusEmoji: Record<string, string> = {
-                    'pending': '⏳',
-                    'accepted': '✅',
-                    'in_production': '👨‍🍳',
-                    'ready': '📦',
-                    'shipping': '🚚',
-                    'delivered': '🏠',
-                    'cancelled': '❌'
-                };
-
-                const message = `<b>${statusEmoji[newStatus] || '🔔'} Update Status Order</b>\n\n` +
-                    `Order: <b>#${orderId}</b>\n` +
-                    `Status: <b>${newStatus.toUpperCase()}</b>\n` +
-                    `Outlet: <b>${order.outlet?.name || 'Unknown'}</b>\n\n` +
-                    `<i>Update dilakukan oleh sistem.</i>`;
-
-                await sendTelegramNotification(message);
+            if (order && order.outlet_id !== null) {
+                // Ensure import explicitly matches existing exported function in stock.ts
+                const { transferStock } = await import("./actions/stock");
+                for (const item of order.items) {
+                    try {
+                        await transferStock({
+                            product_id: item.product_id,
+                            from_outlet_id: null, // from central kitchen
+                            to_outlet_id: order.outlet_id, // to destination outlet
+                            quantity: item.quantity,
+                            notes: `Shipping order #${orderId}`,
+                        });
+                    } catch (error) {
+                        console.error(`Failed to transfer stock for product ${item.product_id}:`, error);
+                    }
+                }
             }
+        }
+
+        // Send Telegram Notification for all status changes
+        const notifyOrder = await db.query.orders.findFirst({
+            where: eq(orders.id, orderId),
+            with: { outlet: true },
+        });
+
+        if (notifyOrder) {
+            const statusEmoji: Record<string, string> = {
+                'pending': '⏳',
+                'accepted': '✅',
+                'in_production': '👨‍🍳',
+                'ready': '📦',
+                'shipping': '🚚',
+                'delivered': '🏠',
+                'cancelled': '❌'
+            };
+
+            const message = `<b>${statusEmoji[newStatus] || '🔔'} Update Status Order</b>\n\n` +
+                `Order: <b>#${orderId}</b>\n` +
+                `Status: <b>${newStatus.toUpperCase()}</b>\n` +
+                `Outlet: <b>${notifyOrder.outlet?.name || 'Unknown'}</b>\n\n` +
+                `<i>Update dilakukan oleh sistem.</i>`;
+
+            await sendTelegramNotification(message).catch(console.error);
         }
 
         revalidatePath(pathname);
@@ -502,11 +556,25 @@ export async function getOrderWithDetails(orderId: number) {
             });
         }
 
-        return {
+        const session = await auth.api.getSession({ headers: await headers() });
+
+        const resultOrder = {
             ...order,
             statusLogs: enrichedLogs,
             activeRunner
         };
+
+        if (session?.user?.role !== "admin") {
+            resultOrder.items = resultOrder.items.map((item) => {
+                if (item.product) {
+                    // @ts-ignore
+                    item.product.base_price = null;
+                }
+                return item;
+            });
+        }
+
+        return resultOrder;
     } catch (error) {
         console.error("Failed to fetch order details:", error);
         return null;
@@ -528,24 +596,39 @@ export async function updateRunnerLocation(lat: number, lng: number) {
         // We only record the trail if they are currently delivering something
         const activeOrder = await db.query.orders.findFirst({
             where: (o, { eq, and }) => and(
-                eq(o.status, "shipping"),
-                // In this system, orders aren't explicitly assigned to users, 
-                // but we can assume if the user is a runner and looking at/updating orders, 
-                // they are the one handling it. 
-                // For now, we'll record for ANY shipping order if the user is a runner.
+                eq(o.status, "shipping")
             )
         });
 
         if (activeOrder) {
-            // 3. Record the trail
-            // To prevent DB bloat, we could throttle this (e.g. only every 30s or if distance > 10m)
-            // For now, we'll just insert since the browser hook already throttles to 30s
-            await db.insert(runnerTrail).values({
-                user_id: userId,
-                order_id: activeOrder.id,
-                lat,
-                lng,
+            // 3. Record the trail with distance throttling
+            const lastTrail = await db.query.runnerTrail.findFirst({
+                where: eq(runnerTrail.user_id, userId),
+                orderBy: (trails, { desc }) => [desc(trails.created_at)]
             });
+
+            let shouldInsert = true;
+            if (lastTrail) {
+                // Basic distance calculation (Pythagorean theorem on coordinates for rough short distances)
+                // Note: Not perfectly accurate for spherical earth, but efficient for small distances
+                const dLat = (lat - lastTrail.lat) * 111000; // rough meters per degree lat
+                const dLng = (lng - lastTrail.lng) * 111000 * Math.cos(lat * Math.PI / 180);
+                const distanceMeters = Math.sqrt(dLat * dLat + dLng * dLng);
+
+                // Only insert if moved more than 20 meters to prevent DB bloat
+                if (distanceMeters < 20) {
+                    shouldInsert = false;
+                }
+            }
+
+            if (shouldInsert) {
+                await db.insert(runnerTrail).values({
+                    user_id: userId,
+                    order_id: activeOrder.id,
+                    lat,
+                    lng,
+                });
+            }
         }
     } catch (error) {
         // Silent fail — location updates are best-effort
@@ -582,6 +665,13 @@ export async function getRunnerLocations() {
  */
 export async function cancelOrder(orderId: number, reason?: string) {
     try {
+        const session = await auth.api.getSession({ headers: await headers() });
+        const userRole = session?.user?.role as string;
+
+        if (!session?.user || !["admin", "user"].includes(userRole)) {
+            return { success: false, error: "Unauthorized: You cannot cancel orders." };
+        }
+
         // Get the order with items
         const order = await db.query.orders.findFirst({
             where: eq(orders.id, orderId),
@@ -608,27 +698,48 @@ export async function cancelOrder(orderId: number, reason?: string) {
             return { success: false, error: "Order is already cancelled" };
         }
 
-        // Update order status to cancelled
-        await db.update(orders)
-            .set({
-                status: "cancelled",
-                updated_at: new Date(),
-            })
-            .where(eq(orders.id, orderId));
+        await db.transaction(async (tx) => {
+            // Update order status to cancelled
+            await tx.update(orders)
+                .set({
+                    status: "cancelled",
+                    updated_at: new Date(),
+                })
+                .where(eq(orders.id, orderId));
 
-        // Return stock for each item
-        for (const item of order.items) {
-            try {
-                await addStock({
+            // Return stock for each item
+            for (const item of order.items) {
+                const existingStock = await tx.query.stock.findFirst({
+                    where: (s, { eq, and }) => and(
+                        eq(s.product_id, item.product_id),
+                        eq(s.outlet_id, order.outlet_id)
+                    )
+                });
+
+                if (existingStock) {
+                    const newQuantity = existingStock.quantity + item.quantity;
+                    await tx.update(stock)
+                        .set({ quantity: newQuantity, updated_at: new Date() })
+                        .where(eq(stock.id, existingStock.id));
+                } else {
+                    await tx.insert(stock).values({
+                        product_id: item.product_id,
+                        outlet_id: order.outlet_id,
+                        quantity: item.quantity,
+                        min_stock: 5,
+                    });
+                }
+
+                await tx.insert(stockTransactions).values({
                     product_id: item.product_id,
                     outlet_id: order.outlet_id,
+                    transaction_type: "add",
                     quantity: item.quantity,
                     notes: reason || `Returned from cancelled order #${orderId}`,
+                    created_by: session?.user?.id ?? null,
                 });
-            } catch (error) {
-                console.error(`Failed to return stock for product ${item.product_id}:`, error);
             }
-        }
+        });
 
         revalidatePath("/order");
         revalidatePath("/admin/master/stock");
@@ -717,6 +828,10 @@ export async function getAnalytics(outletId?: number | null) {
 
 export async function seedDatabase(isCleanupOnly = false) {
     try {
+        if (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production") {
+            return { success: false, error: "Cannot seed database in production environment." };
+        }
+
         // Skip auth check - allow seeding from public developer console
         const { runSeed } = await import("@/db/seed");
         return await runSeed(isCleanupOnly);

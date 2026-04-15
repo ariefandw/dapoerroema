@@ -1,0 +1,28 @@
+
+> orbery@0.2.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+
+✓ Starting...
+✓ Ready in 6s
+  Reload env: .env.local
+LOGIN PAGE MOUNTED - V2
+ GET /login 200 in 2.2s (compile: 1846ms, render: 388ms)
+LOGIN PAGE MOUNTED - V2
+ GET /login 200 in 1092ms (compile: 193ms, render: 899ms)
+ POST /api/auth/sign-in/email 200 in 5.8s (compile: 5.3s, render: 555ms)
+○ Compiling /order ...
+[getActiveOrders] Filtering: 2026-04-07T00:00:00.000Z to 2026-04-07T23:59:59.999Z (outletId: 1)
+LOGIN PAGE MOUNTED - V2
+ GET /login 200 in 120ms (compile: 8ms, render: 113ms)
+ POST /api/auth/sign-in/email 200 in 497ms (compile: 67ms, render: 431ms)
+[getActiveOrders] Filtering: 2026-04-07T00:00:00.000Z to 2026-04-07T23:59:59.999Z (outletId: 1)
+[getActiveOrders] Filtering: 2026-04-07T00:00:00.000Z to 2026-04-07T23:59:59.999Z (outletId: 1)
+ GET /order 200 in 603ms (compile: 8ms, proxy.ts: 7ms, render: 587ms)
+ GET /order 200 in 555ms (compile: 27ms, proxy.ts: 20ms, render: 508ms)
+[getActiveOrders] Filtering: 2026-04-07T00:00:00.000Z to 2026-04-07T23:59:59.999Z (outletId: 1)
+ GET / 307 in 1019ms (compile: 144ms, render: 876ms)
+ GET /order 200 in 751ms (compile: 9ms, proxy.ts: 8ms, render: 734ms)
