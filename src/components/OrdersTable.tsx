@@ -150,19 +150,17 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        {userRole === "admin" && (
-                                                            <Button
-                                                                asChild
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
-                                                                title="Lihat Detail Order"
-                                                            >
-                                                                <Link href={`/admin/orders/${order.id}`}>
-                                                                    <Eye className="h-4 w-4" />
-                                                                </Link>
-                                                            </Button>
-                                                        )}
+                                                        <Button
+                                                            asChild
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
+                                                            title="Lihat Detail Order"
+                                                        >
+                                                            <Link href={userRole === "admin" ? `/admin/orders/${order.id}` : `/order/${order.id}`}>
+                                                                <Eye className="h-4 w-4" />
+                                                            </Link>
+                                                        </Button>
                                                         <StatusStepper
                                                             orderId={order.id}
                                                             currentStatus={order.status as OrderStatus}
@@ -192,18 +190,16 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                     <Calendar className="h-3 w-3" />
                                                     {format(new Date(order.order_date), "PP p")}
                                                 </div>
-                                                {userRole === "admin" && (
-                                                    <Button
-                                                        asChild
-                                                        variant="secondary"
-                                                        size="icon"
-                                                        className="h-7 w-7 rounded-sm shadow-sm"
-                                                    >
-                                                        <Link href={`/admin/orders/${order.id}`}>
-                                                            <ArrowRight className="h-3 w-3" />
-                                                        </Link>
-                                                    </Button>
-                                                )}
+                                                <Button
+                                                    asChild
+                                                    variant="secondary"
+                                                    size="icon"
+                                                    className="h-7 w-7 rounded-sm shadow-sm"
+                                                >
+                                                    <Link href={userRole === "admin" ? `/admin/orders/${order.id}` : `/order/${order.id}`}>
+                                                        <ArrowRight className="h-3 w-3" />
+                                                    </Link>
+                                                </Button>
                                             </div>
                                         </div>
 
