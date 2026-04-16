@@ -46,7 +46,7 @@ export default function RunnerMap({ initialData }: { initialData: { runners: any
         const interval = setInterval(async () => {
             const fresh = await getRunnerLocations();
             setData(fresh);
-        }, 30000); // Update every 30s
+        }, 15000); // 15 seconds for near real-time updates
         return () => clearInterval(interval);
     }, []);
 

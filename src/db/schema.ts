@@ -61,6 +61,7 @@ export const orders = pgTable("orders", {
   subtotal: integer("subtotal"),                 // before discount
   total_amount: integer("total_amount"),          // final after discount
   notes: text("notes"),
+  runner_id: text("runner_id").references(() => user.id), // Assigned runner
   order_date: timestamp("order_date").notNull(),
   delivery_photo_url: text("delivery_photo_url"),
   delivery_signature_url: text("delivery_signature_url"),
@@ -126,6 +127,7 @@ export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  username: text("username").unique(),
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("admin"),
@@ -231,6 +233,11 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.outlet_id],
     references: [outlets.id],
   }),
+  runner: one(user, {
+    fields: [orders.runner_id],
+    references: [user.id],
+    relationName: "runner_deliveries",
+  }),
   items: many(orderItems),
   statusLogs: many(orderStatusLogs),
   trails: many(runnerTrail),
@@ -258,6 +265,9 @@ export const userRelations = relations(user, ({ one, many }) => ({
   currentOutlet: one(outlets, {
     fields: [user.currentOutletId],
     references: [outlets.id],
+  }),
+  deliveredOrders: many(orders, {
+    relationName: "runner_deliveries",
   }),
   trails: many(runnerTrail),
 }));

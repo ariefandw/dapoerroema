@@ -75,6 +75,7 @@ export function Navbar({ session, userRole, outlets }: NavbarProps) {
                                 id: session.user.id,
                                 name: session.user.name,
                                 email: session.user.email,
+                                username: session.user.username,
                                 role: userRole,
                                 image: session.user.image,
                             }}

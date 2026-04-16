@@ -21,6 +21,7 @@ interface UserMenuProps {
         id: string;
         name: string;
         email: string;
+        username?: string | null;
         role: string;
         image?: string | null;
     };
@@ -31,9 +32,15 @@ export function UserMenu({ user }: UserMenuProps) {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     async function handleSignOut() {
-        await signOut();
-        router.push("/login");
-        router.refresh();
+        // Sign out and ensure session is destroyed
+        await signOut({
+            fetchOptions: {
+                onSuccess: () => {
+                    // Force a hard redirect to ensure all state is cleared
+                    window.location.href = "/login";
+                },
+            },
+        });
     }
 
     return (
@@ -48,6 +55,9 @@ export function UserMenu({ user }: UserMenuProps) {
                     <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
                             <p className="text-sm font-bold leading-none">{user.name}</p>
+                            {user.username && (
+                                <p className="text-xs text-muted-foreground">@{user.username}</p>
+                            )}
                             <p className="text-sm font-black leading-none text-muted-foreground uppercase mt-0.5">
                                 {user.role}
                             </p>

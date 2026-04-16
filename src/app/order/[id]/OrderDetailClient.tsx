@@ -272,7 +272,7 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                     {order.outlet.contact_info || "Tidak ada informasi kontak tersedia."}
                                 </p>
                             </div>
-                            {order.activeRunner && (
+                            {order.runner && (
                                 <>
                                     <Separator className="bg-border/10" />
                                     <div className="flex items-center gap-3">
@@ -281,7 +281,7 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Runner Bertugas</p>
-                                            <p className="text-sm font-bold">{order.activeRunner.name}</p>
+                                            <p className="text-sm font-bold">{order.runner.name}</p>
                                         </div>
                                     </div>
                                 </>

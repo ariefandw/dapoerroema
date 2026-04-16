@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { User, Loader2, Mail, Shield } from "lucide-react";
+import { Loader2, User, Mail, Shield, Store } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -23,19 +23,26 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { AvatarUpload } from "@/components/AvatarUpload";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
-import { updateProfile } from "@/app/actions";
+import { updateUserAdmin } from "@/app/actions";
 
 const formSchema = z.object({
     name: z.string().min(2, "Nama minimal 2 karakter"),
     username: z.string().min(3, "Username minimal 3 karakter").max(30, "Username maksimal 30 karakter").regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh berisi huruf, angka, dan underscore").optional().or(z.literal("")),
-    image: z.string().nullable().optional(),
+    role: z.enum(["admin", "baker", "runner", "user"]),
+    currentOutletId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface EditProfileDialogProps {
+interface EditUserDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     user: {
@@ -44,83 +51,66 @@ interface EditProfileDialogProps {
         email: string;
         username?: string | null;
         role: string;
-        image?: string | null;
+        currentOutletId?: number | null;
     };
-    onProfileUpdated?: () => void;
+    outlets: Array<{ id: number; name: string }>;
+    onUserUpdated?: () => void;
 }
 
-export function EditProfileDialog({
+export function EditUserDialog({
     open,
     onOpenChange,
     user,
-    onProfileUpdated,
-}: EditProfileDialogProps) {
+    outlets,
+    onUserUpdated,
+}: EditUserDialogProps) {
     const [isPending, startTransition] = useTransition();
-    const [currentImage, setCurrentImage] = useState<string | null | undefined>(user.image);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             name: user.name,
             username: user.username ?? "",
-            image: user.image ?? null,
+            role: user.role as any,
+            currentOutletId: user.currentOutletId?.toString() || "none",
         },
     });
 
-    // Reset form when dialog opens with new user data
-    function handleOpenChange(newOpen: boolean) {
-        if (!newOpen) {
-            // Reset to original values when closing without saving
-            form.reset({ name: user.name, username: user.username ?? "", image: user.image ?? null });
-            setCurrentImage(user.image);
-        }
-        onOpenChange(newOpen);
-    }
-
     function onSubmit(values: FormValues) {
         startTransition(async () => {
-            const result = await updateProfile({
-                id: user.id,
+            const result = await updateUserAdmin({
+                userId: user.id,
                 name: values.name,
                 username: values.username || null,
-                image: currentImage ?? null,
+                role: values.role,
+                currentOutletId: (values.currentOutletId && values.currentOutletId !== "none") ? parseInt(values.currentOutletId) : null,
             });
 
             if (result.success) {
-                toast.success("Profile berhasil diperbarui");
+                toast.success("User berhasil diperbarui");
                 onOpenChange(false);
-                onProfileUpdated?.();
+                onUserUpdated?.();
             } else {
-                toast.error(result.error || "Gagal memperbarui profile");
+                toast.error(result.error || "Gagal memperbarui user");
             }
         });
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <User className="h-5 w-5 text-primary" />
-                        Edit Profile
+                        Edit Pengguna
                     </DialogTitle>
                     <DialogDescription>
-                        Ubah nama dan foto profile Anda.
+                        Ubah data pengguna {user.name}
                     </DialogDescription>
                 </DialogHeader>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
-                        {/* Avatar Upload */}
-                        <div className="flex justify-center sm:justify-start">
-                            <AvatarUpload
-                                currentImage={currentImage}
-                                onImageChange={setCurrentImage}
-                                userName={user.name}
-                            />
-                        </div>
-
-                        {/* Name Field */}
                         <FormField
                             control={form.control}
                             name="name"
@@ -137,7 +127,6 @@ export function EditProfileDialog({
                             )}
                         />
 
-                        {/* Username Field */}
                         <FormField
                             control={form.control}
                             name="username"
@@ -150,48 +139,77 @@ export function EditProfileDialog({
                                         <Input placeholder="Contoh: ariefan123" {...field} />
                                     </FormControl>
                                     <p className="text-sm text-muted-foreground">
-                                        Username digunakan untuk login selain email
+                                        Kosongkan untuk menghapus username
                                     </p>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
 
-                        {/* Email (Read-only) */}
-                        <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                                <Mail className="h-3.5 w-3.5 text-muted-foreground" /> Email
-                            </FormLabel>
-                            <FormControl>
-                                <Input value={user.email} disabled className="bg-muted" />
-                            </FormControl>
-                            <p className="text-sm text-muted-foreground">
-                                Email tidak dapat diubah
-                            </p>
-                        </FormItem>
+                        <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2">
+                                        <Shield className="h-3.5 w-3.5 text-muted-foreground" /> Peran
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih peran" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                            <SelectItem value="baker">Baker</SelectItem>
+                                            <SelectItem value="runner">Runner</SelectItem>
+                                            <SelectItem value="user">User</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
-                        {/* Role (Read-only) */}
-                        <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                                <Shield className="h-3.5 w-3.5 text-muted-foreground" /> Peran
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                    value={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                                    disabled
-                                    className="bg-muted"
-                                />
-                            </FormControl>
-                            <p className="text-sm text-muted-foreground">
-                                Hubungi admin untuk mengubah peran
-                            </p>
-                        </FormItem>
+                        <FormField
+                            control={form.control}
+                            name="currentOutletId"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2">
+                                        <Store className="h-3.5 w-3.5 text-muted-foreground" /> Outlet
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Semua" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="none">Tidak Ada Outlet</SelectItem>
+                                            {outlets.map((outlet) => (
+                                                <SelectItem key={outlet.id} value={outlet.id.toString()}>
+                                                    {outlet.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded">
+                            <Mail className="h-3 w-3 inline mr-1" />
+                            Email: <span className="font-medium">{user.email}</span>
+                        </div>
 
                         <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => handleOpenChange(false)}
+                                onClick={() => onOpenChange(false)}
                                 disabled={isPending}
                                 className="w-full sm:w-auto"
                             >

@@ -37,6 +37,7 @@ import { adminCreateUser } from "@/app/actions";
 const formSchema = z.object({
     name: z.string().min(2, "Nama minimal 2 karakter"),
     email: z.string().email("Email tidak valid"),
+    username: z.string().min(3, "Username minimal 3 karakter").max(30, "Username maksimal 30 karakter").regex(/^[a-zA-Z0-9_]+$/, "Username hanya boleh berisi huruf, angka, dan underscore").optional().or(z.literal("")),
     role: z.enum(["admin", "baker", "runner", "user"]),
     currentOutletId: z.string().optional(),
     password: z.string().min(6, "Password minimal 6 karakter").optional(),
@@ -53,6 +54,7 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
         defaultValues: {
             name: "",
             email: "",
+            username: "",
             role: "user",
             currentOutletId: "none",
             password: "",
@@ -63,6 +65,7 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
         startTransition(async () => {
             const result = await adminCreateUser({
                 ...values,
+                username: values.username || null,
                 currentOutletId: (values.currentOutletId && values.currentOutletId !== "none") ? parseInt(values.currentOutletId) : null,
                 role: values.role as any
             });
@@ -124,6 +127,24 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
                                     <FormControl>
                                         <Input placeholder="arief@test.app" {...field} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="username"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="flex items-center gap-2">
+                                        <User className="h-3.5 w-3.5 text-muted-foreground" /> Username
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="ariefan123" {...field} />
+                                    </FormControl>
+                                    <p className="text-sm text-muted-foreground">
+                                        Opsional: User bisa login dengan username selain email
+                                    </p>
                                     <FormMessage />
                                 </FormItem>
                             )}

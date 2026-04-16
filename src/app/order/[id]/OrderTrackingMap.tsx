@@ -76,7 +76,7 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
         const interval = setInterval(async () => {
             const fresh = await getOrderWithDetails(order.id);
             if (fresh) setOrder(fresh);
-        }, 30000);
+        }, 15000); // 15 seconds for near real-time updates
         return () => clearInterval(interval);
     }, [order.id, order.status]);
 
@@ -87,8 +87,8 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
         ? trailPositions[0]
         : [-7.7956, 110.3695]; // Yogyakarta Default fallback
 
-    const runnerPos: [number, number] | null = order.activeRunner?.last_lat && order.activeRunner?.last_lng
-        ? [order.activeRunner.last_lat, order.activeRunner.last_lng]
+    const runnerPos: [number, number] | null = order.runner?.last_lat && order.runner?.last_lng
+        ? [order.runner.last_lat, order.runner.last_lng]
         : order.trails?.length > 0
             ? [order.trails[order.trails.length - 1].lat, order.trails[order.trails.length - 1].lng]
             : null;
@@ -150,7 +150,7 @@ export default function OrderTrackingMap({ order: initialOrder }: { order: any }
                             <Popup>
                                 <div className="p-1">
                                     <p className="font-bold text-sm leading-tight text-indigo-700">
-                                        {order.activeRunner?.name || "Runner"}
+                                        {order.runner?.name || "Runner"}
                                     </p>
                                     <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-widest font-bold">
                                         Posisi Runner

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Shield, Store, Mail, User, Ban, UserCheck } from "lucide-react";
+import { Loader2, Shield, Store, Mail, User, Ban, UserCheck, Edit } from "lucide-react";
 import { type InferSelectModel } from "drizzle-orm";
 import { outlets as outletsSchema } from "@/db/schema";
 import { Button } from "@/components/ui/button";
@@ -24,12 +24,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import { EditUserDialog } from "./EditUserDialog";
 
 interface UserRowProps {
     user: {
         id: string;
         name: string;
         email: string;
+        username?: string | null;
         role: string;
         currentOutletId?: number | null;
         currentOutlet?: InferSelectModel<typeof outletsSchema> | null;
@@ -45,6 +47,7 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
     const [outletId, setOutletId] = useState(user.currentOutletId?.toString() || "none");
     const [isBanned, setIsBanned] = useState(user.banned || false);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
 
     const roles = ["admin", "baker", "runner", "user"];
 
@@ -107,6 +110,11 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                                 {user.name}
                                 {isBanned && <span className="text-sm font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded uppercase">OFF</span>}
                             </span>
+                            {user.username && (
+                                <div className="text-xs text-muted-foreground">
+                                    @{user.username}
+                                </div>
+                            )}
                             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                 <Mail className="h-3 w-3 shrink-0" />
                                 <span className="truncate">{user.email}</span>
@@ -114,15 +122,26 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                         </div>
                     </div>
 
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className={isBanned ? "text-green-600" : "text-destructive"}
-                        onClick={() => setConfirmOpen(true)}
-                        disabled={isPending}
-                    >
-                        {isBanned ? <UserCheck className="h-5 w-5" /> : <Ban className="h-5 w-5" />}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setEditOpen(true)}
+                            disabled={isPending}
+                        >
+                            <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={isBanned ? "text-green-600" : "text-destructive"}
+                            onClick={() => setConfirmOpen(true)}
+                            disabled={isPending}
+                        >
+                            {isBanned ? <UserCheck className="h-5 w-5" /> : <Ban className="h-5 w-5" />}
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -188,6 +207,14 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                <EditUserDialog
+                    open={editOpen}
+                    onOpenChange={setEditOpen}
+                    user={user}
+                    outlets={outlets}
+                    onUserUpdated={() => window.location.reload()}
+                />
             </div>
         );
     }
@@ -205,6 +232,9 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                             {isPending && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
                             {isBanned && <span className="text-sm font-black bg-destructive/10 text-destructive px-1.5 py-0.5 rounded uppercase border border-destructive/20">NONAKTIF</span>}
                         </span>
+                        {user.username && (
+                            <span className="text-xs text-muted-foreground">@{user.username}</span>
+                        )}
                         <span className="text-sm text-muted-foreground">{user.email}</span>
                     </div>
                 </div>
@@ -239,43 +269,62 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                 </Select>
             </TableCell>
             <TableCell className="text-right">
-                <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                    <DialogTrigger asChild>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className={`h-8 w-8 transition-all scale-90 group-hover:scale-100 ${isBanned ? "text-green-600 hover:text-green-700 hover:bg-green-50" : "text-destructive hover:text-destructive hover:bg-destructive/10"}`}
-                            disabled={isPending}
-                        >
-                            {isBanned ? <UserCheck className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[400px]">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                                {isBanned ? <UserCheck className="h-5 w-5 text-green-600" /> : <Ban className="h-5 w-5 text-destructive" />}
-                                {isBanned ? "Aktifkan Kembali Pengguna?" : "Nonaktifkan Pengguna?"}
-                            </DialogTitle>
-                            <DialogDescription className="pt-2">
-                                {isBanned
-                                    ? `Apakah Anda yakin ingin mengaktifkan kembali akses untuk ${user.name}? User ini akan segera bisa login kembali.`
-                                    : `Apakah Anda yakin ingin menonaktifkan ${user.name}? User ini tidak akan bisa mengakses sistem Dapoer Roema sampai diaktifkan kembali.`}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter className="gap-2 sm:gap-0 mt-6 pt-4 border-t">
-                            <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={isPending}>Batal</Button>
+                <div className="flex items-center justify-end gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 transition-all scale-90 group-hover:scale-100"
+                        onClick={() => setEditOpen(true)}
+                        disabled={isPending}
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                        <DialogTrigger asChild>
                             <Button
-                                variant={isBanned ? "default" : "destructive"}
-                                onClick={handleToggleStatus}
+                                variant="ghost"
+                                size="icon"
+                                className={`h-8 w-8 transition-all scale-90 group-hover:scale-100 ${isBanned ? "text-green-600 hover:text-green-700 hover:bg-green-50" : "text-destructive hover:text-destructive hover:bg-destructive/10"}`}
                                 disabled={isPending}
-                                className="font-bold px-6"
                             >
-                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isBanned ? "Ya, Aktifkan" : "Ya, Nonaktifkan"}
+                                {isBanned ? <UserCheck className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[400px]">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                    {isBanned ? <UserCheck className="h-5 w-5 text-green-600" /> : <Ban className="h-5 w-5 text-destructive" />}
+                                    {isBanned ? "Aktifkan Kembali Pengguna?" : "Nonaktifkan Pengguna?"}
+                                </DialogTitle>
+                                <DialogDescription className="pt-2">
+                                    {isBanned
+                                        ? `Apakah Anda yakin ingin mengaktifkan kembali akses untuk ${user.name}? User ini akan segera bisa login kembali.`
+                                        : `Apakah Anda yakin ingin menonaktifkan ${user.name}? User ini tidak akan bisa mengakses sistem Dapoer Roema sampai diaktifkan kembali.`}
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter className="gap-2 sm:gap-0 mt-6 pt-4 border-t">
+                                <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={isPending}>Batal</Button>
+                                <Button
+                                    variant={isBanned ? "default" : "destructive"}
+                                    onClick={handleToggleStatus}
+                                    disabled={isPending}
+                                    className="font-bold px-6"
+                                >
+                                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {isBanned ? "Ya, Aktifkan" : "Ya, Nonaktifkan"}
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+
+                <EditUserDialog
+                    open={editOpen}
+                    onOpenChange={setEditOpen}
+                    user={user}
+                    outlets={outlets}
+                    onUserUpdated={() => window.location.reload()}
+                />
             </TableCell>
         </TableRow>
     );

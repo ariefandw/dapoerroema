@@ -11,12 +11,21 @@ export const auth = betterAuth({
     }),
     emailAndPassword: {
         enabled: true,
+        username: {
+            enabled: true,
+        },
     },
     plugins: [
         admin(),
     ],
     user: {
         additionalFields: {
+            username: {
+                type: "string",
+                required: false,
+                unique: true,
+                input: true,
+            },
             currentOutletId: {
                 type: "number",
                 required: false,
@@ -31,6 +40,7 @@ export const auth = betterAuth({
 export type Session = typeof auth.$Infer.Session & {
     user: {
         role: string;
+        username?: string | null;
         currentOutletId?: number | null;
         image?: string | null;
         banned?: boolean | null;

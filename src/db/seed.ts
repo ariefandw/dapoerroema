@@ -126,10 +126,10 @@ export async function runSeed(isCleanupOnly = false) {
         // 4. Users
         const { auth } = await import("../lib/auth");
         const USERS = [
-            { name: "Ariefan Admin", email: "admin@test.app", role: "admin" },
-            { name: "Budi Baker", email: "baker@test.app", role: "baker" },
-            { name: "Rudi Runner", email: "runner@test.app", role: "runner" },
-            { name: "Customer User", email: "user@test.app", role: "user" },
+            { name: "Ariefan Admin", email: "admin@test.app", username: "ariefan_admin", role: "admin" },
+            { name: "Budi Baker", email: "baker@test.app", username: "budi_baker", role: "baker" },
+            { name: "Rudi Runner", email: "runner@test.app", username: "rudi_runner", role: "runner" },
+            { name: "Customer User", email: "user@test.app", username: "customer_user", role: "user" },
         ];
 
         const userMap: Record<string, string> = {};
@@ -139,11 +139,22 @@ export async function runSeed(isCleanupOnly = false) {
 
             if (existing.rows.length > 0) {
                 userId = existing.rows[0].id;
-                console.log(`   - User ${u.email} exists, updating role...`);
+                console.log(`   - User ${u.email} exists, updating role and username...`);
+                // Update existing user with username
+                await pool.query('UPDATE "user" SET username = $1 WHERE id = $2', [u.username, userId]);
             } else {
                 console.log(`   - Creating user ${u.email}...`);
-                const res = await auth.api.signUpEmail({
-                    body: { name: u.name, email: u.email, password: "Password123!" },
+                // Use createUser API which properly handles additional fields
+                const res = await auth.api.createUser({
+                    body: {
+                        name: u.name,
+                        email: u.email,
+                        password: "Password123!",
+                        role: u.role as any,
+                        data: {
+                            username: u.username,
+                        }
+                    },
                 });
                 if (!res?.user) throw new Error(`Failed to create user ${u.email}`);
                 userId = res.user.id;
@@ -153,8 +164,8 @@ export async function runSeed(isCleanupOnly = false) {
 
             // Find "Toko Roema Sapen" to assign all demo users
             const targetOutlet = outletList.find(o => o.name === "Toko Roema Sapen") || outletList[0];
-            const outletUpdate = `, current_outlet_id = ${targetOutlet.id}`;
-            await pool.query(`UPDATE "user" SET role = $1 ${outletUpdate} WHERE id = $2`, [u.role, userId]);
+            await pool.query(`UPDATE "user" SET role = $1, current_outlet_id = $2, username = $3 WHERE id = $4`,
+                [u.role, targetOutlet.id, u.username, userId]);
         }
 
         // 5. Orders (Guaranteed 5+ per outlet)

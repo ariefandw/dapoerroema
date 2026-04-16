@@ -13,16 +13,16 @@ import { toast } from "sonner";
 import { seedDatabase } from "@/app/actions";
 
 const DEMO_ACCOUNTS = [
-    { label: "Admin", email: "admin@test.app", password: "Password123!" },
-    { label: "Baker", email: "baker@test.app", password: "Password123!" },
-    { label: "Runner", email: "runner@test.app", password: "Password123!" },
-    { label: "User", email: "user@test.app", password: "Password123!" },
+    { label: "Admin", email: "admin@test.app", username: "ariefan_admin", password: "Password123!" },
+    { label: "Baker", email: "baker@test.app", username: "budi_baker", password: "Password123!" },
+    { label: "Runner", email: "runner@test.app", username: "rudi_runner", password: "Password123!" },
+    { label: "User", email: "user@test.app", username: "customer_user", password: "Password123!" },
 ];
 
 export default function LoginPage() {
     console.log("LOGIN PAGE MOUNTED - V2");
     const router = useRouter();
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
@@ -38,7 +38,11 @@ export default function LoginPage() {
         setError("");
         setLoading(true);
         try {
-            const res = await signIn.email({ email, password });
+            const res = await signIn.email({
+                email: identifier,
+                password,
+                // Better Auth will detect if the identifier is a username or email
+            });
             if (res.error) {
                 setError(res.error.message ?? "Kredensial tidak valid.");
                 setLoading(false);
@@ -102,13 +106,13 @@ export default function LoginPage() {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="identifier">Email atau Username</Label>
                             <Input
-                                id="email"
-                                type="email"
-                                placeholder="you@test.app"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                id="identifier"
+                                type="text"
+                                placeholder="Email atau username"
+                                value={identifier}
+                                onChange={(e) => setIdentifier(e.target.value)}
                                 required
                                 className="bg-background/50"
                             />
@@ -160,7 +164,7 @@ export default function LoginPage() {
                                     size="sm"
                                     className="h-7 text-sm px-2 border-muted/50 hover:bg-primary/5 hover:text-primary transition-all"
                                     onClick={() => {
-                                        setEmail(acct.email);
+                                        setIdentifier(acct.email);
                                         setPassword(acct.password);
                                         setError("");
                                     }}
@@ -169,6 +173,9 @@ export default function LoginPage() {
                                 </Button>
                             ))}
                         </div>
+                        <p className="text-xs text-muted-foreground text-center">
+                            Bisa juga login dengan username: <span className="font-mono">@{DEMO_ACCOUNTS[0].username}</span>
+                        </p>
 
                         <div className="pt-2">
                             <Button

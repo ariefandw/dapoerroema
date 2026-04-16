@@ -18,15 +18,26 @@ export async function runMigrations() {
     });
 
     try {
-        // Create tables
+        // Create tables with all updated schema
         await pool.query(`
+            -- Brands table
+            CREATE TABLE IF NOT EXISTS brands (
+                id serial PRIMARY KEY,
+                name text NOT NULL,
+                description text,
+                created_at timestamp DEFAULT now() NOT NULL
+            );
+
+            -- Outlets table
             CREATE TABLE IF NOT EXISTS outlets (
                 id serial PRIMARY KEY,
+                brand_id integer REFERENCES brands(id),
                 name text NOT NULL,
                 contact_info text,
                 created_at timestamp DEFAULT now() NOT NULL
             );
 
+            -- Products table
             CREATE TABLE IF NOT EXISTS products (
                 id serial PRIMARY KEY,
                 name text NOT NULL,
@@ -36,9 +47,21 @@ export async function runMigrations() {
                 created_at timestamp DEFAULT now() NOT NULL
             );
 
+            -- Brand Products table
+            CREATE TABLE IF NOT EXISTS brand_products (
+                id serial PRIMARY KEY,
+                brand_id integer REFERENCES brands(id) NOT NULL,
+                product_id integer REFERENCES products(id) NOT NULL,
+                price integer NOT NULL,
+                created_at timestamp DEFAULT now() NOT NULL,
+                updated_at timestamp DEFAULT now() NOT NULL,
+                CONSTRAINT brand_products_unq UNIQUE (brand_id, product_id)
+            );
+
+            -- Orders table (with runner_id)
             CREATE TABLE IF NOT EXISTS orders (
                 id serial PRIMARY KEY,
-                outlet_id integer REFERENCES outlets(id),
+                outlet_id integer REFERENCES outlets(id) NOT NULL,
                 status text DEFAULT 'pending' NOT NULL,
                 payment_status text,
                 payment_method text,
@@ -46,32 +69,46 @@ export async function runMigrations() {
                 discount_amount integer DEFAULT 0,
                 subtotal integer,
                 total_amount integer,
+                notes text,
+                runner_id text REFERENCES "user"(id),
                 order_date timestamp NOT NULL,
-                sent_to_baker_at timestamp,
-                production_ready_at timestamp,
-                shipped_at timestamp,
-                delivered_at timestamp,
+                delivery_photo_url text,
+                delivery_signature_url text,
                 created_at timestamp DEFAULT now() NOT NULL,
                 updated_at timestamp DEFAULT now() NOT NULL
             );
 
+            -- Order Items table
             CREATE TABLE IF NOT EXISTS order_items (
                 id serial PRIMARY KEY,
                 order_id integer REFERENCES orders(id) NOT NULL,
                 product_id integer REFERENCES products(id) NOT NULL,
-                quantity integer NOT NULL
+                quantity integer NOT NULL,
+                unit_price integer
             );
 
+            -- Order Status Logs table
+            CREATE TABLE IF NOT EXISTS order_status_logs (
+                id serial PRIMARY KEY,
+                order_id integer REFERENCES orders(id) NOT NULL,
+                from_status text,
+                to_status text NOT NULL,
+                changed_by text,
+                notes text,
+                created_at timestamp DEFAULT now() NOT NULL
+            );
+
+            -- Stock table
             CREATE TABLE IF NOT EXISTS stock (
                 id serial PRIMARY KEY,
                 product_id integer REFERENCES products(id) NOT NULL,
                 outlet_id integer REFERENCES outlets(id),
                 quantity integer DEFAULT 0 NOT NULL,
                 min_stock integer DEFAULT 5,
-                created_at timestamp DEFAULT now() NOT NULL,
                 updated_at timestamp DEFAULT now() NOT NULL
             );
 
+            -- Stock Transactions table
             CREATE TABLE IF NOT EXISTS stock_transactions (
                 id serial PRIMARY KEY,
                 product_id integer REFERENCES products(id) NOT NULL,
@@ -84,15 +121,36 @@ export async function runMigrations() {
                 created_at timestamp DEFAULT now() NOT NULL
             );
 
-            -- Better Auth tables
+            -- Runner Trail table
+            CREATE TABLE IF NOT EXISTS runner_trail (
+                id serial PRIMARY KEY,
+                user_id text REFERENCES "user"(id) NOT NULL,
+                order_id integer REFERENCES orders(id),
+                lat real NOT NULL,
+                lng real NOT NULL,
+                created_at timestamp DEFAULT now() NOT NULL
+            );
+
+            -- Settings table
+            CREATE TABLE IF NOT EXISTS settings (
+                key text PRIMARY KEY,
+                value text NOT NULL,
+                updated_at timestamp DEFAULT now() NOT NULL
+            );
+
+            -- Better Auth: User table (with username)
             CREATE TABLE IF NOT EXISTS "user" (
                 id text PRIMARY KEY,
                 name text NOT NULL,
                 email text NOT NULL UNIQUE,
+                username text UNIQUE,
                 "emailVerified" boolean DEFAULT false NOT NULL,
                 image text,
                 role text DEFAULT 'admin' NOT NULL,
                 "current_outlet_id" integer REFERENCES outlets(id),
+                "last_lat" real,
+                "last_lng" real,
+                "last_seen_at" timestamp,
                 banned boolean,
                 "banReason" text,
                 "banExpires" timestamp,
@@ -100,6 +158,7 @@ export async function runMigrations() {
                 "updatedAt" timestamp DEFAULT now() NOT NULL
             );
 
+            -- Better Auth: Session table
             CREATE TABLE IF NOT EXISTS "session" (
                 id text PRIMARY KEY,
                 "expiresAt" timestamp NOT NULL,
@@ -108,17 +167,18 @@ export async function runMigrations() {
                 "updatedAt" timestamp DEFAULT now() NOT NULL,
                 "ipAddress" text,
                 "userAgent" text,
-                "userId" text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
+                userId text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
             );
 
+            -- Better Auth: Account table
             CREATE TABLE IF NOT EXISTS "account" (
                 id text PRIMARY KEY,
                 "accountId" text NOT NULL,
                 "providerId" text NOT NULL,
-                "userId" text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-                "accessToken" text,
-                "refreshToken" text,
-                "idToken" text,
+                userId text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+                accessToken text,
+                refreshToken text,
+                idToken text,
                 "accessTokenExpiresAt" timestamp,
                 "refreshTokenExpiresAt" timestamp,
                 scope text,
@@ -127,6 +187,7 @@ export async function runMigrations() {
                 "updatedAt" timestamp DEFAULT now() NOT NULL
             );
 
+            -- Better Auth: Verification table
             CREATE TABLE IF NOT EXISTS "verification" (
                 id text PRIMARY KEY,
                 identifier text NOT NULL,
@@ -135,6 +196,16 @@ export async function runMigrations() {
                 "createdAt" timestamp DEFAULT now(),
                 "updatedAt" timestamp DEFAULT now()
             );
+
+            -- Add indexes for better performance
+            CREATE INDEX IF NOT EXISTS user_username_idx ON "user"("username");
+            CREATE INDEX IF NOT EXISTS user_email_idx ON "user"(email);
+            CREATE INDEX IF NOT EXISTS session_userId_idx ON "session"("userId");
+            CREATE INDEX IF NOT EXISTS orders_outlet_id_idx ON orders(outlet_id);
+            CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
+            CREATE INDEX IF NOT EXISTS orders_runner_id_idx ON orders(runner_id);
+            CREATE INDEX IF NOT EXISTS runner_trail_user_id_idx ON runner_trail(user_id);
+            CREATE INDEX IF NOT EXISTS runner_trail_order_id_idx ON runner_trail(order_id);
         `);
 
         console.log("Database migrations completed successfully");
@@ -153,63 +224,93 @@ export async function runMigrations() {
     }
 }
 
-async function runSeed(pool: any) {
+async function runSeed(pool: Pool) {
     const { auth } = await import("../lib/auth");
+
+    // Create brands
+    await pool.query(`
+        INSERT INTO brands (name, description) VALUES
+        ('Toko Roema', 'Premium Artisan Bakery'),
+        ('Sender', 'Modern Coffee & Bread'),
+        ('YAP Cafe', 'Yogyakarta Artisan Pastry')
+        ON CONFLICT DO NOTHING
+    `);
 
     // Create outlets
     await pool.query(`
-        INSERT INTO outlets (name, contact_info) VALUES
-        ('YAP Cafe', '0812-1111-2222'),
-        ('Kael - Sender', '0812-3333-4444'),
-        ('Seken', '0812-5555-6666')
+        INSERT INTO outlets (name, contact_info, brand_id) VALUES
+        ('Toko Roema Sapen', '0812-5000-6000', 1),
+        ('Toko Roema Seturan', '0812-5000-6001', 1),
+        ('Sender Malioboro', '0812-3000-4000', 2),
+        ('Sender Jakal', '0812-3000-4001', 2),
+        ('YAP Cafe Jogja', '0812-1000-2000', 3)
+        ON CONFLICT DO NOTHING
     `);
 
     // Create products
     const products = [
         ["Soft Sourdough Coklat", "Sourdough", 25000],
         ["Soft Sourdough Keju", "Sourdough", 26000],
-        ["Soft Sourdough Kacang", "Sourdough", 26000],
-        ["Sourdough Plain", "Sourdough", 35000],
-        ["Soft Cookies Choco", "Cookies", 15000],
         ["Garlic Bread", "Bread", 20000],
         ["Croissant Butter", "Bread", 25000],
-        ["Choco Roll", "Pastry", 12000],
         ["Cinnamon Roll", "Pastry", 18000],
         ["Iced Americano", "Beverage", 15000],
+        ["Iced Latte", "Beverage", 22000],
     ];
 
     for (const product of products) {
         const [name, category, price] = product;
         const imageUrl = `https://picsum.photos/seed/${String(name).toLowerCase().replace(/\s+/g, '-')}/400/400`;
         await pool.query(
-            "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4)",
+            "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
             [name, category, price, imageUrl]
         );
     }
+
+    // Create brand products with pricing
+    await pool.query(`
+        INSERT INTO brand_products (brand_id, product_id, price)
+        SELECT 1, p.id, p.base_price * 1.2 FROM products p
+        ON CONFLICT (brand_id, product_id) DO NOTHING
+    `);
 
     // Get first outlet for users
     const outletRes = await pool.query("SELECT id FROM outlets LIMIT 1");
     const defaultOutletId = outletRes.rows[0]?.id || null;
 
-    // Create default admin user
-    try {
-        await auth.api.signUpEmail({
-            body: {
-                name: "Admin",
-                email: "admin@test.app",
-                password: "Password123!",
-            },
-        });
+    // Create demo users with usernames
+    const users = [
+        { name: "Ariefan Admin", email: "admin@test.app", username: "ariefan_admin", role: "admin" },
+        { name: "Budi Baker", email: "baker@test.app", username: "budi_baker", role: "baker" },
+        { name: "Rudi Runner", email: "runner@test.app", username: "rudi_runner", role: "runner" },
+        { name: "Customer User", email: "user@test.app", username: "customer_user", role: "user" },
+    ];
 
-        // Update role
+    for (const u of users) {
+        try {
+            await auth.api.signUpEmail({
+                body: {
+                    name: u.name,
+                    email: u.email,
+                    password: "Password123!",
+                },
+            });
+        } catch (e) {
+            // User may already exist
+        }
+
+        // Update user with role, username, and outlet
         await pool.query(
-            `UPDATE "user" SET role = 'admin', "current_outlet_id" = $1 WHERE email = 'admin@test.app'`,
-            [defaultOutletId]
+            `UPDATE "user" SET role = $1, username = $2, "current_outlet_id" = $3 WHERE email = $4`,
+            [u.role, u.username, defaultOutletId, u.email]
         );
-        console.log("Created default admin user: admin@test.app / Password123!");
-    } catch (e: any) {
-        console.log("Admin user may already exist:", e?.message);
     }
+
+    console.log("Created default users:");
+    console.log("  admin@test.app / Password123! (@ariefan_admin)");
+    console.log("  baker@test.app / Password123! (@budi_baker)");
+    console.log("  runner@test.app / Password123! (@rudi_runner)");
+    console.log("  user@test.app / Password123! (@customer_user)");
 
     console.log("Database seeding completed!");
 }

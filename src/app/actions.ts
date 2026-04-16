@@ -54,8 +54,19 @@ export async function getUsers() {
     });
 }
 
-export async function adminCreateUser(data: { email: string; name: string; role: "admin" | "baker" | "runner" | "user"; currentOutletId?: number | null; password?: string }) {
+export async function adminCreateUser(data: { email: string; name: string; username?: string | null; role: "admin" | "baker" | "runner" | "user"; currentOutletId?: number | null; password?: string }) {
     try {
+        // Check if username is already taken
+        if (data.username && data.username.trim()) {
+            const existingUser = await db.query.user.findFirst({
+                where: (u, { eq }) => eq(u.username, data.username!.trim()),
+            });
+
+            if (existingUser) {
+                return { success: false, error: "Username sudah digunakan" };
+            }
+        }
+
         await auth.api.createUser({
             headers: await headers(),
             body: {
@@ -64,6 +75,7 @@ export async function adminCreateUser(data: { email: string; name: string; role:
                 password: data.password || "Password123!",
                 role: data.role as any,
                 data: {
+                    username: data.username?.trim() || null,
                     currentOutletId: data.currentOutletId
                 }
             }
@@ -110,7 +122,40 @@ export async function updateUser(userId: string, data: { role?: string; currentO
     }
 }
 
-export async function updateProfile(data: { id: string; name: string; image: string | null }) {
+export async function updateUserAdmin(data: { userId: string; name: string; username?: string | null; role: string; currentOutletId?: number | null }) {
+    try {
+        // Check if username is already taken by another user
+        if (data.username && data.username.trim()) {
+            const existingUser = await db.query.user.findFirst({
+                where: (u, { and, eq, ne }) => and(
+                    eq(u.username, data.username!.trim()),
+                    ne(u.id, data.userId)
+                ),
+            });
+
+            if (existingUser) {
+                return { success: false, error: "Username sudah digunakan" };
+            }
+        }
+
+        await db.update(user)
+            .set({
+                name: data.name,
+                username: data.username?.trim() || null,
+                role: data.role,
+                currentOutletId: data.currentOutletId,
+                updatedAt: new Date(),
+            })
+            .where(eq(user.id, data.userId));
+        revalidatePath("/admin/users");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to update user:", error);
+        return { success: false, error: "Failed to update user" };
+    }
+}
+
+export async function updateProfile(data: { id: string; name: string; username?: string | null; image: string | null }) {
     try {
         const session = await auth.api.getSession({
             headers: await headers()
@@ -125,9 +170,24 @@ export async function updateProfile(data: { id: string; name: string; image: str
             return { success: false, error: "Unauthorized" };
         }
 
+        // Check if username is already taken by another user
+        if (data.username && data.username.trim()) {
+            const existingUser = await db.query.user.findFirst({
+                where: (u, { and, eq, ne }) => and(
+                    eq(u.username, data.username!.trim()),
+                    ne(u.id, data.id)
+                ),
+            });
+
+            if (existingUser) {
+                return { success: false, error: "Username sudah digunakan" };
+            }
+        }
+
         await db.update(user)
             .set({
                 name: data.name,
+                username: data.username?.trim() || null,
                 image: data.image,
                 updatedAt: new Date(),
             })
@@ -358,6 +418,7 @@ export async function getActiveOrders(outletId?: number | null, dateStr?: string
         where: and(...conditions),
         with: {
             outlet: true,
+            runner: true,
             items: {
                 with: {
                     product: true,
@@ -403,10 +464,13 @@ export async function updateOrderStatus(
         }
 
         // Update order status and delivery proof if provided
+        // When status changes to "shipping", assign the runner
+        const runnerId = (newStatus === "shipping" && userRole === "runner") ? changedBy : null;
         await db.update(orders)
             .set({
                 status: newStatus,
                 updated_at: new Date(),
+                ...(runnerId && { runner_id: runnerId }),
                 ...(deliveryData && {
                     delivery_photo_url: deliveryData.photoUrl,
                     delivery_signature_url: deliveryData.signatureUrl
@@ -515,6 +579,7 @@ export async function getOrderWithDetails(orderId: number) {
                         brand: true
                     }
                 },
+                runner: true,
                 items: {
                     with: {
                         product: true,
@@ -522,8 +587,8 @@ export async function getOrderWithDetails(orderId: number) {
                 },
                 statusLogs: {
                     orderBy: (logs, { asc }) => [asc(logs.created_at)],
-                    // Note: Drizzle-ORM findFirst 'with' logs join User is tricky with 
-                    // current version if not mapped in relations. 
+                    // Note: Drizzle-ORM findFirst 'with' logs join User is tricky with
+                    // current version if not mapped in relations.
                     // I will fetch logs separately if needed or rely on ID mapping.
                 },
                 trails: {
@@ -546,21 +611,11 @@ export async function getOrderWithDetails(orderId: number) {
             userName: log.changed_by ? userMap.get(log.changed_by) : "Sistem"
         }));
 
-        // Also fetch the runner's current location if shipping
-        let activeRunner = null;
-        if (order.status === "shipping" && order.trails.length > 0) {
-            const lastTrail = order.trails[order.trails.length - 1];
-            activeRunner = await db.query.user.findFirst({
-                where: eq(user.id, lastTrail.user_id),
-            });
-        }
-
         const session = await auth.api.getSession({ headers: await headers() });
 
         const resultOrder = {
             ...order,
             statusLogs: enrichedLogs,
-            activeRunner
         };
 
         if (session?.user?.role !== "admin") {
@@ -593,9 +648,11 @@ export async function updateRunnerLocation(lat: number, lng: number) {
 
         // 2. Check if the runner has an active delivery (shipping status)
         // We only record the trail if they are currently delivering something
+        // Find the order assigned to this runner
         const activeOrder = await db.query.orders.findFirst({
             where: (o, { eq, and }) => and(
-                eq(o.status, "shipping")
+                eq(o.status, "shipping"),
+                eq(o.runner_id, userId)
             )
         });
 
@@ -832,8 +889,17 @@ export async function seedDatabase(isCleanupOnly = false) {
         }
 
         // Skip auth check - allow seeding from public developer console
-        const { runSeed } = await import("@/db/seed");
-        return await runSeed(isCleanupOnly);
+        // Run migrations first to ensure schema is up to date
+        const { runMigrations } = await import("@/lib/migrate");
+        await runMigrations();
+
+        // If cleanup only, migrations were enough to recreate tables
+        if (isCleanupOnly) {
+            return { success: true, message: "Database migrations completed." };
+        }
+
+        // Migrations will seed if outlets table is empty
+        return { success: true, message: "Database migrations and seeding completed successfully!" };
     } catch (error) {
         console.error("Failed to seed database:", error);
         return { success: false, error: error instanceof Error ? error.message : "Failed to seed database" };
