@@ -38,17 +38,19 @@ interface StockDialogProps {
   products: Product[];
   outlets: Outlet[];
   initialProductId?: number;
+  userRole?: string;
+  currentOutletId?: number | null;
   children: React.ReactNode;
 }
 
 const WAREHOUSE_OPTION = { id: -1, name: "Central Kitchen" };
 
-export function StockDialog({ stock, products, outlets, initialProductId, children }: StockDialogProps) {
+export function StockDialog({ stock, products, outlets, initialProductId, userRole, currentOutletId, children }: StockDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [productId, setProductId] = useState(stock?.product_id?.toString() || initialProductId?.toString() || "");
-  const [outletId, setOutletId] = useState(stock?.outlet_id?.toString() || "warehouse");
+  const [outletId, setOutletId] = useState(stock?.outlet_id?.toString() || (userRole === "user" && currentOutletId ? currentOutletId.toString() : "warehouse"));
   const [quantity, setQuantity] = useState(stock?.quantity?.toString() || "0");
   const [minStock, setMinStock] = useState(stock?.min_stock?.toString() || "5");
   const [notes, setNotes] = useState("");
@@ -57,7 +59,7 @@ export function StockDialog({ stock, products, outlets, initialProductId, childr
   useEffect(() => {
     if (open) {
       setProductId(stock?.product_id?.toString() || initialProductId?.toString() || "");
-      setOutletId(stock?.outlet_id?.toString() || "warehouse");
+      setOutletId(stock?.outlet_id?.toString() || (userRole === "user" && currentOutletId ? currentOutletId.toString() : "warehouse"));
       setQuantity(stock?.quantity?.toString() || "0");
       setMinStock(stock?.min_stock?.toString() || "5");
       setNotes("");
@@ -91,7 +93,7 @@ export function StockDialog({ stock, products, outlets, initialProductId, childr
     }
   }
 
-  const locationOptions = [WAREHOUSE_OPTION, ...outlets];
+  const locationOptions = userRole === "user" ? outlets : [WAREHOUSE_OPTION, ...outlets];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

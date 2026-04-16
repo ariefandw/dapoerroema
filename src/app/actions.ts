@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { outlets, products, orders, orderItems, user, orderStatusLogs, runnerTrail, stock, stockTransactions } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { eq, inArray, and, sql, gte, lte } from "drizzle-orm";
+import { eq, inArray, and, sql, gte, lte, isNull } from "drizzle-orm";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
@@ -203,7 +203,7 @@ export async function createOrder(data: NewOrderParams) {
         // Check stock availability for all items at the outlet
         const stockIssues: Array<{ product_id: number; requested: number; available: number }> = [];
         for (const item of data.items) {
-            const available = await getProductStock(item.product_id, data.outlet_id);
+            const available = await getProductStock(item.product_id, null);
             if (available < item.quantity) {
                 stockIssues.push({
                     product_id: item.product_id,
@@ -292,7 +292,7 @@ export async function createOrder(data: NewOrderParams) {
                 const existingStock = await tx.query.stock.findFirst({
                     where: (s, { eq, and }) => and(
                         eq(s.product_id, item.product_id),
-                        eq(s.outlet_id, data.outlet_id)
+                        isNull(s.outlet_id)
                     )
                 });
 
@@ -308,7 +308,7 @@ export async function createOrder(data: NewOrderParams) {
 
                 await tx.insert(stockTransactions).values({
                     product_id: item.product_id,
-                    outlet_id: data.outlet_id,
+                    outlet_id: null,
                     transaction_type: "deduct",
                     quantity: item.quantity,
                     notes: `Order #${newOrder.id}`,
@@ -445,27 +445,26 @@ export async function updateOrderStatus(
             }
         }
 
-        // When shipping, stock transfers from central to the destination outlet
-        if (newStatus === "shipping") {
+        // When shipping, the runner is on the way. Status update only.
+        // When delivered, the stock is added to the destination outlet.
+        if (newStatus === "delivered") {
             const order = await db.query.orders.findFirst({
                 where: eq(orders.id, orderId),
                 with: { items: true },
             });
 
             if (order && order.outlet_id !== null) {
-                // Ensure import explicitly matches existing exported function in stock.ts
-                const { transferStock } = await import("./actions/stock");
+                const { addStock } = await import("./actions/stock");
                 for (const item of order.items) {
                     try {
-                        await transferStock({
+                        await addStock({
                             product_id: item.product_id,
-                            from_outlet_id: null, // from central kitchen
-                            to_outlet_id: order.outlet_id, // to destination outlet
+                            outlet_id: order.outlet_id,
                             quantity: item.quantity,
-                            notes: `Shipping order #${orderId}`,
+                            notes: `Delivered order #${orderId}`,
                         });
                     } catch (error) {
-                        console.error(`Failed to transfer stock for product ${item.product_id}:`, error);
+                        console.error(`Failed to add stock for product ${item.product_id} upon delivery:`, error);
                     }
                 }
             }
@@ -712,7 +711,7 @@ export async function cancelOrder(orderId: number, reason?: string) {
                 const existingStock = await tx.query.stock.findFirst({
                     where: (s, { eq, and }) => and(
                         eq(s.product_id, item.product_id),
-                        eq(s.outlet_id, order.outlet_id)
+                        isNull(s.outlet_id)
                     )
                 });
 
@@ -724,7 +723,7 @@ export async function cancelOrder(orderId: number, reason?: string) {
                 } else {
                     await tx.insert(stock).values({
                         product_id: item.product_id,
-                        outlet_id: order.outlet_id,
+                        outlet_id: null,
                         quantity: item.quantity,
                         min_stock: 5,
                     });
@@ -732,7 +731,7 @@ export async function cancelOrder(orderId: number, reason?: string) {
 
                 await tx.insert(stockTransactions).values({
                     product_id: item.product_id,
-                    outlet_id: order.outlet_id,
+                    outlet_id: null,
                     transaction_type: "add",
                     quantity: item.quantity,
                     notes: reason || `Returned from cancelled order #${orderId}`,

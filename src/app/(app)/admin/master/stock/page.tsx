@@ -13,13 +13,15 @@ import { PageContainer } from "@/components/PageContainer";
 export const dynamic = "force-dynamic";
 
 export default async function StockPage() {
-  await requireRole(["admin"]);
+  const session = await requireRole(["admin", "user"]);
+  const userRole = (session?.user as any)?.role || "user";
+  const currentOutletId = (session?.user as any)?.currentOutletId || null;
 
   const allProducts = await db.select().from(products).orderBy(products.category, products.name);
   const allOutlets = await db.select().from(outlets).orderBy(outlets.name);
 
-  const stockLevels = await getStockLevels();
-  const lowStockAlerts = await getLowStockAlerts();
+  const stockLevels = await getStockLevels(userRole === "user" ? currentOutletId : undefined);
+  const lowStockAlerts = await getLowStockAlerts(userRole === "user" ? currentOutletId : undefined);
 
   const getLocationName = (outletId: number | null, outletName: string | null) => {
     if (outletId === null) return "Central Kitchen";
@@ -71,12 +73,12 @@ export default async function StockPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <StockTransferDialog products={allProducts} outlets={allOutlets}>
+          <StockTransferDialog products={allProducts} outlets={userRole === "user" ? allOutlets.filter(o => o.id === currentOutletId) : allOutlets} userRole={userRole} currentOutletId={currentOutletId}>
             <Button variant="outline" size="sm" className="gap-2">
               <ArrowRight className="h-4 w-4" /> Transfer Stok
             </Button>
           </StockTransferDialog>
-          <StockDialog products={allProducts} outlets={allOutlets}>
+          <StockDialog products={allProducts} outlets={userRole === "user" ? allOutlets.filter(o => o.id === currentOutletId) : allOutlets} userRole={userRole} currentOutletId={currentOutletId}>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" /> Tambah Stok
             </Button>
@@ -161,7 +163,9 @@ export default async function StockPage() {
                     <div className="flex items-center justify-end gap-2">
                       <StockDialog
                         products={allProducts}
-                        outlets={allOutlets}
+                        outlets={userRole === "user" ? allOutlets.filter(o => o.id === currentOutletId) : allOutlets}
+                        userRole={userRole}
+                        currentOutletId={currentOutletId}
                         stock={{
                           id: stock.id,
                           product_id: stock.product_id,
@@ -202,7 +206,9 @@ export default async function StockPage() {
                 <StockDialog
                   key={product.id}
                   products={allProducts}
-                  outlets={allOutlets}
+                  outlets={userRole === "user" ? allOutlets.filter(o => o.id === currentOutletId) : allOutlets}
+                  userRole={userRole}
+                  currentOutletId={currentOutletId}
                   initialProductId={product.id}
                 >
                   <Button

@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { orders, orderItems, stock, stockTransactions, products } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { eq, inArray, and } from "drizzle-orm";
+import { eq, inArray, and, isNull } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 
@@ -45,7 +45,7 @@ export async function updateOrderItems(orderId: number, newItems: { product_id: 
                 const s = await tx.query.stock.findFirst({
                     where: (st, { eq, and }) => and(
                         eq(st.product_id, item.product_id),
-                        eq(st.outlet_id, outletId!)
+                        isNull(st.outlet_id)
                     )
                 });
 
@@ -56,7 +56,7 @@ export async function updateOrderItems(orderId: number, newItems: { product_id: 
 
                     await tx.insert(stockTransactions).values({
                         product_id: item.product_id,
-                        outlet_id: outletId,
+                        outlet_id: null,
                         transaction_type: "revert_edit",
                         quantity: item.quantity,
                         notes: `Revert Order #${orderId} for edit`,
@@ -89,7 +89,7 @@ export async function updateOrderItems(orderId: number, newItems: { product_id: 
                 const s = await tx.query.stock.findFirst({
                     where: (st, { eq, and }) => and(
                         eq(st.product_id, item.product_id),
-                        eq(st.outlet_id, outletId!)
+                        isNull(st.outlet_id)
                     )
                 });
 
@@ -103,7 +103,7 @@ export async function updateOrderItems(orderId: number, newItems: { product_id: 
 
                 await tx.insert(stockTransactions).values({
                     product_id: item.product_id,
-                    outlet_id: outletId,
+                    outlet_id: null,
                     transaction_type: "deduct_edit",
                     quantity: item.quantity,
                     notes: `Edit Order #${orderId}`,

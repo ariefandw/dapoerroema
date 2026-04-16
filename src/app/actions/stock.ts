@@ -30,7 +30,7 @@ export interface StockTransaction {
 
 // ─── Stock Level Actions ────────────────────────────────────────────────────────
 
-export async function getStockLevels(): Promise<StockLevel[]> {
+export async function getStockLevels(outletId?: number | null): Promise<StockLevel[]> {
   const stockQuery = await db
     .select({
       id: stock.id,
@@ -44,6 +44,7 @@ export async function getStockLevels(): Promise<StockLevel[]> {
     .from(stock)
     .leftJoin(products, eq(stock.product_id, products.id))
     .leftJoin(outlets, eq(stock.outlet_id, outlets.id))
+    .where(outletId !== undefined ? (outletId === null ? sql`${stock.outlet_id} IS NULL` : eq(stock.outlet_id, outletId)) : undefined)
     .orderBy(sql`CASE WHEN ${stock.outlet_id} IS NULL THEN 0 ELSE ${stock.outlet_id} END`, products.name);
 
   return stockQuery.map((s) => ({
@@ -354,8 +355,8 @@ export async function transferStock(data: {
   revalidatePath("/admin/master/stock");
 }
 
-export async function getLowStockAlerts(): Promise<StockLevel[]> {
-  const allStock = await getStockLevels();
+export async function getLowStockAlerts(outletId?: number | null): Promise<StockLevel[]> {
+  const allStock = await getStockLevels(outletId);
   return allStock.filter((s) => s.is_low_stock);
 }
 
