@@ -18,7 +18,25 @@ export async function POST(request: Request) {
             connectionString: process.env.DATABASE_URL,
         });
 
-        // Run complete migrations with updated schema
+        // First, add new columns to existing tables (if they don't exist)
+        await pool.query(`
+            -- Add username column to user table
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
+
+            -- Add runner_id column to orders table
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text REFERENCES "user"(id);
+
+            -- Add location tracking columns to user table (if not exists)
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
+
+            -- Add delivery columns to orders (if not exists)
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
+        `);
+
+        // Then create tables with complete schema
         await pool.query(`
             -- Brands table
             CREATE TABLE IF NOT EXISTS brands (

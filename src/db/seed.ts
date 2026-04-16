@@ -43,6 +43,29 @@ export async function runSeed(isCleanupOnly = false) {
         console.log("🧹 Cleaning up...");
         await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, brand_products, products, outlets, settings, brands CASCADE");
 
+        // Add new columns to existing tables
+        console.log("📋 Adding new columns to existing tables...");
+        await pool.query(`
+            -- Add username column to user table
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
+
+            -- Add runner_id column to orders table
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text REFERENCES "user"(id);
+
+            -- Add location tracking columns to user table
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
+
+            -- Add delivery columns to orders
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
+
+            -- Create indexes for new columns
+            CREATE INDEX IF NOT EXISTS user_username_idx ON "user"("username");
+            CREATE INDEX IF NOT EXISTS orders_runner_id_idx ON orders(runner_id);
+        `);
+
         if (isCleanupOnly) {
             console.log("✅ Cleanup complete.");
             return { success: true, message: "Data removed successfully." };

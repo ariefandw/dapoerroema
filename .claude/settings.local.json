@@ -24,7 +24,9 @@
       "Bash(git ls-tree:*)",
       "Bash(add_username_column.sql:*)",
       "Bash(pnpm tsc:*)",
-      "Bash(/c/Program Files/nodejs/npm.exe tsc:*)"
+      "Bash(/c/Program Files/nodejs/npm.exe tsc:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }
