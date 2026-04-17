@@ -15,6 +15,10 @@ export interface StockLevel {
   quantity: number;
   min_stock: number;
   is_low_stock: boolean;
+  shelf_life: number | null;
+  stock_date: Date | null;
+  expired_qty: number;
+  up_selling_qty: number;
 }
 
 export interface StockTransaction {
@@ -40,23 +44,55 @@ export async function getStockLevels(outletId?: number | null): Promise<StockLev
       outlet_name: outlets.name,
       quantity: stock.quantity,
       min_stock: stock.min_stock,
+      product_shelf_life: products.shelf_life,
+      stock_date: stock.stock_date,
     })
     .from(stock)
     .leftJoin(products, eq(stock.product_id, products.id))
     .leftJoin(outlets, eq(stock.outlet_id, outlets.id))
-    .where(outletId !== undefined ? (outletId === null ? sql`${stock.outlet_id} IS NULL` : eq(stock.outlet_id, outletId)) : undefined)
+    .where(outletId !== undefined ? (outletId === null ? sql`${stock.outlet_id} IS NULL` : sql`${stock.outlet_id} = ${outletId} OR ${stock.outlet_id} IS NULL`) : undefined)
     .orderBy(sql`CASE WHEN ${stock.outlet_id} IS NULL THEN 0 ELSE ${stock.outlet_id} END`, products.name);
 
-  return stockQuery.map((s) => ({
-    id: s.id,
-    product_id: s.product_id,
-    product_name: s.product_name ?? "Unknown Product",
-    outlet_id: s.outlet_id,
-    outlet_name: s.outlet_name,
-    quantity: s.quantity,
-    min_stock: s.min_stock ?? 5,
-    is_low_stock: s.quantity < (s.min_stock ?? 5),
-  }));
+  const now = new Date();
+
+  return stockQuery.map((s) => {
+    const shelfLife = s.product_shelf_life;
+    const stockDate = s.stock_date;
+
+    let expiredQty = 0;
+    let upSellingQty = 0;
+
+    if (shelfLife && stockDate && s.quantity > 0) {
+      const stockDateObj = new Date(stockDate);
+      const expiryDate = new Date(stockDateObj);
+      expiryDate.setDate(expiryDate.getDate() + shelfLife);
+
+      const daysUntilExpiry = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysUntilExpiry <= 0) {
+        // Already expired
+        expiredQty = s.quantity;
+      } else if (daysUntilExpiry <= Math.ceil(shelfLife * 0.3)) {
+        // Approaching expiry (within 30% of shelf life remaining) = up selling
+        upSellingQty = s.quantity;
+      }
+    }
+
+    return {
+      id: s.id,
+      product_id: s.product_id,
+      product_name: s.product_name ?? "Unknown Product",
+      outlet_id: s.outlet_id,
+      outlet_name: s.outlet_name,
+      quantity: s.quantity,
+      min_stock: s.min_stock ?? 5,
+      is_low_stock: s.quantity < (s.min_stock ?? 5),
+      shelf_life: shelfLife,
+      stock_date: stockDate,
+      expired_qty: expiredQty,
+      up_selling_qty: upSellingQty,
+    };
+  });
 }
 
 export async function getStockById(id: number) {
@@ -83,6 +119,7 @@ export async function upsertStock(data: {
   outlet_id: number | null;
   quantity: number;
   min_stock: number;
+  stock_date?: Date;
   notes?: string;
 }) {
   const session = await auth.api.getSession({
@@ -102,6 +139,7 @@ export async function upsertStock(data: {
       .set({
         quantity: data.quantity,
         min_stock: data.min_stock,
+        stock_date: data.stock_date || existing.stock_date,
         updated_at: new Date(),
       })
       .where(eq(stock.id, data.id));
@@ -124,12 +162,12 @@ export async function upsertStock(data: {
     const existing = await getStockByProductAndOutlet(data.product_id, data.outlet_id);
 
     if (existing) {
-      // Update existing
       await db
         .update(stock)
         .set({
           quantity: data.quantity,
           min_stock: data.min_stock,
+          stock_date: data.stock_date || existing.stock_date,
           updated_at: new Date(),
         })
         .where(eq(stock.id, existing.id));
@@ -140,6 +178,7 @@ export async function upsertStock(data: {
         outlet_id: data.outlet_id,
         quantity: data.quantity,
         min_stock: data.min_stock,
+        stock_date: data.stock_date || new Date(),
       });
 
       // Create initial transaction if quantity > 0
@@ -183,6 +222,7 @@ export async function addStock(data: {
       .update(stock)
       .set({
         quantity: newQuantity,
+        stock_date: new Date(),
         updated_at: new Date(),
       })
       .where(eq(stock.id, existing.id));
@@ -304,11 +344,14 @@ export async function transferStock(data: {
     })
     .where(eq(stock.id, sourceStock.id));
 
-  // Add to destination
+  // Add to destination - preserve source stock_date (stock isn't newly produced)
   const destStock = await getStockByProductAndOutlet(
     data.product_id,
     data.to_outlet_id
   );
+
+  // Use source stock_date to preserve production date tracking
+  const sourceStockDate = sourceStock.stock_date;
 
   if (destStock) {
     const newDestQuantity = destStock.quantity + data.quantity;
@@ -316,6 +359,10 @@ export async function transferStock(data: {
       .update(stock)
       .set({
         quantity: newDestQuantity,
+        // Keep the earliest stock_date to accurately track expiry
+        ...(sourceStockDate && (!destStock.stock_date || new Date(sourceStockDate) < new Date(destStock.stock_date))
+          ? { stock_date: sourceStockDate }
+          : {}),
         updated_at: new Date(),
       })
       .where(eq(stock.id, destStock.id));
@@ -325,6 +372,7 @@ export async function transferStock(data: {
       outlet_id: data.to_outlet_id,
       quantity: data.quantity,
       min_stock: 5,
+      ...(sourceStockDate ? { stock_date: sourceStockDate } : {}),
     });
   }
 

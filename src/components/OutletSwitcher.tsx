@@ -68,11 +68,11 @@ export function OutletSwitcher({ outlets, currentOutletId, userRole }: OutletSwi
                     value={currentOutletId?.toString() || "all"}
                     onValueChange={handleOutletSwitch}
                 >
-                    {userRole !== "user" && (
-                        <DropdownMenuRadioItem value="all" className="text-sm py-2 cursor-pointer font-medium">
+                    {userRole === "admin" && (
+                        <DropdownMenuRadioItem value="all" className="text-sm py-2 cursor-pointer">
                             <div className="flex items-center justify-between w-full">
-                                Semua Outlet
-                                {!currentOutletId && <Check className="h-3 w-3 ml-2 text-primary" />}
+                                <span className="text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-tight">Semua Outlet</span>
+                                {!currentOutletId && <Check className="h-3.5 w-3.5 ml-2 text-primary stroke-[3px]" />}
                             </div>
                         </DropdownMenuRadioItem>
                     )}

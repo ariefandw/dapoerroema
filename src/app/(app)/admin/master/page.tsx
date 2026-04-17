@@ -60,10 +60,19 @@ const masterDataItems = [
         color: "text-orange-500",
         bgColor: "bg-orange-500/10",
     },
+    {
+        title: "Test Notifikasi",
+        description: "Uji coba Bot Telegram dan notifikasi browser.",
+        href: "/admin/master/test",
+        icon: SendHorizontal,
+        color: "text-rose-500",
+        bgColor: "bg-rose-500/10",
+    },
 ];
 
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { SendHorizontal } from "lucide-react";
 
 export default async function MasterDataHub() {
     const session = await auth.api.getSession({ headers: await headers() });

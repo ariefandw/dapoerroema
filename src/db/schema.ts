@@ -30,6 +30,7 @@ export const products = pgTable("products", {
   category: text("category").notNull(),
   base_price: integer("base_price").default(0).notNull(),
   image_url: text("image_url"),
+  shelf_life: integer("shelf_life"), // dalam hari
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -104,6 +105,7 @@ export const stock = pgTable("stock", {
   outlet_id: integer("outlet_id").references(() => outlets.id), // NULL = central warehouse
   quantity: integer("quantity").default(0).notNull(),
   min_stock: integer("min_stock").default(5),
+  stock_date: timestamp("stock_date").defaultNow(), // tanggal stok masuk, untuk hitung expiry
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 

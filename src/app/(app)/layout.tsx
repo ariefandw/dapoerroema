@@ -1,5 +1,4 @@
 import { Navbar } from "@/components/Navbar";
-import { Toaster } from "sonner";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OrderNotificationManager } from "@/components/OrderNotificationManager";
@@ -7,6 +6,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { GlobalStateProvider } from "@/lib/GlobalStateProvider";
+import { AuthProvider } from "@/lib/auth-provider";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
     const session = await auth.api.getSession({
@@ -22,16 +23,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     const outlets = await getOutlets();
 
     return (
-        <div className="min-h-screen flex flex-col pb-16 md:pb-0">
-            <Navbar session={session} userRole={userRole} outlets={outlets} />
-            <main className="flex-1">
-                {children}
-            </main>
-            <BottomNav userRole={userRole} />
-            <Toaster richColors position="top-right" />
-            <ServiceWorkerRegistration />
-            <PWAInstallPrompt />
-            <OrderNotificationManager userRole={userRole} currentOutletId={session.user.currentOutletId} />
-        </div>
+        <AuthProvider>
+            <GlobalStateProvider>
+                <div className="min-h-screen flex flex-col pb-16 md:pb-0">
+                    <Navbar session={session} userRole={userRole} outlets={outlets} />
+                    <main className="flex-1">
+                        {children}
+                    </main>
+                    <BottomNav userRole={userRole} />
+                    <ServiceWorkerRegistration />
+                    <PWAInstallPrompt />
+                    <OrderNotificationManager userRole={userRole} currentOutletId={session.user.currentOutletId} />
+                </div>
+            </GlobalStateProvider>
+        </AuthProvider>
     );
 }

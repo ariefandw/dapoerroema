@@ -29,11 +29,12 @@ interface StockTransferDialogProps {
   userRole?: string;
   currentOutletId?: number | null;
   children: React.ReactNode;
+  onSuccess?: () => void;
 }
 
 const WAREHOUSE_OPTION = { id: -1, name: "Central Kitchen" };
 
-export function StockTransferDialog({ products, outlets, userRole, currentOutletId, children }: StockTransferDialogProps) {
+export function StockTransferDialog({ products, outlets, userRole, currentOutletId, children, onSuccess }: StockTransferDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -113,7 +114,7 @@ export function StockTransferDialog({ products, outlets, userRole, currentOutlet
       });
       toast.success("Stok berhasil ditransfer");
       setOpen(false);
-      router.refresh();
+      onSuccess?.();
     } catch (error: any) {
       console.error("Failed to transfer stock", error);
       toast.error(error.message || "Gagal mentransfer stok");

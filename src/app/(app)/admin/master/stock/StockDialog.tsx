@@ -31,6 +31,8 @@ interface StockItem {
   outlet_name: string | null;
   quantity: number;
   min_stock: number;
+  shelf_life: number | null;
+  stock_date: Date | string | null;
 }
 
 interface StockDialogProps {
@@ -41,11 +43,12 @@ interface StockDialogProps {
   userRole?: string;
   currentOutletId?: number | null;
   children: React.ReactNode;
+  onSuccess?: () => void;
 }
 
 const WAREHOUSE_OPTION = { id: -1, name: "Central Kitchen" };
 
-export function StockDialog({ stock, products, outlets, initialProductId, userRole, currentOutletId, children }: StockDialogProps) {
+export function StockDialog({ stock, products, outlets, initialProductId, userRole, currentOutletId, children, onSuccess }: StockDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -53,6 +56,7 @@ export function StockDialog({ stock, products, outlets, initialProductId, userRo
   const [outletId, setOutletId] = useState(stock?.outlet_id?.toString() || (userRole === "user" && currentOutletId ? currentOutletId.toString() : "warehouse"));
   const [quantity, setQuantity] = useState(stock?.quantity?.toString() || "0");
   const [minStock, setMinStock] = useState(stock?.min_stock?.toString() || "5");
+  const [stockDate, setStockDate] = useState(stock?.stock_date ? new Date(stock.stock_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState("");
 
   // Reset form when dialog opens/closes
@@ -62,6 +66,7 @@ export function StockDialog({ stock, products, outlets, initialProductId, userRo
       setOutletId(stock?.outlet_id?.toString() || (userRole === "user" && currentOutletId ? currentOutletId.toString() : "warehouse"));
       setQuantity(stock?.quantity?.toString() || "0");
       setMinStock(stock?.min_stock?.toString() || "5");
+      setStockDate(stock?.stock_date ? new Date(stock.stock_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
       setNotes("");
     }
   }, [open, stock, initialProductId]);
@@ -80,11 +85,12 @@ export function StockDialog({ stock, products, outlets, initialProductId, userRo
         outlet_id: outletId === "warehouse" ? null : parseInt(outletId),
         quantity: parseInt(quantity) || 0,
         min_stock: parseInt(minStock) || 5,
+        stock_date: stockDate ? new Date(stockDate) : undefined,
         notes: notes || undefined,
       });
       toast.success(stock ? "Stok berhasil diperbarui" : "Stok berhasil ditambahkan");
       setOpen(false);
-      router.refresh();
+      onSuccess?.();
     } catch (error: any) {
       console.error("Failed to save stock", error);
       toast.error(error.message || "Gagal menyimpan stok");
@@ -131,7 +137,7 @@ export function StockDialog({ stock, products, outlets, initialProductId, userRo
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="location" className="text-right text-xs">
-              Lokasi
+              Outlet
             </Label>
             <div className="col-span-3">
               <Select value={outletId} onValueChange={setOutletId} disabled={!!stock}>
@@ -171,6 +177,18 @@ export function StockDialog({ stock, products, outlets, initialProductId, userRo
               min="0"
               value={minStock}
               onChange={(e) => setMinStock(e.target.value)}
+              className="col-span-3 h-8"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="stockDate" className="text-right text-xs">
+              Tanggal Stok
+            </Label>
+            <Input
+              id="stockDate"
+              type="date"
+              value={stockDate}
+              onChange={(e) => setStockDate(e.target.value)}
               className="col-span-3 h-8"
             />
           </div>

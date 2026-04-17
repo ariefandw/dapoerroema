@@ -22,10 +22,11 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { StatusStepper } from "./StatusStepper";
+import { UnifiedStatusStepper } from "./UnifiedStatusStepper";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { DeleteConfirm } from "./DeleteConfirm";
 import { cn } from "@/lib/utils";
+import { useGlobalState } from "@/lib/GlobalStateProvider";
 
 export function OrdersTable({ orders, currentDate, userRole = "admin" }: { orders: any[]; currentDate?: string; userRole?: string | "admin" | "user" | "baker" | "runner" }) {
     // Sort orders descending by order_date if they are not already
@@ -40,14 +41,15 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
     const displayValue = currentDate || today;
 
     const { mutate } = useSWRConfig();
+    const { revalidateOrders, revalidateStock } = useGlobalState();
 
     const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => {
         if (currentStatus === newStatus) return;
         startTransition(async () => {
             const result = await updateOrderStatus(orderId, currentStatus, newStatus, pathname, deliveryData);
             if (result.success) {
-                toast.success("Status order berhasil diperbarui!");
-                mutate((key: any) => typeof key === 'string' && key.startsWith('/api/orders')); // Trigger revalidation
+                revalidateOrders(); // Use global state revalidation
+                revalidateStock(); // Also revalidate stock as it may be affected
             } else {
                 toast.error(result.error || "Gagal memperbarui status");
             }
@@ -140,8 +142,8 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                             <TableRow key={order.id} className="group transition-colors">
                                                 <TableCell className="font-medium">
                                                     <div className="flex flex-col gap-1 items-start">
-                                                        <Link href={`/order/${order.id}`} className="hover:underline text-primary">
-                                                            #{order.id}
+                                                        <Link href={`/order/${order.id}`} className="text-base font-black text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-all">
+                                                            #{order.id.toString().padStart(3, '0')}
                                                         </Link>
                                                         <span className={cn(
                                                             "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
@@ -177,12 +179,13 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <StatusStepper
+                                                        <UnifiedStatusStepper
                                                             orderId={order.id}
                                                             currentStatus={order.status as OrderStatus}
                                                             userRole={userRole}
                                                             onStatusChange={handleStatusChange}
                                                             disabled={isPending}
+                                                            variant="horizontal"
                                                         />
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
@@ -242,8 +245,8 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                         <div className="flex items-start justify-between px-4 pt-4 pb-2">
                                             <div className="flex flex-col gap-1.5 items-start">
                                                 <div className="flex items-center gap-2">
-                                                    <Link href={`/order/${order.id}`} className="text-sm font-black text-primary uppercase leading-tight hover:underline">
-                                                        #{order.id}
+                                                    <Link href={`/order/${order.id}`} className="text-base font-black text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-all">
+                                                        #{order.id.toString().padStart(3, '0')}
                                                     </Link>
                                                     <span className={cn(
                                                         "text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider border",
@@ -304,12 +307,13 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                         </div>
 
                                         <div className="px-4 py-3 border-y border-border/5 bg-muted/5 overflow-x-auto">
-                                            <StatusStepper
+                                            <UnifiedStatusStepper
                                                 orderId={order.id}
                                                 currentStatus={order.status as OrderStatus}
                                                 userRole={userRole}
                                                 onStatusChange={handleStatusChange}
                                                 disabled={isPending}
+                                                variant="horizontal"
                                             />
                                         </div>
 

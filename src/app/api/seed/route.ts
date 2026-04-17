@@ -18,25 +18,7 @@ export async function POST(request: Request) {
             connectionString: process.env.DATABASE_URL,
         });
 
-        // First, add new columns to existing tables (if they don't exist)
-        await pool.query(`
-            -- Add username column to user table
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
-
-            -- Add runner_id column to orders table
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text REFERENCES "user"(id);
-
-            -- Add location tracking columns to user table (if not exists)
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
-
-            -- Add delivery columns to orders (if not exists)
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
-        `);
-
-        // Then create tables with complete schema
+        // First create tables (safe — IF NOT EXISTS)
         await pool.query(`
             -- Brands table
             CREATE TABLE IF NOT EXISTS brands (
@@ -62,6 +44,7 @@ export async function POST(request: Request) {
                 category text NOT NULL,
                 base_price integer DEFAULT 0 NOT NULL,
                 image_url text,
+                shelf_life integer,
                 created_at timestamp DEFAULT now() NOT NULL
             );
 
@@ -88,7 +71,7 @@ export async function POST(request: Request) {
                 subtotal integer,
                 total_amount integer,
                 notes text,
-                runner_id text REFERENCES "user"(id),
+                runner_id text,
                 order_date timestamp NOT NULL,
                 delivery_photo_url text,
                 delivery_signature_url text,
@@ -123,6 +106,7 @@ export async function POST(request: Request) {
                 outlet_id integer REFERENCES outlets(id),
                 quantity integer DEFAULT 0 NOT NULL,
                 min_stock integer DEFAULT 5,
+                stock_date timestamp DEFAULT now(),
                 updated_at timestamp DEFAULT now() NOT NULL
             );
 
@@ -142,7 +126,7 @@ export async function POST(request: Request) {
             -- Runner Trail table
             CREATE TABLE IF NOT EXISTS runner_trail (
                 id serial PRIMARY KEY,
-                user_id text REFERENCES "user"(id) NOT NULL,
+                user_id text NOT NULL,
                 order_id integer REFERENCES orders(id),
                 lat real NOT NULL,
                 lng real NOT NULL,
@@ -185,7 +169,7 @@ export async function POST(request: Request) {
                 "updatedAt" timestamp DEFAULT now() NOT NULL,
                 "ipAddress" text,
                 "userAgent" text,
-                userId text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
+                "userId" text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
             );
 
             -- Better Auth: Account table
@@ -193,10 +177,10 @@ export async function POST(request: Request) {
                 id text PRIMARY KEY,
                 "accountId" text NOT NULL,
                 "providerId" text NOT NULL,
-                userId text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-                accessToken text,
-                refreshToken text,
-                idToken text,
+                "userId" text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+                "accessToken" text,
+                "refreshToken" text,
+                "idToken" text,
                 "accessTokenExpiresAt" timestamp,
                 "refreshTokenExpiresAt" timestamp,
                 scope text,
@@ -218,12 +202,24 @@ export async function POST(request: Request) {
             -- Add indexes for better performance
             CREATE INDEX IF NOT EXISTS user_username_idx ON "user"("username");
             CREATE INDEX IF NOT EXISTS user_email_idx ON "user"(email);
-            CREATE INDEX IF NOT EXISTS session_userId_idx ON "session"("userId");
+            CREATE INDEX IF NOT EXISTS "session_userId_idx" ON "session"("userId");
             CREATE INDEX IF NOT EXISTS orders_outlet_id_idx ON orders(outlet_id);
             CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
-            CREATE INDEX IF NOT EXISTS orders_runner_id_idx ON orders(runner_id);
             CREATE INDEX IF NOT EXISTS runner_trail_user_id_idx ON runner_trail(user_id);
             CREATE INDEX IF NOT EXISTS runner_trail_order_id_idx ON runner_trail(order_id);
+        `);
+
+        // Then add columns to existing tables (safe — IF NOT EXISTS, tables now guaranteed to exist)
+        await pool.query(`
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
+            ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_life integer;
+            ALTER TABLE stock ADD COLUMN IF NOT EXISTS stock_date timestamp DEFAULT NOW();
         `);
 
         await pool.end();

@@ -26,7 +26,26 @@
       "Bash(pnpm tsc:*)",
       "Bash(/c/Program Files/nodejs/npm.exe tsc:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(/c/Program Files/nodejs/node.exe -e \"\nconst { seedDatabase } = require\\(''./src/app/actions.ts''\\);\nseedDatabase\\(false\\).then\\(result => {\n    console.log\\(''Result:'', result\\);\n}\\).catch\\(err => {\n    console.error\\(''Error:'', err.message\\);\n}\\);\n\")",
+      "Bash(cmd.exe /c \"\"\"C:\\\\Program Files\\\\nodejs\\\\node.exe\"\" -e \"\"console.log\\(''test''\\)\"\"\")",
+      "Bash(cmd.exe /c \"node test-seed.mjs\")",
+      "Bash(cmd.exe /c \"npx next build --no-lint 2>&1\")",
+      "Bash(npm run build:*)",
+      "Bash(wsl npm run build:*)",
+      "Bash(wsl bash:*)",
+      "Bash(npx next *)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(pg_isready -h localhost -p 5432)",
+      "Bash(psql \"postgresql://postgres:postgres@localhost:5432/orbery\" -c \"\\\\dt\")",
+      "Bash(psql *)",
+      "Bash(npm install *)",
+      "Bash(fuser -k 3099/tcp)",
+      "Bash(fuser -k 3000/tcp)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(echo \"Exit: $?\")",
+      "Read(//tmp/**)",
+      "WebSearch"
     ]
   }
 }

@@ -3,7 +3,7 @@ import { products } from "@/db/schema";
 import { requireRole } from "@/lib/auth-guard";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Plus, Pencil, Trash2, Tag, Utensils, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Tag, Utensils, Image as ImageIcon, Clock } from "lucide-react";
 import { ProductDialog } from "./ProductDialog";
 import { deleteProduct } from "@/app/actions/master";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,7 @@ export default async function ProductsPage() {
                             <TableHead>Kategori</TableHead>
                             <TableHead>Nama Produk</TableHead>
                             <TableHead className="text-right">Harga Dasar</TableHead>
+                            <TableHead className="text-right">Masa Simpan</TableHead>
                             <TableHead className="w-[100px] text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -73,6 +74,16 @@ export default async function ProductsPage() {
                                 </TableCell>
                                 <TableCell className="text-right tabular-nums">
                                     Rp {product.base_price.toLocaleString("id-ID")}
+                                </TableCell>
+                                <TableCell className="text-right tabular-nums text-muted-foreground">
+                                    {product.shelf_life ? (
+                                        <span className="flex items-center justify-end gap-1">
+                                            <Clock className="h-3 w-3" />
+                                            {product.shelf_life} hari
+                                        </span>
+                                    ) : (
+                                        <span>-</span>
+                                    )}
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-2">

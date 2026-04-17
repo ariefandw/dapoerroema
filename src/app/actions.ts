@@ -537,7 +537,12 @@ export async function updateOrderStatus(
         // Send Telegram Notification for all status changes
         const notifyOrder = await db.query.orders.findFirst({
             where: eq(orders.id, orderId),
-            with: { outlet: true },
+            with: { 
+                outlet: true,
+                items: {
+                    with: { product: true }
+                }
+            },
         });
 
         if (notifyOrder) {
@@ -551,10 +556,15 @@ export async function updateOrderStatus(
                 'cancelled': '❌'
             };
 
+            const itemsList = notifyOrder.items
+                .map(item => `• ${item.product.name} x${item.quantity}`)
+                .join('\n');
+
             const message = `<b>${statusEmoji[newStatus] || '🔔'} Update Status Order</b>\n\n` +
-                `Order: <b>#${orderId}</b>\n` +
+                `Order: <b>#${orderId.toString().padStart(3, '0')}</b>\n` +
                 `Status: <b>${newStatus.toUpperCase()}</b>\n` +
                 `Outlet: <b>${notifyOrder.outlet?.name || 'Unknown'}</b>\n\n` +
+                `<b>Daftar Produk:</b>\n${itemsList}\n\n` +
                 `<i>Update dilakukan oleh sistem.</i>`;
 
             await sendTelegramNotification(message).catch(console.error);

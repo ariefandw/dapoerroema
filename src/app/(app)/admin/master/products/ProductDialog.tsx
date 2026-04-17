@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 const CATEGORIES = ["Sourdough", "Cookies", "Bread", "Pastry", "Beverage", "Cake", "Savory"];
 
 interface ProductDialogProps {
-    product?: { id: number; name: string; category: string; base_price: number; image_url?: string | null };
+    product?: { id: number; name: string; category: string; base_price: number; image_url?: string | null; shelf_life?: number | null };
     children: React.ReactNode;
 }
 
@@ -23,6 +23,7 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
     const [name, setName] = useState(product?.name || "");
     const [category, setCategory] = useState(product?.category || "Bread");
     const [price, setPrice] = useState(product?.base_price?.toString() || "0");
+    const [shelfLife, setShelfLife] = useState(product?.shelf_life?.toString() || "");
     const [imageUrl, setImageUrl] = useState(product?.image_url || null);
 
     async function handleSave() {
@@ -33,7 +34,8 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                 name,
                 category,
                 base_price: parseInt(price) || 0,
-                image_url: imageUrl
+                image_url: imageUrl,
+                shelf_life: shelfLife ? parseInt(shelfLife) : null,
             });
             setOpen(false);
         } catch (error) {
@@ -103,6 +105,23 @@ export function ProductDialog({ product, children }: ProductDialogProps) {
                             onChange={(e) => setPrice(e.target.value)}
                             className="col-span-3 h-8"
                         />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="shelfLife" className="text-right text-xs">
+                            Masa Simpan
+                        </Label>
+                        <div className="col-span-3 flex items-center gap-2">
+                            <Input
+                                id="shelfLife"
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                value={shelfLife}
+                                onChange={(e) => setShelfLife(e.target.value)}
+                                className="h-8"
+                            />
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">hari</span>
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>

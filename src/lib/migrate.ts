@@ -1,11 +1,6 @@
 import { Pool } from "pg";
 
-let migrationDone = false;
-
 export async function runMigrations() {
-    if (migrationDone) return;
-    migrationDone = true;
-
     if (!process.env.DATABASE_URL) {
         console.log("No DATABASE_URL, skipping migrations");
         return;
@@ -18,25 +13,7 @@ export async function runMigrations() {
     });
 
     try {
-        // First, add new columns to existing tables (if they don't exist)
-        await pool.query(`
-            -- Add username column to user table
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
-
-            -- Add runner_id column to orders table
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text REFERENCES "user"(id);
-
-            -- Add location tracking columns to user table (if not exists)
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
-
-            -- Add delivery columns to orders (if not exists)
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
-        `);
-
-        // Create tables with all updated schema
+        // ... (CREATE TABLE logic)
         await pool.query(`
             -- Brands table
             CREATE TABLE IF NOT EXISTS brands (
@@ -62,6 +39,7 @@ export async function runMigrations() {
                 category text NOT NULL,
                 base_price integer DEFAULT 0 NOT NULL,
                 image_url text,
+                shelf_life integer,
                 created_at timestamp DEFAULT now() NOT NULL
             );
 
@@ -123,6 +101,7 @@ export async function runMigrations() {
                 outlet_id integer REFERENCES outlets(id),
                 quantity integer DEFAULT 0 NOT NULL,
                 min_stock integer DEFAULT 5,
+                stock_date timestamp DEFAULT now(),
                 updated_at timestamp DEFAULT now() NOT NULL
             );
 
@@ -185,7 +164,7 @@ export async function runMigrations() {
                 "updatedAt" timestamp DEFAULT now() NOT NULL,
                 "ipAddress" text,
                 "userAgent" text,
-                userId text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
+                "userId" text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
             );
 
             -- Better Auth: Account table
@@ -193,10 +172,10 @@ export async function runMigrations() {
                 id text PRIMARY KEY,
                 "accountId" text NOT NULL,
                 "providerId" text NOT NULL,
-                userId text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-                accessToken text,
-                refreshToken text,
-                idToken text,
+                "userId" text NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+                "accessToken" text,
+                "refreshToken" text,
+                "idToken" text,
                 "accessTokenExpiresAt" timestamp,
                 "refreshTokenExpiresAt" timestamp,
                 scope text,
@@ -218,7 +197,7 @@ export async function runMigrations() {
             -- Add indexes for better performance
             CREATE INDEX IF NOT EXISTS user_username_idx ON "user"("username");
             CREATE INDEX IF NOT EXISTS user_email_idx ON "user"(email);
-            CREATE INDEX IF NOT EXISTS session_userId_idx ON "session"("userId");
+            CREATE INDEX IF NOT EXISTS "session_userId_idx" ON "session"("userId");
             CREATE INDEX IF NOT EXISTS orders_outlet_id_idx ON orders(outlet_id);
             CREATE INDEX IF NOT EXISTS orders_status_idx ON orders(status);
             CREATE INDEX IF NOT EXISTS orders_runner_id_idx ON orders(runner_id);
@@ -226,11 +205,24 @@ export async function runMigrations() {
             CREATE INDEX IF NOT EXISTS runner_trail_order_id_idx ON runner_trail(order_id);
         `);
 
+        // Add new columns to existing tables (safe after CREATE TABLE)
+        await pool.query(`
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
+            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
+            ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_life integer;
+            ALTER TABLE stock ADD COLUMN IF NOT EXISTS stock_date timestamp DEFAULT NOW();
+        `);
+
         console.log("Database migrations completed successfully");
 
-        // Check if we need to seed data (no outlets yet)
-        const outlets = await pool.query("SELECT COUNT(*) FROM outlets");
-        if (parseInt(outlets.rows[0].count) === 0) {
+        // Force check for outlets
+        const outletCheck = await pool.query("SELECT id FROM outlets LIMIT 1");
+        if (outletCheck.rows.length === 0) {
             console.log("No outlets found, running seed...");
             await runSeed(pool);
         }
@@ -245,23 +237,27 @@ export async function runMigrations() {
 async function runSeed(pool: Pool) {
     const { auth } = await import("../lib/auth");
 
+    // Clean up storyteller data if exists to avoid confusion
+    await pool.query("DELETE FROM outlets WHERE name = 'Sultan Malioboro'");
+    await pool.query("DELETE FROM brands WHERE name = 'Roti Sultan'");
+
     // Create brands
     await pool.query(`
         INSERT INTO brands (name, description) VALUES
         ('Toko Roema', 'Premium Artisan Bakery'),
         ('Sender', 'Modern Coffee & Bread'),
         ('YAP Cafe', 'Yogyakarta Artisan Pastry')
-        ON CONFLICT DO NOTHING
+        ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name
     `);
 
     // Create outlets
     await pool.query(`
         INSERT INTO outlets (name, contact_info, brand_id) VALUES
-        ('Toko Roema Sapen', '0812-5000-6000', 1),
-        ('Toko Roema Seturan', '0812-5000-6001', 1),
-        ('Sender Malioboro', '0812-3000-4000', 2),
-        ('Sender Jakal', '0812-3000-4001', 2),
-        ('YAP Cafe Jogja', '0812-1000-2000', 3)
+        ('Toko Roema Sapen', '0812-5000-6000', (SELECT id FROM brands WHERE name = 'Toko Roema' LIMIT 1)),
+        ('Toko Roema Seturan', '0812-5000-6001', (SELECT id FROM brands WHERE name = 'Toko Roema' LIMIT 1)),
+        ('Sender Malioboro', '0812-3000-4000', (SELECT id FROM brands WHERE name = 'Sender' LIMIT 1)),
+        ('Sender Jakal', '0812-3000-4001', (SELECT id FROM brands WHERE name = 'Sender' LIMIT 1)),
+        ('YAP Cafe Jogja', '0812-1000-2000', (SELECT id FROM brands WHERE name = 'YAP Cafe' LIMIT 1))
         ON CONFLICT DO NOTHING
     `);
 

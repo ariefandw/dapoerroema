@@ -13,6 +13,7 @@ import useSWR from "swr";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
+import { useGlobalState } from "@/lib/GlobalStateProvider";
 
 const fetcher = (url: string) => fetch(url).then(async (res) => {
     const data = await res.json();
@@ -35,6 +36,7 @@ export function OrderClientPage({ orders: initialOrders, products, userRole, out
     );
 
     const prevOrdersRef = useRef(orders);
+    const { revalidateOrders } = useGlobalState();
 
     useEffect(() => {
         if (orders && Array.isArray(orders) && prevOrdersRef.current && Array.isArray(prevOrdersRef.current)) {
@@ -50,6 +52,7 @@ export function OrderClientPage({ orders: initialOrders, products, userRole, out
 
     const handleSuccess = (orderId?: number) => {
         setIsDialogOpen(false);
+        revalidateOrders(); // Revalidate orders after creating a new one
         if (orderId) {
             router.push(`/order/${orderId}`);
         }
