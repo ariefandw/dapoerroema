@@ -151,31 +151,33 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                         Bukti Penerimaan
                                     </CardTitle>
                                 </CardHeader>
-                                <CardContent className="p-4 space-y-4">
-                                    {order.delivery_photo_url && (
-                                        <div className="space-y-2">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Foto Bukti</p>
-                                            <div className="relative aspect-video rounded-lg overflow-hidden border bg-muted/20 shadow-inner group">
-                                                <img
-                                                    src={order.delivery_photo_url}
-                                                    alt="Bukti Pengiriman"
-                                                    className="object-cover w-full h-full transition-transform group-hover:scale-105"
-                                                />
+                                <CardContent className="p-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {order.delivery_photo_url && (
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Foto Bukti</p>
+                                                <div className="relative aspect-video rounded-lg overflow-hidden border bg-muted/20 shadow-inner group">
+                                                    <img
+                                                        src={order.delivery_photo_url}
+                                                        alt="Bukti Pengiriman"
+                                                        className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-                                    {order.delivery_signature_url && (
-                                        <div className="space-y-2">
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Tanda Tangan</p>
-                                            <div className="bg-white rounded-lg border p-2 flex items-center justify-center shadow-inner">
-                                                <img
-                                                    src={order.delivery_signature_url}
-                                                    alt="Tanda Tangan Penerima"
-                                                    className="max-h-24 object-contain invert dark:invert-0"
-                                                />
+                                        )}
+                                        {order.delivery_signature_url && (
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Tanda Tangan</p>
+                                                <div className="bg-white rounded-lg border p-2 flex items-center justify-center shadow-inner aspect-video">
+                                                    <img
+                                                        src={order.delivery_signature_url}
+                                                        alt="Tanda Tangan Penerima"
+                                                        className="max-h-24 object-contain invert dark:invert-0"
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </CardContent>
                             </Card>
                         )}
