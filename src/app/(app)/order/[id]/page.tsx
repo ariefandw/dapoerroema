@@ -111,14 +111,16 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                                 </tr>
                                             ))}
                                         </tbody>
+                                        {userRole !== "baker" && (
                                         <tfoot className="bg-muted/10 border-t-2 border-border/20">
                                             <tr>
-                                                <td colSpan={userRole === "baker" ? 1 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
-                                                <td colSpan={userRole === "baker" ? 1 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
+                                                <td colSpan={3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
+                                                <td className="px-6 py-4 text-right font-black text-lg text-primary">
                                                     Rp {(order.total_amount ?? 0).toLocaleString()}
                                                 </td>
                                             </tr>
                                         </tfoot>
+                                        )}
                                     </table>
                                 </div>
                             </CardContent>

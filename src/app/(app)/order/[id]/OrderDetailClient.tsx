@@ -175,14 +175,16 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                             );
                                         })}
                                     </tbody>
+                                    {userRole !== "baker" && (
                                     <tfoot className="bg-muted/10 border-t-2 border-border/20">
                                         <tr>
-                                            <td colSpan={isAdmin ? 5 : userRole === "baker" ? 1 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
-                                            <td colSpan={isAdmin ? 2 : userRole === "baker" ? 1 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
+                                            <td colSpan={isAdmin ? 5 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
+                                            <td colSpan={isAdmin ? 2 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
                                                 Rp {(order.total_amount ?? 0).toLocaleString()}
                                             </td>
                                         </tr>
                                     </tfoot>
+                                    )}
                                 </table>
 
                                 {/* Mobile view */}
@@ -235,12 +237,14 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                             </div>
                                         );
                                     })}
+                                    {userRole !== "baker" && (
                                     <div className="mt-4 bg-muted/20 p-4 rounded-lg border border-primary/20 flex flex-col gap-2">
                                         <div className="flex justify-between font-bold uppercase tracking-wider text-sm">
                                             <span>Total Pembayaran</span>
                                             <span className="text-primary text-xl">Rp {(order.total_amount ?? 0).toLocaleString()}</span>
                                         </div>
                                     </div>
+                                    )}
                                 </div>
                             </div>
                         </CardContent>
