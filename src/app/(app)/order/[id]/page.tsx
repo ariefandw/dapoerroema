@@ -93,8 +93,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                             <tr>
                                                 <th className="px-6 py-3">Produk</th>
                                                 <th className="px-6 py-3 text-center">Jumlah</th>
-                                                <th className="px-6 py-3 text-right">Harga Satuan</th>
-                                                <th className="px-6 py-3 text-right">Total</th>
+                                                {userRole !== "baker" && <th className="px-6 py-3 text-right">Harga Satuan</th>}
+                                                {userRole !== "baker" && <th className="px-6 py-3 text-right">Total</th>}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border/10">
@@ -104,17 +104,17 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                                     <td className="px-6 py-4 text-center">
                                                         <Badge variant="secondary" className="font-bold">{item.quantity}x</Badge>
                                                     </td>
-                                                    <td className="px-6 py-4 text-right">Rp {(item.unit_price ?? 0).toLocaleString()}</td>
-                                                    <td className="px-6 py-4 text-right font-bold text-primary">
+                                                    {userRole !== "baker" && <td className="px-6 py-4 text-right">Rp {(item.unit_price ?? 0).toLocaleString()}</td>}
+                                                    {userRole !== "baker" && <td className="px-6 py-4 text-right font-bold text-primary">
                                                         Rp {(item.quantity * (item.unit_price ?? 0)).toLocaleString()}
-                                                    </td>
+                                                    </td>}
                                                 </tr>
                                             ))}
                                         </tbody>
                                         <tfoot className="bg-muted/10 border-t-2 border-border/20">
                                             <tr>
-                                                <td colSpan={3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
-                                                <td className="px-6 py-4 text-right font-black text-lg text-primary">
+                                                <td colSpan={userRole === "baker" ? 1 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
+                                                <td colSpan={userRole === "baker" ? 1 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
                                                     Rp {(order.total_amount ?? 0).toLocaleString()}
                                                 </td>
                                             </tr>
@@ -124,7 +124,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                             </CardContent>
                         </Card>
 
-                        {/* Tracking Map */}
+                        {/* Tracking Map — intentionally hidden for future use */}
+                        {false && (
                         <Card className="border-border/50 shadow-sm overflow-hidden">
                             <CardHeader className="bg-muted/30 pb-4">
                                 <CardTitle className="text-lg flex items-center gap-2">
@@ -137,6 +138,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                 <OrderTrackingMapWrapper order={order} />
                             </CardContent>
                         </Card>
+                        )}
                     </div>
 
                     {/* Right Column: Info & Evidence */}

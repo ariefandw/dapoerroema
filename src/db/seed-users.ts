@@ -41,9 +41,11 @@ async function seedUsers() {
 
             if (result) {
                 // Update role and currentOutletId field directly
+                // Baker stays on null (Dapoer Roema / all outlets)
+                const outletId = u.role === "baker" ? null : defaultOutletId;
                 await pool.query(
                     `UPDATE "user" SET role = $1, "current_outlet_id" = $2 WHERE email = $3`,
-                    [u.role, defaultOutletId, u.email]
+                    [u.role, outletId, u.email]
                 );
                 console.log(`✓ Seeded: ${u.email} (${u.role})`);
             } else {

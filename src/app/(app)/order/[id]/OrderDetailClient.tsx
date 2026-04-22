@@ -143,10 +143,10 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                         <tr>
                                             <th className="px-6 py-3 text-left font-bold uppercase tracking-wider text-xs">Produk</th>
                                             <th className="px-6 py-3 text-center font-bold uppercase tracking-wider text-xs">Qty</th>
-                                            <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Harga Satuan</th>
+                                            {userRole !== "baker" && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Harga Satuan</th>}
                                             {isAdmin && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">HPP</th>}
                                             {isAdmin && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Margin</th>}
-                                            <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Total Jual</th>
+                                            {userRole !== "baker" && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Total Jual</th>}
                                             {isAdmin && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Net Profit</th>}
                                         </tr>
                                     </thead>
@@ -164,12 +164,12 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                                     <td className="px-6 py-4 text-center">
                                                         <Badge variant="secondary" className="font-bold">{qty}x</Badge>
                                                     </td>
-                                                    <td className="px-6 py-4 text-right">Rp {sellPrice.toLocaleString()}</td>
+                                                    {userRole !== "baker" && <td className="px-6 py-4 text-right">Rp {sellPrice.toLocaleString()}</td>}
                                                     {isAdmin && <td className="px-6 py-4 text-right text-orange-600">Rp {hpp.toLocaleString()}</td>}
                                                     {isAdmin && <td className="px-6 py-4 text-right text-blue-600">Rp {margin.toLocaleString()}</td>}
-                                                    <td className="px-6 py-4 text-right font-bold text-primary">
+                                                    {userRole !== "baker" && <td className="px-6 py-4 text-right font-bold text-primary">
                                                         Rp {totalJual.toLocaleString()}
-                                                    </td>
+                                                    </td>}
                                                     {isAdmin && <td className="px-6 py-4 text-right font-bold text-green-600">Rp {netProfit.toLocaleString()}</td>}
                                                 </tr>
                                             );
@@ -177,8 +177,8 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                     </tbody>
                                     <tfoot className="bg-muted/10 border-t-2 border-border/20">
                                         <tr>
-                                            <td colSpan={isAdmin ? 5 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
-                                            <td colSpan={isAdmin ? 2 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
+                                            <td colSpan={isAdmin ? 5 : userRole === "baker" ? 1 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>
+                                            <td colSpan={isAdmin ? 2 : userRole === "baker" ? 1 : 1} className="px-6 py-4 text-right font-black text-lg text-primary">
                                                 Rp {(order.total_amount ?? 0).toLocaleString()}
                                             </td>
                                         </tr>
@@ -201,10 +201,12 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                                     <span className="font-bold">{item.product.name}</span>
                                                     <Badge variant="secondary" className="font-bold">{qty}x</Badge>
                                                 </div>
+                                                {userRole !== "baker" && (
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-muted-foreground">Harga Satuan</span>
                                                     <span>Rp {sellPrice.toLocaleString()}</span>
                                                 </div>
+                                                )}
                                                 {isAdmin && (
                                                     <>
                                                         <div className="flex justify-between text-sm text-orange-600">
@@ -218,10 +220,12 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                                     </>
                                                 )}
                                                 <Separator className="my-1" />
+                                                {userRole !== "baker" && (
                                                 <div className="flex justify-between font-bold">
                                                     <span>Total Jual</span>
                                                     <span className="text-primary">Rp {totalJual.toLocaleString()}</span>
                                                 </div>
+                                                )}
                                                 {isAdmin && (
                                                     <div className="flex justify-between font-bold text-green-600">
                                                         <span>Net Profit</span>
@@ -242,8 +246,8 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                         </CardContent>
                     </Card>
 
-                    {/* Tracking Map */}
-                    {["ready", "shipping", "delivered"].includes(order.status) && (
+                    {/* Tracking Map — intentionally hidden for future use */}
+                    {false && ["ready", "shipping", "delivered"].includes(order.status) && (
                         <Card className="border-border/50 shadow-sm overflow-hidden">
                             <CardHeader className="bg-muted/30 pb-4">
                                 <CardTitle className="text-lg flex items-center gap-2">
