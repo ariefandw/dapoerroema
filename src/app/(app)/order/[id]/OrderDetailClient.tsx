@@ -96,38 +96,6 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                 {/* Left Column: Details & Items */}
                 <div className="lg:col-span-2 space-y-6">
 
-                    {/* Timeline */}
-                    <Card className="border-border/50 shadow-sm">
-                        <CardHeader className="pb-0">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <Info className="h-5 w-5 text-primary" />
-                                        Riwayat Status
-                                    </CardTitle>
-                                    <CardDescription className="text-xs mt-1">
-                                        Update real-time perjalanan pesanan Anda. Klik ikon status untuk memperbarui.
-                                    </CardDescription>
-                                </div>
-                                <Badge className={cn(statusUi.text, statusUi.bg, "border-none font-bold px-3 py-1 text-sm shadow-sm flex items-center gap-2")}>
-                                    <statusUi.icon className="h-4 w-4" />
-                                    {statusUi.label}
-                                </Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="pt-2">
-                            <UnifiedStatusStepper
-                                orderId={order.id}
-                                currentStatus={order.status as OrderStatus}
-                                statusLogs={order.statusLogs}
-                                userRole={userRole}
-                                onStatusChange={handleStatusChange}
-                                disabled={isPending}
-                                variant="vertical"
-                            />
-                        </CardContent>
-                    </Card>
-
                     {/* Order Items */}
                     <Card className="border-border/50 shadow-sm overflow-hidden">
                         <CardHeader className="bg-muted/30 pb-4">
@@ -307,6 +275,38 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
 
                 {/* Right Column: Info */}
                 <div className="space-y-6">
+                    {/* Timeline */}
+                    <Card className="border-border/50 shadow-sm">
+                        <CardHeader className="pb-0">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Info className="h-5 w-5 text-primary" />
+                                        Riwayat Status
+                                    </CardTitle>
+                                    <CardDescription className="text-xs mt-1">
+                                        Update real-time perjalanan pesanan Anda. Klik ikon status untuk memperbarui.
+                                    </CardDescription>
+                                </div>
+                                <Badge className={cn(statusUi.text, statusUi.bg, "border-none font-bold px-3 py-1 text-sm shadow-sm flex items-center gap-2")}>
+                                    <statusUi.icon className="h-4 w-4" />
+                                    {statusUi.label}
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="pt-2">
+                            <UnifiedStatusStepper
+                                orderId={order.id}
+                                currentStatus={order.status as OrderStatus}
+                                statusLogs={order.statusLogs}
+                                userRole={userRole}
+                                onStatusChange={handleStatusChange}
+                                disabled={isPending}
+                                variant="vertical"
+                            />
+                        </CardContent>
+                    </Card>
+
                     {/* Outlet Info */}
                     <Card className="border-border/50 shadow-sm">
                         <CardHeader>
