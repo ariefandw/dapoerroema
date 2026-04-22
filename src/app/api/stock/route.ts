@@ -38,9 +38,9 @@ export async function GET(request: Request) {
             .leftJoin(outlets, eq(stock.outlet_id, outlets.id))
             .$dynamic();
 
-        // Filter by currentOutletId for non-admin roles, or if specifically requested
-        if (userRole !== "admin") {
-            // Strict filter for non-admin - MUST have an outlet selected
+        // Only "user" role is restricted to a single outlet
+        if (userRole === "user") {
+            // Strict filter for user role - MUST have an outlet selected
             if (currentOutletId) {
                 stockQuery = stockQuery.where(eq(stock.outlet_id, currentOutletId));
             } else {

@@ -48,8 +48,7 @@ export default function LoginPage() {
                 setLoading(false);
                 return;
             }
-            router.push("/order");
-            router.refresh();
+            window.location.href = "/order";
         } catch {
             setError("Terjadi kesalahan. Silakan coba lagi.");
             setLoading(false);

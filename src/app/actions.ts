@@ -211,6 +211,11 @@ export async function updateCurrentOutlet(outletId: number | null) {
             return { success: false, error: "Not authenticated" };
         }
 
+        // Baker role is locked to Dapoer Roema (all outlets)
+        if (session.user.role === "baker") {
+            return { success: false, error: "Baker tidak dapat memilih outlet spesifik." };
+        }
+
         // If 'user' role, enforce brand restrictions
         if (session.user.role === "user") {
             if (outletId === null) {
@@ -236,8 +241,10 @@ export async function updateCurrentOutlet(outletId: number | null) {
             .set({ currentOutletId: outletId })
             .where(eq(user.id, session.user.id));
 
-        revalidatePath("/");
-        return { success: true };
+        revalidatePath("/", "layout");
+        revalidatePath("/order");
+        revalidatePath("/dashboard");
+        return { success: true, outletId };
     } catch (error) {
         console.error("Failed to update current outlet:", error);
         return { success: false, error: "Failed to update current outlet" };
