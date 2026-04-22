@@ -141,41 +141,6 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                             </CardContent>
                         </Card>
                         )}
-                    </div>
-
-                    {/* Right Column: Info & Evidence */}
-                    <div className="space-y-6">
-                        {/* Outlet Info */}
-                        <Card className="border-border/50 shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-base flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-primary" />
-                                    Lokasi Outlet
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-1">
-                                    <p className="text-sm font-bold text-primary uppercase tracking-tight">{order.outlet.name}</p>
-                                    <p className="text-xs text-muted-foreground leading-relaxed">
-                                        {order.outlet.contact_info || "Tidak ada informasi kontak tersedia."}
-                                    </p>
-                                </div>
-                                {order.runner && (
-                                    <>
-                                        <Separator className="bg-border/10" />
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                                <User className="h-5 w-5" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Runner Bertugas</p>
-                                                <p className="text-sm font-bold">{order.runner.name}</p>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </CardContent>
-                        </Card>
 
                         {/* Delivery Evidence */}
                         {(order.delivery_photo_url || order.delivery_signature_url) && (
@@ -214,7 +179,10 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                 </CardContent>
                             </Card>
                         )}
+                    </div>
 
+                    {/* Right Column: Info */}
+                    <div className="space-y-6">
                         {/* Status Tracking */}
                         <Card className="border-border/50 shadow-sm relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -234,6 +202,38 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
                                     statusLogs={order.statusLogs}
                                     userRole={session ? userRole : undefined}
                                 />
+                            </CardContent>
+                        </Card>
+
+                        {/* Outlet Info */}
+                        <Card className="border-border/50 shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                    Lokasi Outlet
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-1">
+                                    <p className="text-sm font-bold text-primary uppercase tracking-tight">{order.outlet.name}</p>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                        {order.outlet.contact_info || "Tidak ada informasi kontak tersedia."}
+                                    </p>
+                                </div>
+                                {order.runner && (
+                                    <>
+                                        <Separator className="bg-border/10" />
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                <User className="h-5 w-5" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Runner Bertugas</p>
+                                                <p className="text-sm font-bold">{order.runner.name}</p>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
