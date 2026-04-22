@@ -24,8 +24,7 @@ interface GlobalStateProviderProps {
 }
 
 export function GlobalStateProvider({ children }: GlobalStateProviderProps) {
-    // @ts-ignore
-    const { revalidate } = useSession();
+    const session = useSession();
 
     // Centralized revalidation functions using SWR's mutate
     const revalidateOrders = useCallback(() => {
@@ -61,8 +60,8 @@ export function GlobalStateProvider({ children }: GlobalStateProviderProps) {
     }, []);
 
     const refreshSession = useCallback(() => {
-        revalidate();
-    }, [revalidate]);
+        session?.refetch?.();
+    }, [session]);
 
     const contextValue: GlobalStateContextType = {
         revalidateOrders,

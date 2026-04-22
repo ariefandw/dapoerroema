@@ -15,8 +15,7 @@ interface AuthProviderProps {
  * - Provides logout on session loss
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-    // @ts-ignore
-    const { data: session, isPending, revalidate } = useSession();
+    const session = useSession();
     const router = useRouter();
     const [isVisible, setIsVisible] = useState(true);
     const lastRefreshRef = useRef(Date.now());
@@ -32,9 +31,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
                 // Only refresh if at least 30 seconds have passed since last refresh
                 if (timeSinceLastRefresh > 30000) {
-                    revalidate().then(() => {
-                        lastRefreshRef.current = Date.now();
-                    });
+                    session?.refetch?.();
+                    lastRefreshRef.current = Date.now();
                 }
             }
 
@@ -46,30 +44,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return () => {
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
-    }, [isVisible, revalidate]);
+    }, [isVisible, session]);
 
     // Periodic session refresh (every 5 minutes)
     useEffect(() => {
         const interval = setInterval(() => {
             if (document.visibilityState === "visible") {
-                revalidate().then(() => {
-                    lastRefreshRef.current = Date.now();
-                });
+                session?.refetch?.();
+                lastRefreshRef.current = Date.now();
             }
         }, 5 * 60 * 1000); // 5 minutes
 
         return () => clearInterval(interval);
-    }, [revalidate]);
+    }, [session]);
 
     // Handle session expiry - redirect to login if session is lost
     useEffect(() => {
-        if (!isPending && !session) {
+        if (!session?.isPending && !session?.data) {
             // Session expired or user logged out
             // The auth middleware will handle the redirect, but we can force it here
             // if needed for a better UX
             console.log("Session expired, redirecting to login...");
         }
-    }, [session, isPending]);
+    }, [session]);
 
     return <>{children}</>;
 }

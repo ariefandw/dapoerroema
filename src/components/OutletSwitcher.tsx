@@ -16,7 +16,6 @@ import { ChefHat, ChevronsUpDown, Check } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { useSession } from "@/lib/auth-client";
 
 interface OutletSwitcherProps {
     outlets: any[];
@@ -28,8 +27,6 @@ export function OutletSwitcher({ outlets, currentOutletId, userRole }: OutletSwi
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [localOutletId, setLocalOutletId] = useState<number | null | undefined>(currentOutletId);
-    // @ts-ignore
-    const { revalidate } = useSession();
 
     // Sync local state when server prop updates
     useEffect(() => {
@@ -43,7 +40,6 @@ export function OutletSwitcher({ outlets, currentOutletId, userRole }: OutletSwi
             const res = await updateCurrentOutlet(val);
             if (res.success) {
                 setLocalOutletId(val);
-                await revalidate();
                 await mutate(() => true);
                 router.refresh();
                 toast.success("Outlet berhasil dipindah");
