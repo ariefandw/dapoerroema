@@ -122,34 +122,57 @@ export function useImageUpload(
 
             console.log(`Image resized: ${file.size} bytes -> ${resizedFile.size} bytes (${Math.round((1 - resizedFile.size / file.size) * 100)}% reduction)`);
 
-            // Upload to ImageBB
-            const apiKey = process.env.NEXT_PUBLIC_IMAGEBB_API_KEY;
-            if (!apiKey) {
-                throw new Error("ImageBB API key not configured");
-            }
-
             const formData = new FormData();
             formData.append("image", resizedFile);
 
             setProcessing(false); // Processing done, now uploading
 
-            const response = await fetch(
-                `https://api.imgbb.com/1/upload?key=${apiKey}`,
-                {
+            // Try local upload first
+            let uploadSuccess = false;
+            let url = "";
+
+            try {
+                const localResponse = await fetch("/api/upload", {
                     method: "POST",
                     body: formData,
+                });
+                const localData = await localResponse.json();
+                if (localData.success) {
+                    url = localData.data.url;
+                    uploadSuccess = true;
                 }
-            );
+            } catch (e) {
+                console.warn("Local upload failed, falling back to ImageBB if possible", e);
+            }
 
-            const data = await response.json();
+            // Fallback to ImageBB if local failed and API key exists
+            if (!uploadSuccess) {
+                const apiKey = process.env.NEXT_PUBLIC_IMAGEBB_API_KEY;
+                if (!apiKey) {
+                    throw new Error("Upload failed and ImageBB API key not configured");
+                }
 
-            if (data.success) {
-                const url = data.data.url;
+                const response = await fetch(
+                    `https://api.imgbb.com/1/upload?key=${apiKey}`,
+                    {
+                        method: "POST",
+                        body: formData,
+                    }
+                );
+
+                const data = await response.json();
+                if (data.success) {
+                    url = data.data.url;
+                    uploadSuccess = true;
+                } else {
+                    throw new Error("All upload methods failed");
+                }
+            }
+
+            if (uploadSuccess) {
                 onImageChange(url);
                 setPreview(url);
                 onSuccess?.(url);
-            } else {
-                throw new Error("Upload failed");
             }
         } catch (error) {
             console.error("Failed to upload image:", error);
