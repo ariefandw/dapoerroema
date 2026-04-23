@@ -41,13 +41,16 @@ export default function LoginPage() {
             const isEmail = identifier.includes("@");
             let res;
             
+            // Cast to any to avoid TypeScript errors with dynamic provider methods
+            const authSignIn = signIn as any;
+
             if (isEmail) {
-                res = await signIn.email({
+                res = await authSignIn.email({
                     email: identifier,
                     password,
                 });
             } else {
-                res = await signIn.username({
+                res = await authSignIn.username({
                     username: identifier,
                     password,
                 });
