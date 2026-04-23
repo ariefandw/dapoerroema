@@ -901,12 +901,8 @@ export async function getAnalytics(outletId?: number | null) {
 
 export async function seedDatabase(isCleanupOnly = false) {
     try {
-        if (process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production") {
-            return { success: false, error: "Cannot seed database in production environment." };
-        }
-
-        // Skip auth check - allow seeding from public developer console
-        // Run migrations first to ensure schema is up to date
+        // Skip environment check when manually triggered from the UI
+        
         const { runMigrations } = await import("@/lib/migrate");
         await runMigrations();
 
@@ -915,8 +911,21 @@ export async function seedDatabase(isCleanupOnly = false) {
             return { success: true, message: "Database migrations completed." };
         }
 
-        // Migrations will seed if outlets table is empty
-        return { success: true, message: "Database migrations and seeding completed successfully!" };
+        // Additional manual sync of usernames for demo accounts to be safe
+        const pool = new (await import("pg")).Pool({ connectionString: process.env.DATABASE_URL });
+        const demoUsers = [
+            { email: "admin@test.app", username: "ariefan_admin" },
+            { email: "baker@test.app", username: "budi_baker" },
+            { email: "runner@test.app", username: "rudi_runner" },
+            { email: "user@test.app", username: "customer_user" },
+        ];
+
+        for (const u of demoUsers) {
+            await pool.query('UPDATE "user" SET username = $1 WHERE email = $2', [u.username, u.email]);
+        }
+        await pool.end();
+
+        return { success: true, message: "Database reset and demo accounts synchronized!" };
     } catch (error) {
         console.error("Failed to seed database:", error);
         return { success: false, error: error instanceof Error ? error.message : "Failed to seed database" };

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, DatabaseIcon } from "lucide-react";
+import { Loader2, DatabaseIcon, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { seedDatabase } from "@/app/actions";
 
@@ -24,6 +24,7 @@ export default function LoginPage() {
     const router = useRouter();
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSeeding, setIsSeeding] = useState(false);
@@ -39,6 +40,8 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const trimmedIdentifier = identifier.trim();
+            const trimmedPassword = password.trim();
+            
             // A simple way to check: if it has @ but not as the first character, it's likely an email
             const isEmail = trimmedIdentifier.includes("@") && trimmedIdentifier.indexOf("@") > 0;
             
@@ -51,7 +54,7 @@ export default function LoginPage() {
             if (isEmail) {
                 res = await authSignIn.email({
                     email: trimmedIdentifier,
-                    password,
+                    password: trimmedPassword,
                 });
             } else {
                 // For username, strip the leading '@' if user included it
@@ -63,7 +66,7 @@ export default function LoginPage() {
                     
                 res = await authSignIn.username({
                     username: cleanUsername,
-                    password,
+                    password: trimmedPassword,
                 });
             }
 
@@ -147,15 +150,28 @@ export default function LoginPage() {
 
                         <div className="space-y-2">
                             <Label htmlFor="password">Kata Sandi</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="bg-background/50"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="bg-background/50 pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-4 w-4" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
                         {error && (
