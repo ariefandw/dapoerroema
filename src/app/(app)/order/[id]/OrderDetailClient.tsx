@@ -3,7 +3,7 @@
 import { PageContainer } from "@/components/PageContainer";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Package, MapPin, Clock, Info, CheckCircle2, User, Map } from "lucide-react";
+import { ArrowLeft, Package, MapPin, Clock, Info, CheckCircle2, User, Map, MoreVertical, XCircle, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,12 +12,13 @@ import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
 import { Badge } from "@/components/ui/badge";
 import { OrderTrackingMapWrapper } from "./MapWrapper";
 import { UnifiedStatusStepper } from "@/components/UnifiedStatusStepper";
-import { notFound } from "next/navigation";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DeleteConfirm } from "@/components/DeleteConfirm";
 import useSWR, { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { useEffect, useRef, useTransition } from "react";
 import { updateOrderStatus } from "@/app/actions";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useGlobalState } from "@/lib/GlobalStateProvider";
 
@@ -29,6 +30,7 @@ const fetcher = (url: string) => fetch(url).then(async (res) => {
 
 export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initialOrder: any; isAdmin: boolean; userRole: string }) {
     const pathname = usePathname();
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
     const { data: order = initialOrder } = useSWR(
@@ -92,6 +94,40 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                         <Clock className="h-3.5 w-3.5" />
                         Dibuat pada {format(new Date(order.order_date), "PPP p", { locale: localeId })}
                     </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="font-bold gap-2">
+                                <MoreVertical className="h-4 w-4" />
+                                Aksi
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                            {(isAdmin || ((userRole === "user" || userRole === "baker") && order.status === "pending")) && (
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/order/${order.id}/edit`} className="cursor-pointer flex items-center">
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        <span>Edit Order</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            )}
+                            {(isAdmin || (userRole === "user" && order.status === "pending")) && order.status !== "cancelled" && (
+                                <DeleteConfirm
+                                    title="Batalkan Order?"
+                                    description="Tindakan ini akan membatalkan order secara keseluruhan. Anda dapat memulihkannya nanti jika diperlukan."
+                                    confirmLabel="Ya, Batalkan"
+                                    onConfirm={() => handleStatusChange(order.id, order.status, "cancelled")}
+                                >
+                                    <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-destructive focus:bg-destructive focus:text-destructive-foreground w-full">
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        <span>Batalkan Order</span>
+                                    </div>
+                                </DeleteConfirm>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
