@@ -38,7 +38,8 @@ export default function LoginPage() {
         setError("");
         setLoading(true);
         try {
-            const isEmail = identifier.includes("@");
+            // A simple way to check: if it has @ but not as the first character, it's likely an email
+            const isEmail = identifier.includes("@") && identifier.indexOf("@") > 0;
             let res;
             
             // Cast to any to avoid TypeScript errors with dynamic provider methods
@@ -46,12 +47,17 @@ export default function LoginPage() {
 
             if (isEmail) {
                 res = await authSignIn.email({
-                    email: identifier,
+                    email: identifier.trim(),
                     password,
                 });
             } else {
+                // For username, strip the leading '@' if user included it
+                const cleanUsername = identifier.startsWith("@") 
+                    ? identifier.substring(1) 
+                    : identifier;
+                    
                 res = await authSignIn.username({
-                    username: identifier,
+                    username: cleanUsername.trim(),
                     password,
                 });
             }
