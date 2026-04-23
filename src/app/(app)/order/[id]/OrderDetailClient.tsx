@@ -150,10 +150,10 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                         <tr>
                                             <th className="px-6 py-3 text-left font-bold uppercase tracking-wider text-xs">Produk</th>
                                             <th className="px-6 py-3 text-center font-bold uppercase tracking-wider text-xs">Qty</th>
-                                            {userRole !== "baker" && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Harga Satuan</th>}
+                                            {!["baker", "runner"].includes(userRole) && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Harga Satuan</th>}
                                             {isAdmin && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">HPP</th>}
                                             {isAdmin && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Margin</th>}
-                                            {userRole !== "baker" && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Total Jual</th>}
+                                            {!["baker", "runner"].includes(userRole) && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Total Jual</th>}
                                             {isAdmin && <th className="px-6 py-3 text-right font-bold uppercase tracking-wider text-xs">Net Profit</th>}
                                         </tr>
                                     </thead>
@@ -171,10 +171,10 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                                     <td className="px-6 py-4 text-center">
                                                         <Badge variant="secondary" className="font-bold">{qty}x</Badge>
                                                     </td>
-                                                    {userRole !== "baker" && <td className="px-6 py-4 text-right">Rp {sellPrice.toLocaleString()}</td>}
+                                                    {!["baker", "runner"].includes(userRole) && <td className="px-6 py-4 text-right">Rp {sellPrice.toLocaleString()}</td>}
                                                     {isAdmin && <td className="px-6 py-4 text-right text-orange-600">Rp {hpp.toLocaleString()}</td>}
                                                     {isAdmin && <td className="px-6 py-4 text-right text-blue-600">Rp {margin.toLocaleString()}</td>}
-                                                    {userRole !== "baker" && <td className="px-6 py-4 text-right font-bold text-primary">
+                                                    {!["baker", "runner"].includes(userRole) && <td className="px-6 py-4 text-right font-bold text-primary">
                                                         Rp {totalJual.toLocaleString()}
                                                     </td>}
                                                     {isAdmin && <td className="px-6 py-4 text-right font-bold text-green-600">Rp {netProfit.toLocaleString()}</td>}
@@ -182,7 +182,7 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
                                             );
                                         })}
                                     </tbody>
-                                    {userRole !== "baker" && (
+                                    {!["baker", "runner"].includes(userRole) && (
                                     <tfoot className="bg-muted/10 border-t-2 border-border/20">
                                         <tr>
                                             <td colSpan={isAdmin ? 5 : 3} className="px-6 py-4 font-bold text-right uppercase tracking-wider text-xs">Total Pembayaran</td>

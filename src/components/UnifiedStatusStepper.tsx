@@ -141,6 +141,8 @@ export function UnifiedStatusStepper({
             return ["pending", "accepted", "in_production", "ready"].includes(status);
         }
         if (userRole === "runner") {
+            // Block runner from changing status if currently in production
+            if (currentStatus === "in_production") return false;
             return ["ready", "shipping", "delivered"].includes(status);
         }
 
