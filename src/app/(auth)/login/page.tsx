@@ -38,11 +38,21 @@ export default function LoginPage() {
         setError("");
         setLoading(true);
         try {
-            const res = await signIn.email({
-                email: identifier,
-                password,
-                // Better Auth will detect if the identifier is a username or email
-            });
+            const isEmail = identifier.includes("@");
+            let res;
+            
+            if (isEmail) {
+                res = await signIn.email({
+                    email: identifier,
+                    password,
+                });
+            } else {
+                res = await signIn.username({
+                    username: identifier,
+                    password,
+                });
+            }
+
             if (res.error) {
                 setError(res.error.message ?? "Kredensial tidak valid.");
                 setLoading(false);
@@ -163,7 +173,7 @@ export default function LoginPage() {
                                     size="sm"
                                     className="h-7 text-sm px-2 border-muted/50 hover:bg-primary/5 hover:text-primary transition-all"
                                     onClick={() => {
-                                        setIdentifier(acct.email);
+                                        setIdentifier(acct.username);
                                         setPassword(acct.password);
                                         setError("");
                                     }}
