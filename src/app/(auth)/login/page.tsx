@@ -38,37 +38,46 @@ export default function LoginPage() {
         setError("");
         setLoading(true);
         try {
+            const trimmedIdentifier = identifier.trim();
             // A simple way to check: if it has @ but not as the first character, it's likely an email
-            const isEmail = identifier.includes("@") && identifier.indexOf("@") > 0;
-            let res;
+            const isEmail = trimmedIdentifier.includes("@") && trimmedIdentifier.indexOf("@") > 0;
             
+            console.log(`[Login] Attempting login for: ${trimmedIdentifier} (isEmail: ${isEmail})`);
+            
+            let res;
             // Cast to any to avoid TypeScript errors with dynamic provider methods
             const authSignIn = signIn as any;
 
             if (isEmail) {
                 res = await authSignIn.email({
-                    email: identifier.trim(),
+                    email: trimmedIdentifier,
                     password,
                 });
             } else {
                 // For username, strip the leading '@' if user included it
-                const cleanUsername = identifier.startsWith("@") 
-                    ? identifier.substring(1) 
-                    : identifier;
+                const cleanUsername = trimmedIdentifier.startsWith("@") 
+                    ? trimmedIdentifier.substring(1) 
+                    : trimmedIdentifier;
+                
+                console.log(`[Login] Using username: ${cleanUsername}`);
                     
                 res = await authSignIn.username({
-                    username: cleanUsername.trim(),
+                    username: cleanUsername,
                     password,
                 });
             }
 
             if (res.error) {
+                console.error(`[Login] Error:`, res.error);
                 setError(res.error.message ?? "Kredensial tidak valid.");
                 setLoading(false);
                 return;
             }
+            
+            console.log(`[Login] Success! Redirecting...`);
             window.location.href = "/order";
-        } catch {
+        } catch (err: any) {
+            console.error(`[Login] Exception:`, err);
             setError("Terjadi kesalahan. Silakan coba lagi.");
             setLoading(false);
         }
