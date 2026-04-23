@@ -53,17 +53,18 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ id
         <PageContainer className="pb-20 sm:pb-6 mt-4">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                            <Button asChild variant="ghost" size="sm" className="h-8 -ml-2 gap-1 text-muted-foreground hover:text-primary transition-colors">
+                                <Link href="/order">
+                                    <ArrowLeft className="h-4 w-4" />
+                                    <span className="font-bold text-xs uppercase tracking-wider">Kembali</span>
+                                </Link>
+                            </Button>
+                        </div>
                         <div className="flex items-center gap-3">
-                            {isStaff && (
-                                <Button asChild variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full">
-                                    <Link href="/order">
-                                        <ArrowLeft className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            )}
                             <h1 className="text-2xl font-black tracking-tight underline underline-offset-8 decoration-primary/30 decoration-4">Order #{order.id.toString().padStart(3, '0')}</h1>
                         </div>
-                        <p className={cn("text-muted-foreground flex items-center gap-2 text-sm", isStaff && "ml-8")}>
+                        <p className="text-muted-foreground flex items-center gap-2 text-sm mt-1">
                             <Clock className="h-3.5 w-3.5" />
                             Dibuat pada {format(new Date(order.order_date), "PPP p", { locale: localeId })}
                         </p>
