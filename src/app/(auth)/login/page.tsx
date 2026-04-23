@@ -108,7 +108,7 @@ export default function LoginPage() {
                 {/* Custom Header Area - Logo Image */}
                 <div className="flex flex-col items-center justify-center text-center">
                     <img
-                        src="/logo.png"
+                        src="/logo-new.png"
                         alt="Dapoer Roema"
                         className="h-24 w-auto object-contain mb-2"
                     />
