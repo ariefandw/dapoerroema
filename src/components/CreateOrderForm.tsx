@@ -128,7 +128,7 @@ export function CreateOrderForm({
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="font-bold text-xs uppercase text-muted-foreground tracking-wider">Outlet Tujuan</FormLabel>
-                                {userRole === "admin" ? (
+                                {["admin", "user"].includes(userRole || "") ? (
                                     <Select
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value ? field.value.toString() : ""}

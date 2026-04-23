@@ -53,8 +53,8 @@ export function OutletSwitcher({ outlets, currentOutletId, userRole }: OutletSwi
     const currentOutlet = outlets.find(o => o.id === effectiveOutletId);
     const displayName = currentOutlet?.name || "Dapoer Roema";
 
-    // Baker: locked to Dapoer Roema, no dropdown
-    if (userRole === "baker") {
+    // Baker or Runner: locked to Dapoer Roema, no dropdown
+    if (userRole === "baker" || userRole === "runner") {
         return (
             <Button variant="ghost" className="flex items-center gap-2 px-2 rounded-lg cursor-default">
                 <ChefHat className="size-6" />

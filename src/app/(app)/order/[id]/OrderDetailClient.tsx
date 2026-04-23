@@ -52,12 +52,12 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
         }
     }, [order?.status]);
 
+    const { mutate } = useSWRConfig();
+    const { revalidateOrders, revalidateStock } = useGlobalState();
+
     if (!order) return null;
 
     const statusUi = STATUS_UI_MAP[order.status as OrderStatus];
-
-    const { mutate } = useSWRConfig();
-    const { revalidateOrders, revalidateStock } = useGlobalState();
 
     const handleStatusChange = (orderId: number, currentStatus: string, newStatus: string, deliveryData?: { photoUrl: string; signatureUrl: string }) => {
         if (currentStatus === newStatus) return;
@@ -77,17 +77,20 @@ export function OrderDetailClient({ initialOrder, isAdmin, userRole }: { initial
         <PageContainer className="max-w-7xl mx-auto space-y-6 pb-20 sm:pb-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-3">
-                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 -ml-2 rounded-full">
+                    <div className="flex items-center gap-2">
+                        <Button asChild variant="ghost" size="sm" className="h-8 -ml-2 gap-1 text-muted-foreground hover:text-primary transition-colors">
                             <Link href="/order">
                                 <ArrowLeft className="h-4 w-4" />
+                                <span className="font-bold text-xs uppercase tracking-wider">Kembali</span>
                             </Link>
                         </Button>
-                        <h1 className="text-2xl font-bold tracking-tight">Order #{order.id}</h1>
                     </div>
-                    <p className="text-muted-foreground flex items-center gap-2 text-sm ml-8">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-black tracking-tight underline underline-offset-8 decoration-primary/30 decoration-4 text-foreground">Order #{order.id.toString().padStart(3, '0')}</h1>
+                    </div>
+                    <p className="text-muted-foreground flex items-center gap-2 text-sm mt-1">
                         <Clock className="h-3.5 w-3.5" />
-                        {format(new Date(order.order_date), "dd/MM/yyyy HH:mm")}
+                        Dibuat pada {format(new Date(order.order_date), "PPP p", { locale: localeId })}
                     </p>
                 </div>
             </div>

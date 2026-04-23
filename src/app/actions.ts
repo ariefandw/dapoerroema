@@ -211,9 +211,9 @@ export async function updateCurrentOutlet(outletId: number | null) {
             return { success: false, error: "Not authenticated" };
         }
 
-        // Baker role is locked to Dapoer Roema (all outlets)
-        if (session.user.role === "baker") {
-            return { success: false, error: "Baker tidak dapat memilih outlet spesifik." };
+        // Baker and Runner roles are locked to Dapoer Roema (all outlets)
+        if (session.user.role === "baker" || session.user.role === "runner") {
+            return { success: false, error: `${session.user.role === "baker" ? "Baker" : "Runner"} tidak dapat memilih outlet spesifik.` };
         }
 
         // If 'user' role, enforce brand restrictions
