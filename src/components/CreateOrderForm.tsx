@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, Trash2, Package, ShoppingCart, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +51,19 @@ interface CreateOrderResult {
     stockIssues?: Array<{ product_id: number; requested: number; available: number }>;
 }
 
-export function CreateOrderForm({ currentOutletId, products, onSuccess }: { currentOutletId?: number | null; products: Product[]; onSuccess?: (orderId?: number) => void }) {
+export function CreateOrderForm({
+    currentOutletId,
+    products,
+    outlets,
+    userRole,
+    onSuccess
+}: {
+    currentOutletId?: number | null;
+    products: Product[];
+    outlets: Outlet[];
+    userRole?: string;
+    onSuccess?: (orderId?: number) => void
+}) {
     const [isPending, startTransition] = useTransition();
 
     const form = useForm<FormValues>({
@@ -66,6 +78,8 @@ export function CreateOrderForm({ currentOutletId, products, onSuccess }: { curr
         control: form.control,
         name: "items",
     });
+
+    const currentOutlet = outlets.find(o => o.id === currentOutletId);
 
     function onSubmit(data: FormValues) {
         startTransition(async () => {
@@ -95,7 +109,7 @@ export function CreateOrderForm({ currentOutletId, products, onSuccess }: { curr
         });
     }
 
-    if (!currentOutletId) {
+    if (!currentOutletId && userRole !== "admin") {
         return (
             <div className="text-center py-6 text-muted-foreground">
                 <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -106,8 +120,44 @@ export function CreateOrderForm({ currentOutletId, products, onSuccess }: { curr
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-                <div className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="bg-muted/30 p-3 rounded-lg border border-border/50">
+                    <FormField
+                        control={form.control}
+                        name="outlet_id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="font-bold text-xs uppercase text-muted-foreground tracking-wider">Outlet Tujuan</FormLabel>
+                                {userRole === "admin" ? (
+                                    <Select
+                                        onValueChange={(val) => field.onChange(Number(val))}
+                                        value={field.value ? field.value.toString() : ""}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className="h-10 bg-background border-border/40 focus:ring-primary/20 font-bold">
+                                                <SelectValue placeholder="Pilih Outlet" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {outlets.map((o) => (
+                                                <SelectItem key={o.id} value={o.id.toString()}>
+                                                    {o.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <div className="h-10 flex items-center px-3 rounded-md bg-muted/50 border border-border/40 font-bold text-sm">
+                                        {currentOutlet?.name || "Outlet Tidak Diketahui"}
+                                    </div>
+                                )}
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <div className="space-y-4 pt-2">
                     <FormLabel className="font-bold text-sm text-muted-foreground">
                         Item Order
                     </FormLabel>

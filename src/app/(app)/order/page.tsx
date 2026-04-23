@@ -26,6 +26,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
         <OrderClientPage
             orders={orders}
             products={products}
+            outlets={outlets}
             userRole={userRole}
             outletId={currentOutletId}
             date={date}

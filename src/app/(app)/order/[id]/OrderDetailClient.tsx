@@ -3,7 +3,7 @@
 import { PageContainer } from "@/components/PageContainer";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { ArrowLeft, Package, MapPin, Clock, Info, CheckCircle2, User, Phone, Map } from "lucide-react";
+import { ArrowLeft, Package, MapPin, Clock, Info, CheckCircle2, User, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

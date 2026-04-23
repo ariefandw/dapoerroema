@@ -21,7 +21,7 @@ const fetcher = (url: string) => fetch(url).then(async (res) => {
     return data;
 });
 
-export function OrderClientPage({ orders: initialOrders, products, userRole, outletId, date }: any) {
+export function OrderClientPage({ orders: initialOrders, products, outlets, userRole, outletId, date }: any) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const router = useRouter();
 
@@ -79,8 +79,11 @@ export function OrderClientPage({ orders: initialOrders, products, userRole, out
                             </DialogHeader>
                             <div className="mt-4">
                                 <CreateOrderForm
+                                    key={outletId}
                                     currentOutletId={outletId}
                                     products={products}
+                                    outlets={outlets}
+                                    userRole={userRole}
                                     onSuccess={handleSuccess}
                                 />
                             </div>

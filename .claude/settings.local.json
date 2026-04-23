@@ -45,7 +45,10 @@
       "Bash(echo \"Exit code: $?\")",
       "Bash(echo \"Exit: $?\")",
       "Read(//tmp/**)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(grep -r 'useSession\\\\|revalidate\\\\|sessionAtom\\\\|$session\\\\|session.*atom' node_modules/better-auth/dist/client/index.mjs)",
+      "Bash(grep -rn \"revalidate\" node_modules/better-auth/dist/client/*.mjs)",
+      "Bash(grep -rn '$fetch\\\\|session\\\\|listen\\\\|subscribe' node_modules/better-auth/dist/client/config.mjs)"
     ]
   }
 }

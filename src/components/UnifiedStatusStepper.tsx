@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { OrderStatus, STATUS_UI_MAP } from "@/lib/status-dictionary";
+import { OrderStatus } from "@/lib/status-dictionary";
 import {
     ClipboardList,
     CheckCircle2,
@@ -9,7 +9,6 @@ import {
     Box,
     Truck,
     Home,
-    XCircle,
     RotateCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -189,7 +188,7 @@ export function UnifiedStatusStepper({
 
                         const handleStepClick = () => {
                             if (!canClick || !orderId || !onStatusChange) return;
-                            if (step.status === "delivered" && userRole === "runner") {
+                            if (step.status === "delivered" && ["runner", "admin"].includes(userRole || "")) {
                                 setConfirmModalOpen(true);
                             } else {
                                 onStatusChange(orderId, currentStatus, step.status);
@@ -262,7 +261,7 @@ export function UnifiedStatusStepper({
 
                         const handleStepClick = () => {
                             if (!canClick || !orderId || !onStatusChange) return;
-                            if (step.status === "delivered" && userRole === "runner") {
+                            if (step.status === "delivered" && ["runner", "admin"].includes(userRole || "")) {
                                 setConfirmModalOpen(true);
                             } else {
                                 onStatusChange(orderId, currentStatus, step.status);

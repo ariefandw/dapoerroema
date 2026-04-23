@@ -6,7 +6,6 @@ import { useTransition } from "react";
 import { updateOrderStatus } from "@/app/actions";
 import { toast } from "sonner";
 import { useSWRConfig } from "swr";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Table,
     TableBody,
@@ -17,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { STATUS_UI_MAP, OrderStatus } from "@/lib/status-dictionary";
-import { Calendar, Package, CalendarDays, MapPin, Eye, ExternalLink, ArrowRight, ArrowLeft, MoreVertical, XCircle, Edit } from "lucide-react";
+import { Calendar, Package, CalendarDays, MapPin, Eye, MoreVertical, XCircle, Edit } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -170,11 +169,24 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                                 <TableCell>
                                                     <div className="flex flex-col gap-1 py-1">
                                                         {order.items.map((item: any) => (
-                                                            <div key={item.id} className="text-sm whitespace-nowrap">
-                                                                <span className="font-mono font-bold text-primary mr-1.5">{item.quantity}</span>
-                                                                <span className="text-muted-foreground font-medium">{item.product.name}</span>
+                                                            <div key={item.id} className="text-sm whitespace-nowrap flex items-center justify-between gap-4">
+                                                                <div>
+                                                                    <span className="font-mono font-bold text-primary mr-1.5">{item.quantity}</span>
+                                                                    <span className="text-muted-foreground font-medium">{item.product.name}</span>
+                                                                </div>
+                                                                {["admin", "user"].includes(userRole) && (
+                                                                    <div className="text-xs text-muted-foreground font-mono">
+                                                                        @ {item.unit_price?.toLocaleString()}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         ))}
+                                                        {["admin", "user"].includes(userRole) && (
+                                                            <div className="pt-1 mt-1 border-t border-border/40 flex justify-between items-center">
+                                                                <span className="text-[10px] font-bold uppercase text-muted-foreground/60">Total</span>
+                                                                <span className="text-sm font-black text-primary">Rp {order.total_amount?.toLocaleString()}</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="text-right pr-4">
@@ -318,16 +330,27 @@ export function OrdersTable({ orders, currentDate, userRole = "admin" }: { order
                                         </div>
 
                                         <div className="px-4 py-2">
-                                            <div>
+                                            <div className="space-y-1">
                                                 {order.items.map((item: any, idx: number) => (
-                                                    <div key={item.id}>
-                                                        <div className="flex justify-between items-center text-sm py-0.5">
-                                                            <span className="font-medium text-muted-foreground">{item.product.name}</span>
-                                                            <span className="font-mono font-bold text-primary">{item.quantity}</span>
+                                                    <div key={item.id} className="flex justify-between items-center text-sm py-0.5">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-foreground">{item.product.name}</span>
+                                                            {["admin", "user"].includes(userRole) && (
+                                                                <span className="text-[10px] text-muted-foreground font-mono">
+                                                                    @ {item.unit_price?.toLocaleString()}
+                                                                </span>
+                                                            )}
                                                         </div>
+                                                        <span className="font-mono font-bold text-primary">{item.quantity}</span>
                                                     </div>
                                                 ))}
                                             </div>
+                                            {["admin", "user"].includes(userRole) && (
+                                                <div className="mt-2 pt-2 border-t border-border/40 flex justify-between items-center">
+                                                    <span className="text-[10px] font-bold uppercase text-muted-foreground/60">Total Pembayaran</span>
+                                                    <span className="text-base font-black text-primary">Rp {order.total_amount?.toLocaleString()}</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <Separator className="h-2 bg-slate-200 dark:bg-slate-800 border-y border-slate-300 dark:border-slate-700" />
                                     </div>
