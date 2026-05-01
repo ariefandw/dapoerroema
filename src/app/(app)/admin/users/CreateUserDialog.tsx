@@ -95,7 +95,7 @@ export function CreateUserDialog({ outlets }: { outlets: any[] }) {
                         Tambah Pengguna Baru
                     </DialogTitle>
                     <DialogDescription>
-                        Buat akun baru untuk karyawan Dapoer Roema. Password default adalah "Password123!" jika dikosongkan.
+                        Buat akun baru untuk karyawan Dapoer Roema. Password default adalah "Password123" jika dikosongkan.
                     </DialogDescription>
                 </DialogHeader>
 

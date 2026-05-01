@@ -72,7 +72,7 @@ export async function adminCreateUser(data: { email: string; name: string; usern
             body: {
                 email: data.email,
                 name: data.name,
-                password: data.password || "Password123!",
+                password: data.password || "Password123",
                 role: data.role as any,
                 data: {
                     username: data.username?.trim() || null,

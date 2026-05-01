@@ -153,7 +153,7 @@ export async function runSeed(isCleanupOnly = false) {
                     body: {
                         name: u.name,
                         email: u.email,
-                        password: "Password123!",
+                        password: "Password123",
                     },
                 });
                 userId = res?.user?.id || crypto.randomUUID();
@@ -165,7 +165,7 @@ export async function runSeed(isCleanupOnly = false) {
                     body: {
                         name: u.name,
                         email: u.email,
-                        password: "Password123!",
+                        password: "Password123",
                     },
                 });
             }

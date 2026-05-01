@@ -13,10 +13,10 @@ import { toast } from "sonner";
 import { seedDatabase } from "@/app/actions";
 
 const DEMO_ACCOUNTS = [
-    { label: "User", email: "user@test.app", username: "customer_user", password: "Password123!" },
-    { label: "Baker", email: "baker@test.app", username: "budi_baker", password: "Password123!" },
-    { label: "Runner", email: "runner@test.app", username: "rudi_runner", password: "Password123!" },
-    { label: "Admin", email: "admin@test.app", username: "ariefan_admin", password: "Password123!" },
+    { label: "User", email: "user@test.app", username: "customer_user", password: "Password123" },
+    { label: "Baker", email: "baker@test.app", username: "budi_baker", password: "Password123" },
+    { label: "Runner", email: "runner@test.app", username: "rudi_runner", password: "Password123" },
+    { label: "Admin", email: "admin@test.app", username: "ariefan_admin", password: "Password123" },
 ];
 
 export default function LoginPage() {

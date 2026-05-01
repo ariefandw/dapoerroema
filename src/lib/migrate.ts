@@ -306,7 +306,7 @@ async function runSeed(pool: Pool) {
                 body: {
                     name: u.name,
                     email: u.email,
-                    password: "Password123!",
+                    password: "Password123",
                 },
             });
         } catch (e) {
@@ -321,10 +321,10 @@ async function runSeed(pool: Pool) {
     }
 
     console.log("Created default users:");
-    console.log("  admin@test.app / Password123! (@ariefan_admin)");
-    console.log("  baker@test.app / Password123! (@budi_baker)");
-    console.log("  runner@test.app / Password123! (@rudi_runner)");
-    console.log("  user@test.app / Password123! (@customer_user)");
+    console.log("  admin@test.app / Password123 (@ariefan_admin)");
+    console.log("  baker@test.app / Password123 (@budi_baker)");
+    console.log("  runner@test.app / Password123 (@rudi_runner)");
+    console.log("  user@test.app / Password123 (@customer_user)");
 
     console.log("Database seeding completed!");
 }

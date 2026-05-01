@@ -4,10 +4,10 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 const USERS = [
-    { name: "Admin Dapoer Roema", email: "admin@test.app", password: "Password123!", role: "admin" },
-    { name: "Baker Dapoer Roema", email: "baker@test.app", password: "Password123!", role: "baker" },
-    { name: "Runner Dapoer Roema", email: "runner@test.app", password: "Password123!", role: "runner" },
-    { name: "User Dapoer Roema", email: "user@test.app", password: "Password123!", role: "user" },
+    { name: "Admin Dapoer Roema", email: "admin@test.app", password: "Password123", role: "admin" },
+    { name: "Baker Dapoer Roema", email: "baker@test.app", password: "Password123", role: "baker" },
+    { name: "Runner Dapoer Roema", email: "runner@test.app", password: "Password123", role: "runner" },
+    { name: "User Dapoer Roema", email: "user@test.app", password: "Password123", role: "user" },
 ];
 
 async function seedUsers() {
