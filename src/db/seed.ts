@@ -40,35 +40,20 @@ export async function runSeed(isCleanupOnly = false) {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
     try {
-        console.log("🧹 Cleaning up...");
-        await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, brand_products, products, outlets, settings, brands CASCADE");
+        // Check if outlets exist - if yes, database is already seeded
+        const outletCheck = await pool.query("SELECT COUNT(*)::int FROM outlets");
+        const hasData = parseInt(outletCheck.rows[0].count) > 0;
 
-        // Add new columns to existing tables
-        console.log("📋 Adding new columns to existing tables...");
-        await pool.query(`
-            -- Add username column to user table
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS username text UNIQUE;
-
-            -- Add runner_id column to orders table
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS runner_id text REFERENCES "user"(id);
-
-            -- Add location tracking columns to user table
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lat" real;
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_lng" real;
-            ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "last_seen_at" timestamp;
-
-            -- Add delivery columns to orders
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url text;
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_signature_url text;
-
-            -- Create indexes for new columns
-            CREATE INDEX IF NOT EXISTS user_username_idx ON "user"("username");
-            CREATE INDEX IF NOT EXISTS orders_runner_id_idx ON orders(runner_id);
-        `);
+        if (hasData && !isCleanupOnly) {
+            console.log("✅ Database already seeded. Use reset button to re-seed.");
+            return { success: true, message: "Database already seeded." };
+        }
 
         if (isCleanupOnly) {
+            console.log("🧹 Cleaning up data...");
+            await pool.query("TRUNCATE TABLE runner_trail, stock_transactions, stock, order_items, orders, order_status_logs, brand_products, products, outlets, settings, brands CASCADE");
             console.log("✅ Cleanup complete.");
-            return { success: true, message: "Data removed successfully." };
+            return { success: true, message: "Data cleared successfully." };
         }
 
         await pool.query("BEGIN");
@@ -76,25 +61,35 @@ export async function runSeed(isCleanupOnly = false) {
         // 0. Settings
         console.log("   - Seeding settings...");
         await pool.query(
-            "INSERT INTO settings (key, value) VALUES ($1, $2), ($3, $4)",
+            "INSERT INTO settings (key, value) VALUES ($1, $2), ($3, $4) ON CONFLICT (key) DO NOTHING",
             ["app_name", "Orbery Central Kitchen", "maintenance_mode", "false"]
         );
 
         // 1. Brands
         const brandIds: Record<string, number> = {};
         for (const b of BRANDS) {
-            const res = await pool.query("INSERT INTO brands (name, description) VALUES ($1, $2) RETURNING id", [b.name, b.description]);
-            brandIds[b.name] = res.rows[0].id;
+            const res = await pool.query("INSERT INTO brands (name, description) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id", [b.name, b.description]);
+            if (res.rows.length > 0) {
+                brandIds[b.name] = res.rows[0].id;
+            } else {
+                const existing = await pool.query("SELECT id FROM brands WHERE name = $1", [b.name]);
+                brandIds[b.name] = existing.rows[0].id;
+            }
         }
 
         // 2. Outlets
         const outletList: { id: number; name: string }[] = [];
         for (const o of OUTLETS) {
             const res = await pool.query(
-                "INSERT INTO outlets (name, contact_info, brand_id) VALUES ($1, $2, $3) RETURNING id",
+                "INSERT INTO outlets (name, contact_info, brand_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id",
                 [o.name, o.contact, brandIds[o.brand]]
             );
-            outletList.push({ id: res.rows[0].id, name: o.name });
+            if (res.rows.length > 0) {
+                outletList.push({ id: res.rows[0].id, name: o.name });
+            } else {
+                const existing = await pool.query("SELECT id FROM outlets WHERE name = $1", [o.name]);
+                outletList.push({ id: existing.rows[0].id, name: o.name });
+            }
         }
 
         // 3. Products & Brand Pricing & Initial Stock
@@ -103,10 +98,16 @@ export async function runSeed(isCleanupOnly = false) {
         for (const p of PRODUCTS) {
             const basePrice = Math.floor(p.price * 0.7);
             const res = await pool.query(
-                "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4) RETURNING id",
+                "INSERT INTO products (name, category, base_price, image_url) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING id",
                 [p.name, p.category, basePrice, getImageUrl(p.name)]
             );
-            const productId = res.rows[0].id;
+            let productId: number;
+            if (res.rows.length > 0) {
+                productId = res.rows[0].id;
+            } else {
+                const existing = await pool.query("SELECT id FROM products WHERE name = $1", [p.name]);
+                productId = existing.rows[0].id;
+            }
             productIds.push(productId);
 
             // Add brand pricing
@@ -114,36 +115,22 @@ export async function runSeed(isCleanupOnly = false) {
                 const bId = brandIds[b.name];
                 const markup = b.name === "Toko Roema" ? 1.2 : (b.name === "YAP Cafe" ? 1.5 : 1.1);
                 await pool.query(
-                    "INSERT INTO brand_products (brand_id, product_id, price) VALUES ($1, $2, $3)",
+                    "INSERT INTO brand_products (brand_id, product_id, price) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
                     [bId, productId, Math.floor(basePrice * markup)]
                 );
             }
 
             // Initial central stock (outlet_id = null)
             await pool.query(
-                "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4)",
+                "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING",
                 [productId, null, 1000, 100]
             );
 
             // Log initial stock transaction
             await pool.query(
-                "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6)",
+                "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
                 [productId, null, "add", 1000, "Initial System Seeding", "system"]
             );
-
-            // Initial outlet stock
-            for (const outlet of outletList) {
-                const initialQty = 50 + Math.floor(Math.random() * 50);
-                await pool.query(
-                    "INSERT INTO stock (product_id, outlet_id, quantity, min_stock) VALUES ($1, $2, $3, $4)",
-                    [productId, outlet.id, initialQty, 20]
-                );
-
-                await pool.query(
-                    "INSERT INTO stock_transactions (product_id, outlet_id, transaction_type, quantity, notes, created_by) VALUES ($1, $2, $3, $4, $5, $6)",
-                    [productId, outlet.id, "transfer_in", initialQty, "Initial Distribution", "system"]
-                );
-            }
         }
 
         // 4. Users
@@ -155,93 +142,58 @@ export async function runSeed(isCleanupOnly = false) {
             { name: "Customer User", email: "user@test.app", username: "customer_user", role: "user" },
         ];
 
-        const userMap: Record<string, string> = {};
+        const targetOutlet = outletList.find(o => o.name === "Toko Roema Sapen") || outletList[0];
         for (const u of USERS) {
-            let userId: string;
             const existing = await pool.query('SELECT id FROM "user" WHERE email = $1', [u.email]);
+            let userId: string;
 
-            if (existing.rows.length > 0) {
+            if (existing.rows.length === 0) {
+                console.log(`   - Creating user ${u.email} with signUpEmail...`);
+                const res = await auth.api.signUpEmail({
+                    body: {
+                        name: u.name,
+                        email: u.email,
+                        password: "Password123!",
+                    },
+                });
+                userId = res?.user?.id || crypto.randomUUID();
+            } else {
                 userId = existing.rows[0].id;
-                console.log(`   - User ${u.email} exists, deleting and recreating...`);
-                // Delete user and account to recreate with fresh password
+                // Delete and recreate account with fresh password
                 await pool.query('DELETE FROM "account" WHERE "userId" = $1', [userId]);
-                await pool.query('DELETE FROM "user" WHERE id = $1', [userId]);
+                const res = await auth.api.signUpEmail({
+                    body: {
+                        name: u.name,
+                        email: u.email,
+                        password: "Password123!",
+                    },
+                });
             }
 
-            console.log(`   - Creating user ${u.email} with signUpEmail...`);
-            // Use signUpEmail which properly hashes the password
-            const res = await auth.api.signUpEmail({
-                body: {
-                    name: u.name,
-                    email: u.email,
-                    password: "Password123!",
-                },
-            });
-            if (!res?.user) throw new Error(`Failed to create user ${u.email}`);
-            userId = res.user.id;
-
-            userMap[u.role] = userId;
-
-            // Find "Toko Roema Sapen" to assign all demo users
-            const targetOutlet = outletList.find(o => o.name === "Toko Roema Sapen") || outletList[0];
-            await pool.query(`UPDATE "user" SET role = $1, current_outlet_id = $2, username = $3 WHERE id = $4`,
-                [u.role, targetOutlet.id, u.username, userId]);
+            // Update username and role
+            await pool.query(`UPDATE "user" SET username = $1, role = $2, "current_outlet_id" = $3 WHERE email = $4`,
+                [u.username, u.role, targetOutlet.id, u.email]);
         }
 
-        // 5. Orders (Guaranteed 5+ per outlet)
-        console.log("📦 Creating rich order history (H-3 to H+3)...");
+        // 5. Orders (sample data)
+        console.log("📦 Creating sample orders...");
         const stats = ['pending', 'accepted', 'in_production', 'ready', 'shipping', 'delivered'];
 
         for (const outlet of outletList) {
-            console.log(`   - Seeding ${outlet.name}...`);
-            // Every outlet gets 6 orders (one for each status)
-            for (let i = 0; i < stats.length; i++) {
-                const currentStatus = stats[i];
-                const now = new Date();
-                const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
-
-                let orderDate = new Date(now.getTime() - threeDaysMs + (Math.random() * 2 * threeDaysMs));
-
-                // If it's Toko Roema Sapen, force the date to be strictly in the past (not today)
-                if (outlet.name === "Toko Roema Sapen") {
-                    const randomPastDays = 1 + Math.floor(Math.random() * 5); // 1 to 5 days ago
-                    orderDate = new Date(now.getTime() - (randomPastDays * 24 * 60 * 60 * 1000));
-                }
-
+            for (let i = 0; i < 3; i++) {
+                const status = stats[i % stats.length];
                 const subtotal = 100000 + Math.floor(Math.random() * 200000);
 
                 const orderRes = await pool.query(
-                    "INSERT INTO orders (outlet_id, status, subtotal, total_amount, order_date, created_at) VALUES ($1, $2, $3, $4, $5, $5) RETURNING id",
-                    [outlet.id, currentStatus, subtotal, subtotal, orderDate]
+                    "INSERT INTO orders (outlet_id, status, subtotal, total_amount, order_date, created_at) VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id",
+                    [outlet.id, status, subtotal, subtotal]
                 );
                 const orderId = orderRes.rows[0].id;
-
-                let prevStatus: string | null = null;
-                const logChain = stats.slice(0, i + 1);
-                for (const s of logChain) {
-                    const logUser = s === 'pending' ? null : (s === 'accepted' || s === 'in_production' || s === 'ready' ? userMap['baker'] : userMap['runner']);
-                    await pool.query(
-                        "INSERT INTO order_status_logs (order_id, from_status, to_status, changed_by, created_at) VALUES ($1, $2, $3, $4, $5)",
-                        [orderId, prevStatus, s, logUser || null, new Date(orderDate.getTime() + 1000 * 60 * 30)]
-                    );
-                    prevStatus = s;
-                }
 
                 await pool.query(
                     "INSERT INTO order_items (order_id, product_id, quantity, unit_price) VALUES ($1, $2, $3, $4)",
                     [orderId, productIds[0], 2, Math.floor(PRODUCTS[0].price * 1.1)]
                 );
-
-                if (['shipping', 'delivered'].includes(currentStatus) && userMap['runner']) {
-                    const startLat = -7.78;
-                    const startLng = 110.37;
-                    for (let j = 0; j < 5; j++) {
-                        await pool.query(
-                            "INSERT INTO runner_trail (user_id, order_id, lat, lng, created_at) VALUES ($1, $2, $3, $4, $5)",
-                            [userMap['runner'], orderId, startLat + (j * 0.002), startLng + (j * 0.002), new Date(orderDate.getTime() + 1000 * 60 * 60 + (j * 300000))]
-                        );
-                    }
-                }
             }
         }
 
