@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Loader2, DatabaseIcon, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { seedDatabase } from "@/app/actions";
+import { runSeed } from "@/db/seed";
 
 const DEMO_ACCOUNTS = [
     { label: "User", email: "user@test.app", username: "customer_user", password: "Password123!" },
@@ -92,7 +92,7 @@ export default function LoginPage() {
         }
         setIsSeeding(true);
         try {
-            const result = await seedDatabase(false);
+            const result = await runSeed(false);
             if (result.success) {
                 toast.success("Database reset and re-seeded successfully");
             } else {
