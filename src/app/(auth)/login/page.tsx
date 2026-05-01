@@ -58,14 +58,31 @@ export default function LoginPage() {
                 });
             } else {
                 // For username, strip the leading '@' if user included it
-                const cleanUsername = trimmedIdentifier.startsWith("@") 
-                    ? trimmedIdentifier.substring(1) 
+                const cleanUsername = trimmedIdentifier.startsWith("@")
+                    ? trimmedIdentifier.substring(1)
                     : trimmedIdentifier;
-                
-                console.log(`[Login] Using username: ${cleanUsername}`);
-                    
-                res = await authSignIn.username({
-                    username: cleanUsername,
+
+                console.log(`[Login] Looking up email for username: ${cleanUsername}`);
+
+                // Fetch the email for this username
+                const emailRes = await fetch(`/api/user/email-by-username?username=${cleanUsername}`);
+                if (!emailRes.ok) {
+                    setError("Username tidak ditemukan.");
+                    setLoading(false);
+                    return;
+                }
+                const data = await emailRes.json();
+                if (!data.email) {
+                    setError("Username tidak ditemukan.");
+                    setLoading(false);
+                    return;
+                }
+
+                console.log(`[Login] Found email: ${data.email}, logging in with email`);
+
+                // Login with email instead (username endpoint is broken in better-auth v1.5.3)
+                res = await authSignIn.email({
+                    email: data.email,
                     password: trimmedPassword,
                 });
             }

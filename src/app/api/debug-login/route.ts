@@ -6,7 +6,6 @@ import { eq } from "drizzle-orm";
 export async function GET(req: NextRequest) {
   try {
     const username = req.nextUrl.searchParams.get("username") || "customer_user";
-    const password = req.nextUrl.searchParams.get("password") || "Password123!";
 
     // 1. Find user by username
     const foundUser = await db.query.user.findFirst({
@@ -35,9 +34,9 @@ export async function GET(req: NextRequest) {
       account: {
         passwordLength: foundAccount.password.length,
         passwordPrefix: foundAccount.password.substring(0, 40),
-        passwordFull: foundAccount.password,
       },
-      message: "User found. To test login, use the frontend.",
+      message: "Use email for login instead - username endpoint is broken in better-auth v1.5.3",
+      loginWith: foundUser.email,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message, stack: error.stack });
