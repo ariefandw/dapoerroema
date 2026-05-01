@@ -901,31 +901,8 @@ export async function getAnalytics(outletId?: number | null) {
 
 export async function seedDatabase(isCleanupOnly = false) {
     try {
-        // Skip environment check when manually triggered from the UI
-        
-        const { runMigrations } = await import("@/lib/migrate");
-        await runMigrations();
-
-        // If cleanup only, migrations were enough to recreate tables
-        if (isCleanupOnly) {
-            return { success: true, message: "Database migrations completed." };
-        }
-
-        // Additional manual sync of usernames for demo accounts to be safe
-        const pool = new (await import("pg")).Pool({ connectionString: process.env.DATABASE_URL });
-        const demoUsers = [
-            { email: "admin@test.app", username: "ariefan_admin" },
-            { email: "baker@test.app", username: "budi_baker" },
-            { email: "runner@test.app", username: "rudi_runner" },
-            { email: "user@test.app", username: "customer_user" },
-        ];
-
-        for (const u of demoUsers) {
-            await pool.query('UPDATE "user" SET username = $1 WHERE email = $2', [u.username, u.email]);
-        }
-        await pool.end();
-
-        return { success: true, message: "Database reset and demo accounts synchronized!" };
+        const { runSeed } = await import("@/db/seed");
+        return await runSeed(isCleanupOnly);
     } catch (error) {
         console.error("Failed to seed database:", error);
         return { success: false, error: error instanceof Error ? error.message : "Failed to seed database" };
