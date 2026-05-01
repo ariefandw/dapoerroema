@@ -162,26 +162,23 @@ export async function runSeed(isCleanupOnly = false) {
 
             if (existing.rows.length > 0) {
                 userId = existing.rows[0].id;
-                console.log(`   - User ${u.email} exists, updating role and username...`);
-                // Update existing user with username
-                await pool.query('UPDATE "user" SET username = $1 WHERE id = $2', [u.username, userId]);
-            } else {
-                console.log(`   - Creating user ${u.email}...`);
-                // Use createUser API which properly handles additional fields
-                const res = await auth.api.createUser({
-                    body: {
-                        name: u.name,
-                        email: u.email,
-                        password: "Password123!",
-                        role: u.role as any,
-                        data: {
-                            username: u.username,
-                        }
-                    },
-                });
-                if (!res?.user) throw new Error(`Failed to create user ${u.email}`);
-                userId = res.user.id;
+                console.log(`   - User ${u.email} exists, deleting and recreating...`);
+                // Delete user and account to recreate with fresh password
+                await pool.query('DELETE FROM "account" WHERE "userId" = $1', [userId]);
+                await pool.query('DELETE FROM "user" WHERE id = $1', [userId]);
             }
+
+            console.log(`   - Creating user ${u.email} with signUpEmail...`);
+            // Use signUpEmail which properly hashes the password
+            const res = await auth.api.signUpEmail({
+                body: {
+                    name: u.name,
+                    email: u.email,
+                    password: "Password123!",
+                },
+            });
+            if (!res?.user) throw new Error(`Failed to create user ${u.email}`);
+            userId = res.user.id;
 
             userMap[u.role] = userId;
 
