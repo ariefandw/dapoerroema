@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { user, account } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -27,14 +26,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No password found", user: foundUser });
     }
 
-    // 3. Try to sign in
-    const result = await auth.api.signIn.username({
-      body: {
-        username: username,
-        password: password,
-      },
-    });
-
     return NextResponse.json({
       user: {
         id: foundUser.id,
@@ -44,8 +35,9 @@ export async function GET(req: NextRequest) {
       account: {
         passwordLength: foundAccount.password.length,
         passwordPrefix: foundAccount.password.substring(0, 40),
+        passwordFull: foundAccount.password,
       },
-      signInResult: result,
+      message: "User found. To test login, use the frontend.",
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message, stack: error.stack });
