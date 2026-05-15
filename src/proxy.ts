@@ -1,3 +1,9 @@
+/**
+ * proxy.ts — Replacement for the deprecated middleware.ts patterns.
+ * In recent Next.js versions, this is the preferred way to handle 
+ * edge-side logic and request interception.
+ * See: https://nextjs.org/docs/messages/middleware-to-proxy
+ */
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 

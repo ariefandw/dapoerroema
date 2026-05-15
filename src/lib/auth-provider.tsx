@@ -62,11 +62,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useEffect(() => {
         if (!session?.isPending && !session?.data) {
             // Session expired or user logged out
-            // The auth middleware will handle the redirect, but we can force it here
-            // if needed for a better UX
             console.log("Session expired, redirecting to login...");
+            // Use window.location.href for a full state clear
+            window.location.href = "/login";
         }
-    }, [session]);
+    }, [session?.data, session?.isPending]);
 
     return <>{children}</>;
 }
