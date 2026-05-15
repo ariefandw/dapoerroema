@@ -2,7 +2,7 @@ import { getOrderWithDetails, getProducts } from "@/app/actions";
 import { PageContainer } from "@/components/PageContainer";
 import { requireRole } from "@/lib/auth-guard";
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { EditOrderClientPage } from "./EditOrderClientPage";
 
@@ -17,7 +17,7 @@ export default async function EditOrderPage({ params }: { params: Promise<{ id: 
 
     if (!order) notFound();
 
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
     const userRole = session?.user?.role;
 
     // Authorization check
