@@ -5,14 +5,14 @@ import { outlets, products, orders, orderItems, user, orderStatusLogs, runnerTra
 import { revalidatePath } from "next/cache";
 import { eq, inArray, and, sql, gte, lte, isNull } from "drizzle-orm";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { checkStockAvailability, deductStock, addStock, getProductStock } from "./actions/stock";
 import { sendTelegramNotification } from "./actions/telegram";
 
 export async function getOutlets() {
     try {
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
         if (!session?.user) return [];
 
         // Admins, Bakers, and Runners see all outlets
@@ -258,7 +258,7 @@ type NewOrderParams = {
 
 export async function createOrder(data: NewOrderParams) {
     try {
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
         const userRole = session?.user?.role;
 
         if (!userRole || !["admin", "user"].includes(userRole as string)) {
@@ -445,7 +445,7 @@ export async function updateOrderStatus(
     deliveryData?: { photoUrl: string; signatureUrl: string }
 ) {
     try {
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
         if (!session?.user) return { success: false, error: "Unauthorized" };
 
         const userRole = session.user.role as string;
@@ -628,7 +628,7 @@ export async function getOrderWithDetails(orderId: number) {
             userName: log.changed_by ? userMap.get(log.changed_by) : "Sistem"
         }));
 
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
 
         const resultOrder = {
             ...order,
@@ -654,7 +654,7 @@ export async function getOrderWithDetails(orderId: number) {
 
 export async function updateRunnerLocation(lat: number, lng: number) {
     try {
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
         const userId = session?.user?.id;
         if (!userId) return;
 
@@ -738,7 +738,7 @@ export async function getRunnerLocations() {
  */
 export async function cancelOrder(orderId: number, reason?: string) {
     try {
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
         const userRole = session?.user?.role as string;
 
         if (!session?.user || !["admin", "user"].includes(userRole)) {
