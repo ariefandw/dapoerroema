@@ -51,17 +51,22 @@ export function OutletSwitcher({ outlets, currentOutletId, userRole }: OutletSwi
 
     const effectiveOutletId = localOutletId ?? currentOutletId;
     const currentOutlet = outlets.find(o => o.id === effectiveOutletId);
-    const displayName = currentOutlet?.name || "Dapoer Roema";
+    
+    // For Bakers and Runners, we ALWAYS show "Dapoer Roema" and hide the switcher
+    // regardless of what their currentOutletId is in the database.
+    const normalizedRole = userRole?.toLowerCase();
+    const isProductionRole = normalizedRole === "baker" || normalizedRole === "runner";
 
-    // Baker or Runner: locked to Dapoer Roema, no dropdown
-    if (userRole === "baker" || userRole === "runner") {
+    if (isProductionRole) {
         return (
-            <Button variant="ghost" className="flex items-center gap-2 px-2 rounded-lg cursor-default">
-                <ChefHat className="size-6" />
-                <span className="text-sm font-bold truncate max-w-[120px]">{displayName}</span>
-            </Button>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/20 text-primary">
+                <ChefHat className="h-5 w-5" />
+                <span className="text-sm font-black uppercase tracking-tight">Dapoer Roema</span>
+            </div>
         );
     }
+
+    const displayName = currentOutlet?.name || "Dapoer Roema";
 
     return (
         <DropdownMenu>

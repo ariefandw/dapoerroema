@@ -12,14 +12,18 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
     });
 
     const userRole: string = (session?.user as any)?.role ?? "admin";
-    const currentOutletId = (session?.user as any)?.currentOutletId || null;
+    
+    // For Bakers, Runners, and Admins, we ignore the currentOutletId filter 
+    // to ensure they see ALL orders across all outlets (Central Kitchen model)
+    const filterOutletId = userRole === "user" 
+        ? ((session?.user as any)?.currentOutletId || null)
+        : null;
 
-    // For Admin: if currentOutletId is null, getActiveOrders(null) will fetch all orders
-    // For others: if null, it will be handled by the action logic
+    // For Admin: if filterOutletId is null, getActiveOrders(null) will fetch all orders
     const [outlets, products, orders] = await Promise.all([
         getOutlets(),
         getProducts(),
-        getActiveOrders(currentOutletId, date),
+        getActiveOrders(filterOutletId, date),
     ]);
 
     return (
@@ -28,7 +32,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
             products={products}
             outlets={outlets}
             userRole={userRole}
-            outletId={currentOutletId}
+            outletId={(session?.user as any)?.currentOutletId || null}
             date={date}
         />
     );
