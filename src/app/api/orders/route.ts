@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { getActiveOrders } from "@/app/actions";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export async function GET(request: Request) {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
-        });
+        }) as Session | null;
 
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
         const url = new URL(request.url);
         const dateStr = url.searchParams.get("date") || undefined;
-        const outletId = (session.user as any).currentOutletId;
+        const outletId = session.user.currentOutletId;
         const orders = await getActiveOrders(outletId, dateStr);
 
         return NextResponse.json(orders);

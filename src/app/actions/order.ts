@@ -4,12 +4,12 @@ import { db } from "@/db";
 import { orders, orderItems, stock, stockTransactions, products } from "@/db/schema";
 import { revalidatePath } from "next/cache";
 import { eq, inArray, and, isNull } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export async function updateOrderItems(orderId: number, newItems: { product_id: number; quantity: number }[]) {
     try {
-        const session = await auth.api.getSession({ headers: await headers() });
+        const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
         const userRole = session?.user?.role;
         const userId = session?.user?.id;
 

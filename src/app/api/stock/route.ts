@@ -2,14 +2,14 @@ import { db } from "@/db";
 import { stock, products, outlets } from "@/db/schema";
 import { NextResponse } from "next/server";
 import { sql, eq, and, isNull } from "drizzle-orm";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export async function GET(request: Request) {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
-        });
+        }) as Session | null;
 
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
         const url = new URL(request.url);
         const userRole = session.user.role;
-        const currentOutletId = (session.user as any).currentOutletId;
+        const currentOutletId = session.user.currentOutletId;
 
         // Build the base query
         let stockQuery = db

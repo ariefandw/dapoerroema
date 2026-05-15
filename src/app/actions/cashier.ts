@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { orders, orderItems } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { checkStockAvailability, deductStock, getProductStock } from "./stock";
@@ -34,7 +34,7 @@ interface CreateCashierOrderData {
 export async function createCashierOrder(data: CreateCashierOrderData) {
     const session = await auth.api.getSession({
         headers: await headers(),
-    });
+    }) as Session | null;
 
     if (!session?.user?.id) {
         throw new Error("Unauthorized");
@@ -127,7 +127,7 @@ export async function createCashierOrder(data: CreateCashierOrderData) {
 export async function getCashierStockLevels() {
     const session = await auth.api.getSession({
         headers: await headers(),
-    });
+    }) as Session | null;
 
     if (!session?.user?.id) {
         throw new Error("Unauthorized");

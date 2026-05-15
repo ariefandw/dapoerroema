@@ -70,13 +70,13 @@ const masterDataItems = [
     },
 ];
 
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { SendHorizontal } from "lucide-react";
 
 export default async function MasterDataHub() {
-    const session = await auth.api.getSession({ headers: await headers() });
-    const userRole = (session?.user as any)?.role || "user";
+    const session = await auth.api.getSession({ headers: await headers() }) as Session | null;
+    const userRole = session?.user?.role || "user";
 
     const filteredItems = masterDataItems.filter(item =>
         userRole === "admin" || (userRole === "user" && item.href === "/admin/master/stock")

@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { stock, stockTransactions, products, outlets } from "@/db/schema";
 import { eq, and, sql, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 
 export interface StockLevel {
@@ -124,7 +124,7 @@ export async function upsertStock(data: {
 }) {
   const session = await auth.api.getSession({
     headers: await headers(),
-  });
+  }) as Session | null;
   const userId = session?.user?.id || null;
 
   if (data.id) {
@@ -210,7 +210,7 @@ export async function addStock(data: {
 
   const session = await auth.api.getSession({
     headers: await headers(),
-  });
+  }) as Session | null;
   const userId = session?.user?.id || null;
 
   // Get or create stock entry
@@ -260,7 +260,7 @@ export async function deductStock(data: {
 
   const session = await auth.api.getSession({
     headers: await headers(),
-  });
+  }) as Session | null;
   const userId = session?.user?.id || null;
 
   // Get existing stock
@@ -315,7 +315,7 @@ export async function transferStock(data: {
 
   const session = await auth.api.getSession({
     headers: await headers(),
-  });
+  }) as Session | null;
   const userId = session?.user?.id || null;
 
   // Check source stock

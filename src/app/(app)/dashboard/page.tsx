@@ -1,17 +1,17 @@
 import { AdminDashboard } from "@/components/dashboards/AdminDashboard";
 import { requireRole } from "@/lib/auth-guard";
 import { PageContainer } from "@/components/PageContainer";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
     const session = await auth.api.getSession({
         headers: await headers(),
-    });
+    }) as Session | null;
 
     if (!session) redirect("/login");
-    const role = (session.user as any).role ?? "admin";
+    const role = session.user.role ?? "admin";
 
     return (
         <PageContainer>

@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { products, stockTransactions } from "@/db/schema";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { auth, Session } from "@/lib/auth";
 import { headers } from "next/headers";
 import { addStock } from "./stock";
 import { eq, desc, sql } from "drizzle-orm";
@@ -27,7 +27,7 @@ export interface ReceivingData {
 export async function recordReceiving(data: ReceivingData) {
     const session = await auth.api.getSession({
         headers: await headers(),
-    });
+    }) as Session | null;
 
     if (!session?.user?.id) {
         throw new Error("Unauthorized");
