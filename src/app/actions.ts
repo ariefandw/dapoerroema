@@ -67,7 +67,7 @@ export async function adminCreateUser(data: { email: string; name: string; usern
             }
         }
 
-        await auth.api.createUser({
+        await (auth.api as any).createUser({
             headers: await headers(),
             body: {
                 email: data.email,
@@ -91,12 +91,12 @@ export async function adminCreateUser(data: { email: string; name: string; usern
 export async function toggleUserStatus(userId: string, isBanned: boolean) {
     try {
         if (isBanned) {
-            await auth.api.unbanUser({
+            await (auth.api as any).unbanUser({
                 headers: await headers(),
                 body: { userId }
             });
         } else {
-            await auth.api.banUser({
+            await (auth.api as any).banUser({
                 headers: await headers(),
                 body: { userId }
             });
