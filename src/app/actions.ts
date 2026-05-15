@@ -159,7 +159,7 @@ export async function updateProfile(data: { id: string; name: string; username?:
     try {
         const session = await auth.api.getSession({
             headers: await headers()
-        });
+        }) as Session | null;
 
         if (!session?.user) {
             return { success: false, error: "Not authenticated" };
@@ -205,7 +205,7 @@ export async function updateCurrentOutlet(outletId: number | null) {
     try {
         const session = await auth.api.getSession({
             headers: await headers()
-        });
+        }) as Session | null;
 
         if (!session?.user) {
             return { success: false, error: "Not authenticated" };
