@@ -219,22 +219,28 @@ export async function updateCurrentOutlet(outletId: number | null) {
 
         // If 'user' role, enforce brand restrictions
         if (session.user.role === "user") {
-            if (outletId === null) {
-                return { success: false, error: "Tipe akun anda harus memilih spesifik outlet." };
-            }
+            // If the user is a "Semua Outlet" user (no starting outlet), 
+            // they can pick ANY outlet initially.
+            if (session.user.currentOutletId === null) {
+                // No restriction, allow switching to targetOutlet
+            } else {
+                if (outletId === null) {
+                    return { success: false, error: "Tipe akun anda harus memilih spesifik outlet." };
+                }
 
-            // Get current outlet brand
-            const userCurrent = await db.query.user.findFirst({
-                where: eq(user.id, session.user.id),
-                with: { currentOutlet: true }
-            });
+                // Get current outlet brand
+                const userCurrent = await db.query.user.findFirst({
+                    where: eq(user.id, session.user.id),
+                    with: { currentOutlet: true }
+                });
 
-            const targetOutlet = await db.query.outlets.findFirst({
-                where: eq(outlets.id, outletId)
-            });
+                const targetOutlet = await db.query.outlets.findFirst({
+                    where: eq(outlets.id, outletId)
+                });
 
-            if (!userCurrent?.currentOutlet?.brand_id || !targetOutlet?.brand_id || userCurrent.currentOutlet.brand_id !== targetOutlet.brand_id) {
-                return { success: false, error: "Anda hanya boleh memilih outlet dari brand yang sama." };
+                if (!userCurrent?.currentOutlet?.brand_id || !targetOutlet?.brand_id || userCurrent.currentOutlet.brand_id !== targetOutlet.brand_id) {
+                    return { success: false, error: "Anda hanya boleh memilih outlet dari brand yang sama." };
+                }
             }
         }
 
