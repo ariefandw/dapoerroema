@@ -34,7 +34,8 @@ export async function getOutlets() {
             }
         }
 
-        return [];
+        // If no currentOutletId, they can see ALL outlets (Semua Outlet)
+        return await db.select().from(outlets).orderBy(outlets.name);
     } catch (error) {
         console.error("Failed to get outlets:", error);
         return [];

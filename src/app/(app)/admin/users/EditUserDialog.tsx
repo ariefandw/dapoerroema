@@ -187,7 +187,7 @@ export function EditUserDialog({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="none">Tidak Ada Outlet</SelectItem>
+                                            <SelectItem value="none">Semua Outlet</SelectItem>
                                             {outlets.map((outlet) => (
                                                 <SelectItem key={outlet.id} value={outlet.id.toString()}>
                                                     {outlet.name}

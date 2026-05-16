@@ -109,11 +109,20 @@ export function CreateOrderForm({
         });
     }
 
-    if (!currentOutletId && userRole !== "admin") {
+    // For users, if they have NO currentOutletId, it means they are assigned to "Semua Outlet"
+    // and can pick any outlet in the database.
+    const isSemuaOutletUser = userRole === "user" && !currentOutletId;
+    
+    // Non-admin users who ARE restricted to an outlet (currentOutletId exists) 
+    // or are "Semua Outlet" users should be able to see the form.
+    // If they are a normal user without an outlet assigned (and not 'Semua Outlet' intended),
+    // they should still see the form IF outlets list is provided.
+    
+    if (!currentOutletId && userRole !== "admin" && outlets.length === 0) {
         return (
             <div className="text-center py-6 text-muted-foreground">
                 <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Silakan pilih outlet di menu atas terlebih dahulu untuk membuat order.</p>
+                <p>Tidak ada outlet yang tersedia untuk akun Anda.</p>
             </div>
         );
     }

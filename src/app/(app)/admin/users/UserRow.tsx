@@ -172,7 +172,7 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                                 <SelectValue placeholder="Outlet" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="none" className="text-sm">Tiada</SelectItem>
+                                <SelectItem value="none" className="text-sm">Semua Outlet</SelectItem>
                                 {outlets.map((o) => (
                                     <SelectItem key={o.id} value={o.id.toString()} className="text-sm">
                                         {o.name}
@@ -259,7 +259,7 @@ export function UserRow({ user, outlets, view = "desktop" }: UserRowProps) {
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="none" className="text-sm">Tidak Ada Outlet</SelectItem>
+                        <SelectItem value="none" className="text-sm">Semua Outlet</SelectItem>
                         {outlets.map((o) => (
                             <SelectItem key={o.id} value={o.id.toString()} className="text-sm">
                                 {o.name}
