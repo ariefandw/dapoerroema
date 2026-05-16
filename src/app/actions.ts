@@ -20,7 +20,20 @@ export async function getOutlets() {
             return await db.select().from(outlets).orderBy(outlets.name);
         }
 
-        // Users can only see outlets from their brand
+        // For 'user' role, check their permanent database state first.
+        // If they are assigned "Semua Outlet" in the DB (currentOutletId is null),
+        // they should ALWAYS see all outlets in the dropdown, regardless of what they are currently viewing.
+        const dbUser = await db.query.user.findFirst({
+            where: eq(user.id, session.user.id),
+            columns: { currentOutletId: true }
+        });
+
+        // If their base assignment is null, they have global access
+        if (dbUser && dbUser.currentOutletId === null) {
+            return await db.select().from(outlets).orderBy(outlets.name);
+        }
+
+        // Otherwise, they are a restricted user. They can only see outlets from their brand.
         if (session.user.currentOutletId) {
             const currentOutlet = await db.query.outlets.findFirst({
                 where: eq(outlets.id, session.user.currentOutletId),
@@ -34,7 +47,7 @@ export async function getOutlets() {
             }
         }
 
-        // If no currentOutletId, they can see ALL outlets (Semua Outlet)
+        // Fallback
         return await db.select().from(outlets).orderBy(outlets.name);
     } catch (error) {
         console.error("Failed to get outlets:", error);
